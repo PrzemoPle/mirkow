@@ -13,6 +13,7 @@ import { el } from "./dom";
 import { economyLabel } from "./copy";
 import { wealth } from "../game";
 import { formatNumber, formatZl, interpolate, meterPercent } from "./format";
+import { getAudioPrefs, onAudioPrefs, setAudioPrefs, sfx, type AudioPrefs } from "./audio";
 
 type MeterField = "money" | "happiness" | "education" | "career";
 
@@ -73,6 +74,7 @@ export function buildTopBar(): TopBar {
   weekBlock.append(economy);
 
   const wallet = el("div", "wallet");
+  wallet.append(buildAudioToggles());
   const moneyBlock = el("div", "money-block");
   const money = el("p", "money");
   const accountLine = el("span", "money-extra");
@@ -320,4 +322,35 @@ export function buildRivalRow(): RivalRow {
       }
     },
   };
+}
+
+function audioToggle(kind: keyof AudioPrefs, label: string): HTMLButtonElement {
+  const button = el("button", `audio-toggle audio-${kind}`);
+  button.type = "button";
+  button.setAttribute("aria-label", label);
+  const text = el("span");
+  text.textContent = label;
+  button.append(text);
+  const sync = (prefs: AudioPrefs): void => {
+    const on = prefs[kind];
+    button.setAttribute("aria-pressed", on ? "true" : "false");
+    button.classList.toggle("audio-off", !on);
+    button.title = `${label}: ${on ? t("audioOn") : t("audioOff")}`;
+  };
+  sync(getAudioPrefs());
+  onAudioPrefs(sync);
+  button.addEventListener("click", () => {
+    const prefs = getAudioPrefs();
+    setAudioPrefs({ ...prefs, [kind]: !prefs[kind] });
+    sfx("ui");
+  });
+  return button;
+}
+
+/** Dwa przełączniki: muzyka i dźwięki. Stan trzymany w localStorage. */
+export function buildAudioToggles(): HTMLElement {
+  const root = el("div", "audio-toggles");
+  root.setAttribute("role", "group");
+  root.append(audioToggle("music", t("audioMusic")), audioToggle("sfx", t("audioSfx")));
+  return root;
 }

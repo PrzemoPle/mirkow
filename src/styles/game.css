@@ -118,6 +118,48 @@
   justify-self: end;
 }
 
+.audio-toggles {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.audio-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  min-height: 2.5rem;
+  padding: 0.3rem 0.55rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: none;
+  color: var(--text-2);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.audio-toggle::before {
+  content: "";
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--ok);
+  box-shadow: 0 0 0 2px rgb(143 168 111 / 0.25);
+}
+
+.audio-off {
+  color: var(--text-3);
+}
+
+.audio-off::before {
+  background: var(--line-2);
+  box-shadow: none;
+}
+
+.audio-toggle:hover {
+  border-color: var(--line-2);
+  color: var(--text);
+}
+
 .money {
   margin: 0;
   font-family: var(--display);
@@ -1002,6 +1044,15 @@
   .wallet {
     grid-row: 1;
     grid-column: 2;
+  }
+
+  .audio-toggle span {
+    display: none;
+  }
+
+  .audio-toggle {
+    min-width: 2.5rem;
+    justify-content: center;
   }
 
   .week-block {

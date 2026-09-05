@@ -5,6 +5,7 @@ import { eventEffect, eventTitle, noticeEffect, noticeTitle } from "./copy";
 import { el } from "./dom";
 import { formatZl, interpolate } from "./format";
 import { prefersReducedMotion, wait } from "./motion";
+import { sfx } from "./audio";
 
 const EVENT_AUTO_CLOSE_MS = 5200;
 const RIVAL_AUTO_CLOSE_MS = 2600;
@@ -78,6 +79,7 @@ function showCard(input: CardInput): Promise<void> {
     card.append(band);
 
     const overlay = mountOverlay(card, input.title);
+    sfx("card");
     let done = false;
     const finish = (): void => {
       if (done) {
@@ -156,6 +158,7 @@ export function showVictory(input: VictoryInput): void {
   panel.append(face, copy);
 
   const overlay = mountOverlay(panel, title.textContent);
+  sfx(won ? "victory" : "defeat");
   again.addEventListener("click", () => {
     overlay.remove();
     input.onNewGame();
@@ -216,6 +219,7 @@ export function showRivalCard(rival: Player, mood: RivalMood, text: string): Pro
     card.append(face, copy);
     const overlay = mountOverlay(card, text);
     overlay.classList.add("overlay-light");
+    sfx("ui");
     let done = false;
     const finish = (): void => {
       if (done) {

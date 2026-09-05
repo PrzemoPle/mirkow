@@ -16,7 +16,7 @@ Turowa gra **Symulator życia** (Mirków). Vite + TypeScript, vanilla DOM, Vites
 - Mutacja stanu tylko przez `dispatch` → `EngineResult`.
 - Copy gracza wyłącznie w `src/i18n/pl.ts` (bez em dash, analogi marek).
 - Bitmapy: źródła PNG w `art-src/art/`, gra serwuje WebP z `public/art/` (`npm run art:webp`, wymaga Pythona z Pillow). Nazwy w `src/ui/art.ts` = pliki `.webp`. Zero tekstu i logotypów na bitmapach.
-- Nie dodawać Lottie, GIF, walk cycle, @2x, dźwięku, ani nowych lokacji „przy okazji”.
+- Nie dodawać Lottie, GIF, walk cycle, @2x, ani nowych lokacji „przy okazji”. Dźwięk jest syntetyzowany w `src/ui/audio/` (Web Audio, bez plików), patrz `docs/audio.md`.
 
 ## Wzorce
 
@@ -27,7 +27,7 @@ Turowa gra **Symulator życia** (Mirków). Vite + TypeScript, vanilla DOM, Vites
 
 ## Tego nie ruszać bez decyzji produktowej
 
-- Pory dnia na kafelkach, walk cycle, dźwięk (P2 z 2026-09-05 jest wpięte: panorama, Kowalski, ikony akcji, ciemna mata, laur).
+- Pory dnia na kafelkach, walk cycle (P2 z 2026-09-05 jest wpięte: panorama, Kowalski, ikony akcji, ciemna mata, laur). Dźwięk: decyzja podjęta 2026-09-05, patrz `docs/audio.md`.
 - Online / backend.
 - Podmiana stacku na React.
 
@@ -46,6 +46,7 @@ Turowa gra **Symulator życia** (Mirków). Vite + TypeScript, vanilla DOM, Vites
 - `src/ui/overlays.ts` karta eventu (z weekendem), karta zasad na start, karta Kowalskiego z miną, ekran zwycięstwa
 - `src/ui/journal.ts` dziennik tygodnia (stan UI, nie zapis)
 - `src/ui/setup.ts` ekran startu z presetami długości partii
+- `src/ui/audio/` muzyka i efekty na Web Audio: `song.ts` (utwór jako dane), `engine.ts` (scheduler, instrumenty, efekty, przełączniki)
 - `src/styles/*.css` tokeny (jeden ciemny motyw, zablokowany), base, game, overlays, setup
 
 Kierunek wizualny: „Wieczór w Mirkowie”, patrz `docs/przeglad-2026-09-05.md`. Briefy grafik: `docs/brief-p2.md`, `brief-p3.md`, `brief-p4.md`, `brief-p5.md`. Audyt UX i status napraw: `docs/audyt-ux-2026-09-05.md`.

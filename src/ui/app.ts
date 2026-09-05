@@ -41,6 +41,7 @@ import { showEventCard, showHowToCard, showNoticeCard, showRivalCard, showVictor
 import { buildPanel } from "./panel";
 import { buildSetup, type SetupHandlers } from "./setup";
 import { buildWorkCard } from "./work";
+import { sfx, unlockAudio } from "./audio";
 
 const BOT_ACT_MS = 520;
 const BOT_END_MS = 300;
@@ -188,6 +189,7 @@ export function renderApp(root: HTMLElement): void {
     const result = dispatch(state, { type: "move", to });
     if (!result.ok) {
       lastError = result.error;
+      sfx("error");
       paint();
       return;
     }
@@ -197,6 +199,7 @@ export function renderApp(root: HTMLElement): void {
     persist(state);
     shell.top.sync(state, state.timeLeft, t("turnYours"));
     shell.board.syncTiles(state, getHumanPlayer(state) ?? player, false);
+    sfx("move");
     await shell.board.travel("human", state, player.locationId, to);
     busy = false;
     paint(`${t(locationName(to))}. ${placeDescription(to)}`);
@@ -212,10 +215,12 @@ export function renderApp(root: HTMLElement): void {
     const result = dispatch(state, { type: "apply", job });
     if (!result.ok) {
       lastError = result.error;
+      sfx("error");
       paint();
       return;
     }
     lastError = null;
+    sfx("stamp");
     const def = getJobDef(job);
     const line = interpolate("actedApply", { job: jobName(job), company: companyName(def.company) });
     shell.journal.add({ week: state.week, who: "you", text: line });
@@ -231,10 +236,12 @@ export function renderApp(root: HTMLElement): void {
     const result = dispatch(state, { type: "enroll", diploma });
     if (!result.ok) {
       lastError = result.error;
+      sfx("error");
       paint();
       return;
     }
     lastError = null;
+    sfx("stamp");
     commit(result.state, interpolate("actedEnroll", { diploma: diplomaName(diploma) }));
   }
 
@@ -245,10 +252,12 @@ export function renderApp(root: HTMLElement): void {
     const result = dispatch(state, { type: "relocate", home });
     if (!result.ok) {
       lastError = result.error;
+      sfx("error");
       paint();
       return;
     }
     lastError = null;
+    sfx("stamp");
     const line = interpolate("actedRelocate", { home: homeName(home) });
     shell.journal.add({ week: state.week, who: "you", text: line });
     commit(result.state, line);
@@ -262,10 +271,12 @@ export function renderApp(root: HTMLElement): void {
     const result = dispatch(state, action);
     if (!result.ok) {
       lastError = result.error;
+      sfx("error");
       paint();
       return;
     }
     lastError = null;
+    sfx("coin");
     const name = itemName(action.item);
     const line =
       action.type === "buyItem"
@@ -285,10 +296,12 @@ export function renderApp(root: HTMLElement): void {
     const result = dispatch(state, action);
     if (!result.ok) {
       lastError = result.error;
+      sfx("error");
       paint();
       return;
     }
     lastError = null;
+    sfx("coin");
     const after = getHumanPlayer(result.state);
     const line =
       action.type === "account"
@@ -311,10 +324,12 @@ export function renderApp(root: HTMLElement): void {
     const result = dispatch(state, { type: "askRaise" });
     if (!result.ok) {
       lastError = result.error;
+      sfx("error");
       paint();
       return;
     }
     lastError = null;
+    sfx("stamp");
     shell.journal.add({ week: state.week, who: "you", text: t("actedRaise") });
     commit(result.state, t("actedRaise"));
     await showHumanNotice();
@@ -346,10 +361,12 @@ export function renderApp(root: HTMLElement): void {
     const result = dispatch(state, { type: "act", id });
     if (!result.ok) {
       lastError = result.error;
+      sfx("error");
       paint();
       return;
     }
     lastError = null;
+    sfx(resolved.wage > 0 ? "coin" : "act");
     commit(result.state, actedMessage(id, resolved.wage));
     if (id === "takeExam") {
       void showHumanNotice().then(() => {
@@ -488,10 +505,12 @@ export function renderApp(root: HTMLElement): void {
     const result = dispatch(state, { type: "endWeek" });
     if (!result.ok) {
       lastError = result.error;
+      sfx("error");
       paint();
       return;
     }
     lastError = null;
+    sfx("endWeek");
     busy = true;
     state = result.state;
     persist(state);
@@ -613,6 +632,7 @@ export function renderApp(root: HTMLElement): void {
       });
     }
     shell.newGame.addEventListener("click", startOver);
+    shell.root.addEventListener("pointerdown", unlockAudio, { passive: true });
 
     observer = new ResizeObserver(() => {
       if (shell !== null) {
@@ -675,6 +695,7 @@ export function renderApp(root: HTMLElement): void {
       saved,
       notice,
       onStart: (choice) => {
+        unlockAudio();
         const started = dispatch(createSetup(Date.now() % 100_000 || 1), {
           type: "start",
           name: choice.name,
@@ -692,6 +713,7 @@ export function renderApp(root: HTMLElement): void {
     if (loaded.status === "ok") {
       const resume = loaded.state;
       handlers.onContinue = () => {
+        unlockAudio();
         state = resume;
         lastError = null;
         mountPlay();

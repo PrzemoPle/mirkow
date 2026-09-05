@@ -43,6 +43,7 @@ Roboczy tytuł: **Symulator życia**. PWA `short_name`: **Mirków**. Ostateczna 
 | `docs/przeglad-2026-09-05.md` | **przegląd wyglądu i plan zmian E1–E4** (czytać po tym pliku) |
 | `docs/brief-p2.md` | grafiki do zamówienia po E1–E2 (panorama, Kowalski, ikony akcji) |
 | `docs/uwagi-p5b.md` | uwagi do paczki P5b: komplet wpięty, winiety wtopione przez CSS |
+| `docs/audio.md` | dźwięk: muzyka w tle i efekty syntetyzowane na Web Audio, przełączniki |
 | `docs/brief-p5.md` | brief P5: trener od nowa, rekwizyty, winiety weekendów, karta instrukcji |
 | `docs/uwagi-p4b.md` | uwagi do poprawionej paczki P4b: odrzucony trener, usunięta obwódka, drobiazgi |
 | `docs/uwagi-p4.md` | uwagi do dostarczonej paczki P4: co poprawić w postaciach i minach Kowalskiego |

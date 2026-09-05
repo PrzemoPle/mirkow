@@ -1,4 +1,4 @@
-const CACHE_NAME = "mirkow-v7";
+const CACHE_NAME = "mirkow-v8";
 
 const PRECACHE = [
   "./",

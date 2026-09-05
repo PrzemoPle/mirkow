@@ -1,6 +1,6 @@
 # Brief P4: postacie Mirkowa i grafiki „zachęty” (po audycie UX)
 
-> **Dostarczone 5 września 2026:** paczki P4-A (11 postaci + ikona lokaty) i P4-B (2 miny Kowalskiego), wpięte w grę. Popiersia przyszły bez alfy, więc UI pokazuje je w okrągłym okienku z przycięciem. P4-C (winiety weekendów, karta instrukcji) nadal otwarte, opcjonalne.
+> **Dostarczone 5 września 2026:** paczki P4-A (11 postaci + ikona lokaty) i P4-B (2 miny Kowalskiego), wpięte w grę. Poprawka P4b tego samego dnia: alfa we wszystkich plikach, trener odrzucony (zdjęcie z logo), patrz `uwagi-p4b.md`. P4-C (winiety weekendów, karta instrukcji) nadal otwarte, opcjonalne.
 
 Data: 5 września 2026. Specyfikacja dla programu graficznego. Uzupełnia `brief-bitmapy.md` (P0), `brief-p1.md`, `brief-p2.md` i `brief-p3.md`. Powód i kontekst: `audyt-ux-2026-09-05.md`, §6 i §9. Krótko: Jones w każdym budynku miał człowieka, który coś mówił, a Mirków ma puste kadry. Ta paczka dodaje miastu ludzi.
 

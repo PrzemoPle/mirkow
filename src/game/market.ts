@@ -6,6 +6,8 @@ export const CLOTHES_BASE = 120;
 export const PRICE_FLOOR = 0.8;
 export const PRICE_SPAN = 0.5;
 export const RENT_HIKE = 50;
+/** Sufit czynszu: inflacja ma dawać presję, nie spiralę śmierci. */
+export const RENT_MAX = 800;
 
 export function startingMarket(): Market {
   return { food: FOOD_BASE, clothes: CLOTHES_BASE };

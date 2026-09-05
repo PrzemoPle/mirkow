@@ -37,8 +37,8 @@ function seedFor(id: EventId): number {
 }
 
 describe("events", () => {
-  it("covers eight cards and picks the same one for a seed", () => {
-    expect(eventIds).toHaveLength(8);
+  it("covers ten cards and picks the same one for a seed", () => {
+    expect(eventIds).toHaveLength(10);
     const first = pickEvent(9);
     const second = pickEvent(9);
     expect(first.id).toBe(second.id);

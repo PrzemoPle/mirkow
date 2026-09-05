@@ -2,13 +2,15 @@ import { TIME_MAX } from "./catalog";
 import {
   resolveAction,
   BARE_HAPPINESS_PENALTY,
+  DEPOSIT_PAYOUT,
+  DEPOSIT_WEEKS,
   HUNGER_TIME_PENALTY,
   RENT_INTERVAL_WEEKS,
   type ActionDef,
 } from "./actions";
 import { BOT_NAME, pickBotAvatar } from "./avatars";
 import { getEventDef, pickEvent } from "./events";
-import { pricesChanged, RENT_HIKE, rollShopPrices, startingMarket } from "./market";
+import { pricesChanged, RENT_HIKE, RENT_MAX, rollShopPrices, startingMarket } from "./market";
 import { createPlayer, startingStats } from "./state";
 import { assertNever } from "./assert-never";
 import { isLocationId, travelCost } from "./board";
@@ -213,6 +215,9 @@ function applyAction(state: GameState, def: ActionDef): EngineResult {
       });
     }
   }
+  if (def.opensDeposit && player.deposit !== null) {
+    return fail({ code: "depositActive" });
+  }
   if (player.stats.money < def.moneyCost) {
     return fail({
       code: "insufficientMoney",
@@ -247,6 +252,9 @@ function applyAction(state: GameState, def: ActionDef): EngineResult {
           def.givesJob !== null
             ? { id: def.givesJob, weeks: 0 }
             : current.job,
+        deposit: def.opensDeposit
+          ? { amount: def.moneyCost, payout: DEPOSIT_PAYOUT, weeksLeft: DEPOSIT_WEEKS }
+          : current.deposit,
         needs: {
           foodWeeks:
             def.foodWeeks !== null ? def.foodWeeks : current.needs.foodWeeks,
@@ -273,6 +281,7 @@ function performAct(state: GameState, actionId: ActionId): EngineResult {
     case "restHome":
     case "restCafe":
     case "restGym":
+    case "deposit":
       return applyAction(state, resolveAction(state, actionId));
     default: {
       const exhaustive: never = actionId;
@@ -292,7 +301,7 @@ function chargeRent(state: GameState): GameState {
   }
 
   const amount = player.home.rent;
-  const nextRent = amount + RENT_HIKE;
+  const nextRent = Math.min(RENT_MAX, amount + RENT_HIKE);
   return {
     ...replaceActive(state, {
       ...player,
@@ -304,6 +313,26 @@ function chargeRent(state: GameState): GameState {
       { kind: "rent", amount },
       { kind: "rentHike", amount: nextRent },
     ],
+  };
+}
+
+function payDeposit(state: GameState): GameState {
+  const player = getActive(state);
+  if (player === undefined || player.deposit === null) {
+    return state;
+  }
+  const weeksLeft = player.deposit.weeksLeft - 1;
+  if (weeksLeft > 0) {
+    return replaceActive(state, { ...player, deposit: { ...player.deposit, weeksLeft } });
+  }
+  const amount = player.deposit.payout;
+  return {
+    ...replaceActive(state, {
+      ...player,
+      deposit: null,
+      stats: { ...player.stats, money: player.stats.money + amount },
+    }),
+    lastWeekEffects: [...state.lastWeekEffects, { kind: "deposit", amount }],
   };
 }
 
@@ -478,7 +507,7 @@ function endWeek(state: GameState): EngineResult {
     lastEvent: null,
     lastWeekEffects: [],
   };
-  const rented = chargeRent(cleared);
+  const rented = payDeposit(chargeRent(cleared));
   const evented = applyEventHit(rented);
   const supported = withSafetyNetEffect(evented);
   const settled = withVictory(supported);

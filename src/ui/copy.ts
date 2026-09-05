@@ -2,8 +2,10 @@ import { assertNever } from "../game/assert-never";
 import type { ActionDef } from "../game/actions";
 import type { EngineError } from "../game/result";
 import type { ActionId, EventId, GameState, Job, WeekEffect } from "../game/types";
+import { DEPOSIT_PAYOUT, DEPOSIT_WEEKS } from "../game/actions";
 import {
   AUKCJE_COST,
+  NAPIWKI_MONEY,
   KONTROLA_COST,
   KOREK_TIME,
   LOTTO_MONEY,
@@ -43,6 +45,8 @@ function actionLabelKey(id: ActionId): MessageKey {
       return "actRestCafe";
     case "restGym":
       return "actRestGym";
+    case "deposit":
+      return "actDeposit";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -93,6 +97,8 @@ export function actedMessage(id: ActionId, wage: number): string {
       return t("actedRestCafe");
     case "restGym":
       return t("actedRestGym");
+    case "deposit":
+      return interpolate("actedDeposit", { n: DEPOSIT_WEEKS });
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -139,6 +145,9 @@ export function actionEffects(def: ActionDef): string[] {
   if (def.clothesWeeks !== null) {
     out.push(interpolate("effectClothes", { n: def.clothesWeeks }));
   }
+  if (def.opensDeposit) {
+    out.push(interpolate("effectDepositInfo", { payout: DEPOSIT_PAYOUT, n: DEPOSIT_WEEKS }));
+  }
   return out;
 }
 
@@ -157,6 +166,8 @@ export function blockReason(error: EngineError): string {
       return interpolate("blockTenure", { have: error.have, needed: error.needed });
     case "insufficientTime":
       return interpolate("blockTime", { needed: error.needed });
+    case "depositActive":
+      return t("blockDeposit");
     case "wrongPhase":
     case "alreadyThere":
     case "unknownLocation":
@@ -189,6 +200,10 @@ export function eventTitle(id: EventId): string {
       return t("eventTitlePit");
     case "promocja":
       return t("eventTitlePromocja");
+    case "napiwki":
+      return t("eventTitleNapiwki");
+    case "spokoj":
+      return t("eventTitleSpokoj");
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -214,6 +229,10 @@ export function eventEffect(id: EventId): string {
       return interpolate("eventEffectMoneyMinus", { n: PIT_COST });
     case "promocja":
       return interpolate("eventEffectFood", { n: PROMOCJA_FOOD });
+    case "napiwki":
+      return interpolate("eventEffectMoneyPlus", { n: NAPIWKI_MONEY });
+    case "spokoj":
+      return t("eventEffectNone");
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -256,6 +275,8 @@ export function effectLine(effect: WeekEffect): string {
       });
     case "event":
       return eventMessage(effect.id);
+    case "deposit":
+      return interpolate("effectDepositPaid", { amount: effect.amount });
     case "safetyNet": {
       switch (effect.grant) {
         case "ciocia":
@@ -296,6 +317,10 @@ export function eventMessage(id: EventId | null): string {
       return interpolate("eventPit", { amount: PIT_COST });
     case "promocja":
       return interpolate("eventPromocja", { n: PROMOCJA_FOOD });
+    case "napiwki":
+      return interpolate("eventNapiwki", { amount: NAPIWKI_MONEY });
+    case "spokoj":
+      return t("eventSpokoj");
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);

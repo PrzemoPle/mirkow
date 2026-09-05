@@ -13,7 +13,8 @@ export type EngineError =
   | { code: "alreadyEmployed" }
   | { code: "insufficientMoney"; needed: number; have: number }
   | { code: "tooLittleEducation"; needed: number; have: number }
-  | { code: "tooLittleTenure"; needed: number; have: number };
+  | { code: "tooLittleTenure"; needed: number; have: number }
+  | { code: "depositActive" };
 
 export type EngineResult =
   | { ok: true; state: GameState }

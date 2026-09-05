@@ -9,6 +9,8 @@ export const REST_HAPPINESS = 3;
 export const AUNT_HELP = 500;
 export const MOPS_HELP = 350;
 export const METER_MAX = 100;
+export const STARTING_FOOD_WEEKS = 2;
+export const STARTING_CLOTHES_WEEKS = 3;
 
 export type Stats = {
   money: number;
@@ -32,7 +34,8 @@ export type ActionId =
   | "buyClothes"
   | "restHome"
   | "restCafe"
-  | "restGym";
+  | "restGym"
+  | "deposit";
 
 export type JobId = "kebabKasjer" | "kebabKierownik" | "kebabLokal";
 
@@ -49,7 +52,9 @@ export type EventId =
   | "aukcje"
   | "kontrola"
   | "pit"
-  | "promocja";
+  | "promocja"
+  | "napiwki"
+  | "spokoj";
 
 export type WeekEffect =
   | { kind: "rent"; amount: number }
@@ -58,14 +63,21 @@ export type WeekEffect =
   | { kind: "noClothes"; happinessLost: number }
   | { kind: "safetyNet"; grant: SafetyNetKind; amount: number }
   | { kind: "shopPrices"; food: number; clothes: number }
-  | { kind: "event"; id: EventId };
+  | { kind: "event"; id: EventId }
+  | { kind: "deposit"; amount: number };
 
 export type Market = {
   food: number;
   clothes: number;
 };
 
-export type AvatarId = "ola" | "bartek" | "nati" | "marek";
+export type AvatarId = "ola" | "bartek" | "nati" | "marek" | "kowalski";
+
+export type Deposit = {
+  amount: number;
+  payout: number;
+  weeksLeft: number;
+};
 
 export type Controller = "human" | "bot";
 
@@ -81,6 +93,7 @@ export type Player = {
   needs: { foodWeeks: number; clothesWeeks: number };
   nextTimeLeft: number;
   lastEvent: EventId | null;
+  deposit: Deposit | null;
 };
 
 export type GameState = {

@@ -202,7 +202,10 @@ export function buildNeeds(): NeedsRow {
   const food = buildNeed("need-food", "needFood");
   const clothes = buildNeed("need-clothes", "needClothes");
   const job = buildNeed("need-job", "needJob");
-  root.append(food.node, clothes.node, job.node);
+  const deposit = buildNeed("stat-money", "depositLabel");
+  deposit.node.classList.add("need-deposit");
+  deposit.node.hidden = true;
+  root.append(food.node, clothes.node, job.node, deposit.node);
 
   function syncWeeks(need: { node: HTMLElement; value: HTMLElement }, weeks: number): void {
     const low = weeks <= 0;
@@ -217,6 +220,12 @@ export function buildNeeds(): NeedsRow {
       syncWeeks(clothes, player.needs.clothesWeeks);
       job.value.textContent = jobShort(player.job);
       job.node.classList.toggle("need-low", player.job === null);
+      if (player.deposit === null) {
+        deposit.node.hidden = true;
+      } else {
+        deposit.node.hidden = false;
+        deposit.value.textContent = interpolate("depositWeeks", { n: player.deposit.weeksLeft });
+      }
     },
   };
 }

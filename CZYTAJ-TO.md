@@ -246,9 +246,9 @@ To nie są bugi zapomnienia. Albo decyzja MVP je wycięła, albo silnik ma haczy
 
 ### 7.4 Dług i dziury w obecnym MVP
 
-- **Nasza Kasa nic nie robi.** Gracz może tam iść i tracić czas na drogę. Albo dodać lokatę/kredyt, albo schować kafelek, albo dać jedną akcję-zaślepkę.
-- Event leci **zawsze**, nie ma „spokojnego tygodnia”.
-- Bot nie korzysta z kawiarni, siłowni, awansu na własny lokal (openLokal) w heurystyce; może wygrać pracą/nauką/odpoczynkiem w domu.
+- ~~Nasza Kasa nic nie robi.~~ Od E3 (2026-09-05) bank ma lokatę.
+- ~~Event leci zawsze.~~ Od E3 są karty „Spokojny tydzień” (waga 2,5) i „Napiwki”.
+- Bot (od E3) sprawdza akcję „na sucho” przed dojazdem, uczy się gdy ma bufor na czynsz, pije kawę gdy go stać, otwiera lokal. Nie używa siłowni ani lokaty. `balance.test.ts` pilnuje, że bot kontra bot kończy partię w 20–80 tygodni.
 - Zwycięstwo to zmiana fazy i napis, HUD zostaje.
 - `glyphs.ts` / `avatar-art.ts` martwe.
 - `docs/grafika.md` i część briefów opisują stan sprzed wpięcia P1 (Phosphor, „bitmapy później”).
@@ -264,7 +264,10 @@ To nie są bugi zapomnienia. Albo decyzja MVP je wycięła, albo silnik ma haczy
 |---|---|---|
 | Pula czasu | 10 | `catalog.ts` |
 | Start kasy / szczęścia | 800 / 20 | `types.ts` |
-| Czynsz | 400, +50 co 4 tyg. | `types.ts`, `market.ts`, `actions.ts` |
+| Czynsz | 400, +50 co 4 tyg., sufit 800 (`RENT_MAX`) | `types.ts`, `market.ts`, `actions.ts` |
+| Start zapasów | jedzenie 2 tyg., ubranie 3 tyg. | `types.ts` |
+| Lokata (Nasza Kasa) | 1 cz., 1000 zł, wypłata 1080 zł po 4 tyg., jedna naraz | `actions.ts` |
+| Eventy | 10 kart, losowanie ważone: spokój 2,5, napiwki 1,5, reszta 1 | `events.ts` |
 | Ciocia / MOPS | 500 / 350 | `types.ts` |
 | Zmiana kasjer | 4 cz., +280 zł, +4 kariery | `jobs.ts` |
 | Kierownik | 420 zł, edu 18, staż 4 tyg. | `jobs.ts` |

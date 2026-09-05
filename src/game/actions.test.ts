@@ -40,11 +40,11 @@ function playerOf(state: GameState) {
 }
 
 describe("actionsAt", () => {
-  it("covers every location and leaves the bank idle", () => {
+  it("covers every location and gives the bank one deposit action", () => {
     for (const id of locationIds) {
       expect(Array.isArray(actionsAt(id))).toBe(true);
     }
-    expect(actionsAt("bank")).toEqual([]);
+    expect(actionsAt("bank")).toEqual(["deposit"]);
     expect(actionsAt("home")).toEqual(["restHome"]);
     expect(actionsAt("pup")).toEqual(["searchJob", "applyKierownik"]);
     expect(actionsAt("kebab")).toEqual(["openLokal", "workKebab"]);

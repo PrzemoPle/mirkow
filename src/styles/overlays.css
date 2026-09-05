@@ -121,6 +121,16 @@
   box-shadow: 0 0 0 4px var(--avatar, var(--accent));
 }
 
+.victory-laurel {
+  position: absolute;
+  inset: -1.2rem;
+  width: calc(100% + 2.4rem);
+  height: calc(100% + 2.4rem);
+  object-fit: contain;
+  opacity: 0.9;
+  pointer-events: none;
+}
+
 .victory-stamp {
   position: absolute;
   right: -1.4rem;

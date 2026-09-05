@@ -9,10 +9,32 @@
 }
 
 .setup-head {
+  position: relative;
+  display: grid;
+  align-items: end;
+  min-height: clamp(220px, 38vw, 420px);
+  margin: -1.25rem -1rem 0;
+  padding: 1.5rem 1rem 1.25rem;
+  overflow: hidden;
+  background-image:
+    linear-gradient(to top, var(--table) 0%, rgb(22 18 14 / 0.55) 45%, rgb(22 18 14 / 0.15) 100%),
+    var(--panorama, none);
+  background-size: cover;
+  background-position: center 35%;
+}
+
+.setup-head-copy {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
   gap: 1rem;
+  max-width: 1100px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.setup-head-copy .setup-rule {
+  grid-column: 1 / -1;
 }
 
 .setup-stamp {
@@ -25,6 +47,7 @@
 
 .setup-title {
   margin: 0;
+  text-shadow: 0 2px 8px rgb(0 0 0 / 0.7);
   font-family: var(--display);
   font-size: clamp(2.6rem, 8vw, 4.2rem);
   font-weight: 750;
@@ -45,7 +68,8 @@
   margin: 0;
   max-width: 44rem;
   font-size: 1.05rem;
-  color: var(--text-2);
+  color: var(--text);
+  text-shadow: 0 1px 4px rgb(0 0 0 / 0.8);
 }
 
 .setup-body {
@@ -254,6 +278,11 @@
 }
 
 @media (min-width: 900px) {
+  .setup-head {
+    margin: -1.25rem calc(50% - 50vw) 0;
+    padding-inline: max(1rem, calc(50vw - 550px));
+  }
+
   .setup-body {
     grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
     grid-template-areas:

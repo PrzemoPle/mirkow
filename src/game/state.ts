@@ -2,6 +2,8 @@ import { BOT_NAME, pickBotAvatar } from "./avatars";
 import { TIME_MAX, type LocationId } from "./catalog";
 import { startingMarket } from "./market";
 import {
+  STARTING_CLOTHES_WEEKS,
+  STARTING_FOOD_WEEKS,
   STARTING_HAPPINESS,
   STARTING_MONEY,
   STARTING_RENT,
@@ -20,6 +22,10 @@ export const DEFAULT_GOALS: Stats = {
   education: 60,
   career: 50,
 };
+
+export function startingNeeds(): Player["needs"] {
+  return { foodWeeks: STARTING_FOOD_WEEKS, clothesWeeks: STARTING_CLOTHES_WEEKS };
+}
 
 export function startingStats(): Stats {
   return {
@@ -41,6 +47,7 @@ export function createPlayer(input: {
   needs?: Player["needs"];
   nextTimeLeft?: number;
   lastEvent?: Player["lastEvent"];
+  deposit?: Player["deposit"];
 }): Player {
   return {
     id: input.id ?? "p1",
@@ -51,9 +58,10 @@ export function createPlayer(input: {
     stats: input.stats,
     job: input.job ?? null,
     home: { id: "stancja", rent: STARTING_RENT },
-    needs: input.needs ?? { foodWeeks: 1, clothesWeeks: 2 },
+    needs: input.needs ?? startingNeeds(),
     nextTimeLeft: input.nextTimeLeft ?? TIME_MAX,
     lastEvent: input.lastEvent ?? null,
+    deposit: input.deposit ?? null,
   };
 }
 
@@ -110,7 +118,7 @@ export function createMatch(overrides: {
         locationId: overrides.locationId ?? "home",
         stats,
         job: overrides.job ?? null,
-        needs: overrides.needs ?? { foodWeeks: 1, clothesWeeks: 2 },
+        needs: overrides.needs ?? startingNeeds(),
       }),
     ],
     active: 0,
@@ -145,7 +153,7 @@ export function createVersusMatch(
     locationId: overrides.botLocationId ?? "home",
     stats: { ...startingStats(), ...overrides.botStats },
     job: overrides.botJob ?? null,
-    needs: overrides.botNeeds ?? { foodWeeks: 1, clothesWeeks: 2 },
+    needs: overrides.botNeeds ?? startingNeeds(),
   });
 
   return {

@@ -1,6 +1,6 @@
 import { assertNever } from "../game/assert-never";
 import type { LocationId } from "../game/catalog";
-import type { AvatarId, EventId } from "../game/types";
+import type { ActionId, AvatarId, EventId } from "../game/types";
 import { el } from "./dom";
 
 export function tileArtUrl(id: LocationId): string {
@@ -42,6 +42,8 @@ export function avatarArtUrl(id: AvatarId): string {
       return "./art/avatars/nati.png";
     case "marek":
       return "./art/avatars/marek.png";
+    case "kowalski":
+      return "./art/avatars/kowalski.png";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -59,6 +61,8 @@ export function pawnArtUrl(id: AvatarId): string {
       return "./art/pawns/nati.png";
     case "marek":
       return "./art/pawns/marek.png";
+    case "kowalski":
+      return "./art/pawns/kowalski.png";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -88,6 +92,10 @@ export function eventArtUrl(id: EventId): string {
       return "./art/events/pit.png";
     case "promocja":
       return "./art/events/promocja.png";
+    case "napiwki":
+      return "./art/events/napiwki.png";
+    case "spokoj":
+      return "./art/events/spokoj.png";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -134,7 +142,48 @@ export function hudIconUrl(id: HudIconId): string {
 }
 
 export function boardMatUrl(): string {
-  return "./art/ui/board-mat.png";
+  return "./art/ui/board-mat-dark.png";
+}
+
+export function panoramaUrl(): string {
+  return "./art/brand/panorama.png";
+}
+
+export function stampWinUrl(): string {
+  return "./art/brand/stamp-win.png";
+}
+
+export function actionIconUrl(id: ActionId): string {
+  switch (id) {
+    case "searchJob":
+      return "./art/actions/search-job.png";
+    case "applyKierownik":
+      return "./art/actions/apply-kierownik.png";
+    case "openLokal":
+      return "./art/actions/open-lokal.png";
+    case "workKebab":
+      return "./art/actions/work-kebab.png";
+    case "studyCourse":
+      return "./art/actions/study-course.png";
+    case "studyDegree":
+      return "./art/actions/study-degree.png";
+    case "buyFood":
+      return "./art/actions/buy-food.png";
+    case "buyClothes":
+      return "./art/actions/buy-clothes.png";
+    case "restHome":
+      return "./art/actions/rest-home.png";
+    case "restCafe":
+      return "./art/actions/rest-cafe.png";
+    case "restGym":
+      return "./art/actions/rest-gym.png";
+    case "deposit":
+      return "./art/ui/stat-money.png";
+    default: {
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
 }
 
 export function artImg(src: string, className: string): HTMLImageElement {

@@ -23,12 +23,14 @@ export {
 } from "./actions";
 export type { ActionDef } from "./actions";
 export { JOB_DEFS, KIEROWNIK_EDU, KIEROWNIK_WAGE, LOKAL_BUYIN } from "./jobs";
+export { DEPOSIT_COST, DEPOSIT_PAYOUT, DEPOSIT_WEEKS } from "./actions";
 export { EVENT_DEFS, eventIds, pickEvent } from "./events";
 export type { EventDef } from "./events";
-export { FOOD_BASE, RENT_HIKE, startingMarket } from "./market";
+export { FOOD_BASE, RENT_HIKE, RENT_MAX, startingMarket } from "./market";
 export { nextBotAction, playBotUntilIdle, playBotWithTrace } from "./bot";
 export type { BotStep, BotTrace } from "./bot";
 export {
+  allAvatarIds,
   avatarColor,
   avatarIds,
   avatarInitial,
@@ -59,6 +61,7 @@ export type {
   ActionId,
   AvatarId,
   Controller,
+  Deposit,
   EventId,
   GameAction,
   GameState,

@@ -1,8 +1,9 @@
-import { avatarIds } from "./avatars";
+import { allAvatarIds } from "./avatars";
 import { locationIds, TIME_MAX } from "./catalog";
 import { eventIds } from "./events";
 import { JOB_DEFS } from "./jobs";
 import type {
+  Deposit,
   EventId,
   GameState,
   Job,
@@ -120,9 +121,27 @@ function parseWeekEffect(value: unknown): WeekEffect | null {
       return isMember(value.grant, safetyNets) && isFiniteNumber(value.amount)
         ? { kind: "safetyNet", grant: value.grant, amount: value.amount }
         : null;
+    case "deposit":
+      return isFiniteNumber(value.amount) ? { kind: "deposit", amount: value.amount } : null;
     default:
       return null;
   }
+}
+
+/** Brak pola (starszy zapis) i null znaczą to samo: bez lokaty. Śmieci odrzucamy. */
+function parseDeposit(value: unknown): Deposit | null | undefined {
+  if (value === undefined || value === null) {
+    return null;
+  }
+  if (
+    !isRecord(value) ||
+    !isFiniteNumber(value.amount) ||
+    !isFiniteNumber(value.payout) ||
+    !isFiniteNumber(value.weeksLeft)
+  ) {
+    return undefined;
+  }
+  return { amount: value.amount, payout: value.payout, weeksLeft: value.weeksLeft };
 }
 
 function parsePlayer(value: unknown): Player | null {
@@ -132,7 +151,7 @@ function parsePlayer(value: unknown): Player | null {
   if (typeof value.id !== "string" || typeof value.name !== "string") {
     return null;
   }
-  if (!isMember(value.avatarId, avatarIds) || !isMember(value.controller, controllers)) {
+  if (!isMember(value.avatarId, allAvatarIds) || !isMember(value.controller, controllers)) {
     return null;
   }
   if (!isMember(value.locationId, locationIds)) {
@@ -157,6 +176,10 @@ function parsePlayer(value: unknown): Player | null {
   if (!isFiniteNumber(value.nextTimeLeft)) {
     return null;
   }
+  const deposit = parseDeposit(value.deposit);
+  if (deposit === undefined) {
+    return null;
+  }
   return {
     id: value.id,
     name: value.name,
@@ -172,6 +195,7 @@ function parsePlayer(value: unknown): Player | null {
     },
     nextTimeLeft: value.nextTimeLeft,
     lastEvent,
+    deposit,
   };
 }
 

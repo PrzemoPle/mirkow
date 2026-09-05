@@ -7,7 +7,7 @@ import {
   type Stats,
 } from "../game";
 import { t, type MessageKey } from "../i18n";
-import { artImg, avatarArtUrl, stampArtUrl } from "./art";
+import { artImg, avatarArtUrl, panoramaUrl, stampArtUrl } from "./art";
 import { el } from "./dom";
 import { formatZl, interpolate } from "./format";
 
@@ -79,16 +79,20 @@ export function buildSetup(handlers: SetupHandlers): HTMLElement {
   const root = el("div", "setup");
 
   const head = el("header", "setup-head");
-  head.append(artImg(stampArtUrl(), "setup-stamp"));
+  head.style.setProperty("--panorama", `url("${panoramaUrl()}")`);
+  const headCopy = el("div", "setup-head-copy");
+  headCopy.append(artImg(stampArtUrl(), "setup-stamp"));
   const title = el("h1", "setup-title");
   title.textContent = t("gameName");
   const kicker = el("span", "setup-kicker");
   kicker.textContent = t("appTitle");
   title.append(kicker);
-  head.append(title);
+  headCopy.append(title);
   const rule = el("p", "setup-rule");
   rule.textContent = t("setupRule");
-  root.append(head, rule);
+  headCopy.append(rule);
+  head.append(headCopy);
+  root.append(head);
 
   if (handlers.notice === "corrupt" || handlers.notice === "unavailable") {
     const notice = el("p", "setup-notice");

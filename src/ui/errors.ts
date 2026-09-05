@@ -41,6 +41,8 @@ export function errorMessage(error: EngineError): string {
         needed: error.needed,
         have: error.have,
       });
+    case "depositActive":
+      return t("errorDepositActive");
     default: {
       const exhaustive: never = error;
       return assertNever(exhaustive);

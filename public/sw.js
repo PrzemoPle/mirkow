@@ -1,4 +1,4 @@
-const CACHE_NAME = "mirkow-v3";
+const CACHE_NAME = "mirkow-v4";
 
 const PRECACHE = [
   "./",
@@ -22,10 +22,12 @@ const PRECACHE = [
   "./art/avatars/bartek.png",
   "./art/avatars/nati.png",
   "./art/avatars/marek.png",
+  "./art/avatars/kowalski.png",
   "./art/pawns/ola.png",
   "./art/pawns/bartek.png",
   "./art/pawns/nati.png",
   "./art/pawns/marek.png",
+  "./art/pawns/kowalski.png",
   "./art/events/korek.png",
   "./art/events/lotto.png",
   "./art/events/pralka.png",
@@ -34,6 +36,8 @@ const PRECACHE = [
   "./art/events/kontrola.png",
   "./art/events/pit.png",
   "./art/events/promocja.png",
+  "./art/events/napiwki.png",
+  "./art/events/spokoj.png",
   "./art/ui/stat-money.png",
   "./art/ui/stat-happiness.png",
   "./art/ui/stat-education.png",
@@ -43,6 +47,20 @@ const PRECACHE = [
   "./art/ui/need-job.png",
   "./art/ui/time.png",
   "./art/ui/board-mat.png",
+  "./art/ui/board-mat-dark.png",
+  "./art/brand/panorama.png",
+  "./art/brand/stamp-win.png",
+  "./art/actions/search-job.png",
+  "./art/actions/apply-kierownik.png",
+  "./art/actions/open-lokal.png",
+  "./art/actions/work-kebab.png",
+  "./art/actions/study-course.png",
+  "./art/actions/study-degree.png",
+  "./art/actions/buy-food.png",
+  "./art/actions/buy-clothes.png",
+  "./art/actions/rest-home.png",
+  "./art/actions/rest-cafe.png",
+  "./art/actions/rest-gym.png",
 ];
 
 self.addEventListener("install", (event) => {

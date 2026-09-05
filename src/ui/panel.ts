@@ -8,7 +8,7 @@ import {
   type Player,
 } from "../game";
 import { t } from "../i18n";
-import { artImg, tileArtUrl } from "./art";
+import { actionIconUrl, artImg, tileArtUrl } from "./art";
 import { locationName } from "./board";
 import { actionEffects, actionLabel, blockReason } from "./copy";
 import { el } from "./dom";
@@ -37,6 +37,7 @@ function buildActionRow(def: ActionDef, reason: string | null, enabled: boolean)
   button.dataset.action = def.id;
   button.disabled = !enabled;
 
+  const icon = artImg(actionIconUrl(def.id), "act-icon pix");
   const name = el("span", "act-name");
   name.textContent = actionLabel(def.id);
 
@@ -67,7 +68,7 @@ function buildActionRow(def: ActionDef, reason: string | null, enabled: boolean)
     cost.append(money);
   }
 
-  button.append(name, meta, cost);
+  button.append(icon, name, meta, cost);
   return button;
 }
 

@@ -27,7 +27,7 @@ import { errorMessage } from "./errors";
 import { interpolate } from "./format";
 import { buildNeeds, buildStats, buildTopBar } from "./hud";
 import { buildJournal } from "./journal";
-import { wait } from "./motion";
+import { setFastForward, wait } from "./motion";
 import { showEventCard, showVictory } from "./overlays";
 import { buildPanel } from "./panel";
 import { buildSetup, type SetupHandlers } from "./setup";
@@ -44,6 +44,7 @@ type Shell = {
   panel: ReturnType<typeof buildPanel>;
   journal: ReturnType<typeof buildJournal>;
   status: HTMLElement;
+  skip: HTMLButtonElement;
   newGame: HTMLButtonElement;
 };
 
@@ -214,8 +215,15 @@ export function renderApp(root: HTMLElement): void {
   async function runBotTurn(): Promise<void> {
     busy = true;
     paint(t("botPlaying"));
+    if (shell !== null) {
+      shell.skip.hidden = false;
+    }
     const trace = playBotWithTrace(state);
     await replayBot(trace.steps);
+    setFastForward(false);
+    if (shell !== null) {
+      shell.skip.hidden = true;
+    }
     busy = false;
     lastError = null;
     commit(trace.state, t("botPlayed"));
@@ -292,6 +300,15 @@ export function renderApp(root: HTMLElement): void {
     const status = el("p", "status");
     status.setAttribute("role", "status");
     status.setAttribute("aria-live", "polite");
+    const skip = el("button", "btn-quiet skip");
+    skip.type = "button";
+    skip.textContent = t("botSkip");
+    skip.hidden = true;
+    skip.addEventListener("click", () => {
+      setFastForward(true);
+    });
+    const statusRow = el("div", "status-row");
+    statusRow.append(status, skip);
 
     const newGame = el("button", "btn-quiet");
     newGame.type = "button";
@@ -302,11 +319,11 @@ export function renderApp(root: HTMLElement): void {
     tools.append(note, newGame);
 
     const side = el("div", "side");
-    side.append(stats.root, needs.root, status);
+    side.append(stats.root, needs.root, statusRow);
 
     const rootNode = el("div", "game");
     rootNode.append(top.root, board.root, side, panel.root, journal.root, tools);
-    return { root: rootNode, top, board, stats, needs, panel, journal, status, newGame };
+    return { root: rootNode, top, board, stats, needs, panel, journal, status, skip, newGame };
   }
 
   function mountPlay(): void {

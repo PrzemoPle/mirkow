@@ -45,6 +45,10 @@ export const REST_GYM_HAPPINESS = 8;
 export const HUNGER_TIME_PENALTY = 2;
 export const BARE_HAPPINESS_PENALTY = 5;
 export const RENT_INTERVAL_WEEKS = 4;
+export const DEPOSIT_TIME = 1;
+export const DEPOSIT_COST = 1000;
+export const DEPOSIT_PAYOUT = 1080;
+export const DEPOSIT_WEEKS = 4;
 
 export type ActionDef = {
   id: ActionId;
@@ -62,6 +66,7 @@ export type ActionDef = {
   givesJob: JobId | null;
   foodWeeks: number | null;
   clothesWeeks: number | null;
+  opensDeposit: boolean;
 };
 
 const idleStats = {
@@ -77,6 +82,7 @@ const idleStats = {
   givesJob: null,
   foodWeeks: null,
   clothesWeeks: null,
+  opensDeposit: false,
 } satisfies Omit<ActionDef, "id" | "locationId" | "timeCost">;
 
 export const ACTION_DEFS: Record<ActionId, ActionDef> = {
@@ -174,6 +180,14 @@ export const ACTION_DEFS: Record<ActionId, ActionDef> = {
     timeCost: REST_GYM_TIME,
     moneyCost: REST_GYM_COST,
     happiness: REST_GYM_HAPPINESS,
+  },
+  deposit: {
+    ...idleStats,
+    id: "deposit",
+    locationId: "bank",
+    timeCost: DEPOSIT_TIME,
+    moneyCost: DEPOSIT_COST,
+    opensDeposit: true,
   },
 };
 

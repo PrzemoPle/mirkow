@@ -1,5 +1,7 @@
 import {
   RENT_INTERVAL_WEEKS,
+  REST_CAFE_COST,
+  STUDY_COURSE_COST,
   STUDY_COURSE_EDU,
   STUDY_DEGREE_COST,
   resolveAction,
@@ -48,7 +50,13 @@ function goDo(
   if (travel + def.timeCost > state.timeLeft) {
     return [];
   }
-  return [{ type: "move", to: locationId }];
+  // Próba na sucho: jedziemy tylko wtedy, gdy akcja na miejscu będzie legalna.
+  const move: GameAction = { type: "move", to: locationId };
+  const moved = dispatch(state, move);
+  if (!moved.ok || !dispatch(moved.state, { type: "act", id: actionId }).ok) {
+    return [];
+  }
+  return [move];
 }
 
 export function nextBotAction(state: GameState): GameAction {
@@ -94,33 +102,54 @@ export function nextBotAction(state: GameState): GameAction {
     }
   }
 
-  const needCash =
-    (rentSoon && shortOnRent) ||
-    player.stats.money < state.goals.money ||
-    player.stats.career < state.goals.career ||
-    player.stats.money < player.home.rent * 2;
+  if (player.job?.id === "kebabKierownik" && !(rentSoon && shortOnRent)) {
+    const lokal = firstLegal(state, goDo(state, "kebab", "openLokal"));
+    if (lokal !== null) {
+      return lokal;
+    }
+  }
 
-  if (player.job !== null && needCash) {
+  const buffer = player.home.rent;
+  const urgentCash = (rentSoon && shortOnRent) || player.stats.money < buffer;
+
+  if (player.job !== null && urgentCash) {
     const work = firstLegal(state, goDo(state, "kebab", "workKebab"));
     if (work !== null) {
       return work;
     }
   }
 
-  if (player.stats.education < state.goals.education && !(rentDue && shortOnRent)) {
+  if (player.stats.education < state.goals.education) {
     const preferDegree =
       player.stats.education + STUDY_COURSE_EDU < state.goals.education &&
-      player.stats.money >= STUDY_DEGREE_COST + player.home.rent;
-    const study = firstLegal(
-      state,
-      goDo(state, "campus", preferDegree ? "studyDegree" : "studyCourse"),
-    );
-    if (study !== null) {
-      return study;
+      player.stats.money >= STUDY_DEGREE_COST + buffer;
+    const canCourse = player.stats.money >= STUDY_COURSE_COST + buffer;
+    if (preferDegree || canCourse) {
+      const study = firstLegal(
+        state,
+        goDo(state, "campus", preferDegree ? "studyDegree" : "studyCourse"),
+      );
+      if (study !== null) {
+        return study;
+      }
+    }
+  }
+
+  const wantsCash =
+    player.stats.money < state.goals.money || player.stats.career < state.goals.career;
+  if (player.job !== null && wantsCash) {
+    const work = firstLegal(state, goDo(state, "kebab", "workKebab"));
+    if (work !== null) {
+      return work;
     }
   }
 
   if (player.stats.happiness < state.goals.happiness) {
+    const comfortable = player.stats.money >= player.home.rent * 2 + REST_CAFE_COST;
+    const cafe = comfortable ? firstLegal(state, goDo(state, "cafe", "restCafe")) : null;
+    if (cafe !== null) {
+      return cafe;
+    }
     const rest = firstLegal(state, goDo(state, "home", "restHome"));
     if (rest !== null) {
       return rest;

@@ -1,5 +1,7 @@
 # Brief P2: grafiki, które podniosą grę po redesignie E1–E2
 
+**Dostarczone i wpięte 2026-09-05 (komplet 18 plików).** Plik zostaje jako specyfikacja.
+
 Stan 2026-09-05 po wdrożeniu etapów E1 (fundament wizualny) i E2 (moment gry). Wszystko, co jest w grze, działa na obecnych bitmapach. Poniżej lista rzeczy, których **nie da się** zrobić w CSS, a które zmienią odbiór. Kolejność według wpływu.
 
 Styl lock bez zmian: HD pixel / dither, ten sam ilustrator co `tiles/kebab.png` i `avatars/ola.png`, papier `#E8DCC8`, tusz `#2B2622`, akcent `#D4652F`. **Zero tekstu, cyfr i logotypów na bitmapach.** Format PNG-24 sRGB (WebP zrobimy w buildzie). Nazwy plików małymi literami, dokładnie jak niżej.

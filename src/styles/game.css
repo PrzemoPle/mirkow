@@ -188,8 +188,7 @@
   background-image: var(--board-mat, none);
   background-size: cover;
   background-position: center;
-  opacity: 0.22;
-  filter: brightness(0.55) sepia(0.3);
+  opacity: 0.95;
   pointer-events: none;
 }
 
@@ -474,6 +473,25 @@
   color: var(--text-3);
 }
 
+.need-deposit {
+  border-style: dashed;
+}
+
+.need[hidden] {
+  display: none;
+}
+
+.status-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.skip[hidden] {
+  display: none;
+}
+
 .need-low {
   border-color: var(--accent);
   color: var(--accent-2);
@@ -539,10 +557,10 @@
 
 .act {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: auto 1fr auto;
   grid-template-areas:
-    "name cost"
-    "meta cost";
+    "icon name cost"
+    "icon meta cost";
   align-items: center;
   column-gap: 0.75rem;
   row-gap: 0.15rem;
@@ -569,6 +587,17 @@
 
 .act:disabled {
   opacity: 0.6;
+}
+
+.act-icon {
+  grid-area: icon;
+  width: 2rem;
+  height: 2rem;
+  align-self: center;
+}
+
+.act:disabled .act-icon {
+  filter: grayscale(0.6);
 }
 
 .act-name {

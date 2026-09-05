@@ -1,6 +1,6 @@
 import { avatarColor, type AvatarId, type EventId, type GameState, type Player } from "../game";
 import { t } from "../i18n";
-import { artImg, avatarArtUrl, eventArtUrl } from "./art";
+import { artImg, avatarArtUrl, eventArtUrl, stampWinUrl } from "./art";
 import { eventEffect, eventTitle } from "./copy";
 import { el } from "./dom";
 import { formatZl, interpolate } from "./format";
@@ -89,6 +89,9 @@ export function showVictory(input: VictoryInput): void {
   face.append(artImg(avatarArtUrl(winner.avatarId), ""));
   const stamp = el("span", won ? "victory-stamp" : "victory-stamp victory-stamp-lose");
   stamp.textContent = won ? t("victoryWin") : t("victoryLose");
+  if (won) {
+    face.append(artImg(stampWinUrl(), "victory-laurel"));
+  }
   face.append(stamp);
 
   const copy = el("div", "victory-copy");

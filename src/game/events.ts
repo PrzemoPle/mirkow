@@ -10,7 +10,23 @@ export const eventIds = [
   "kontrola",
   "pit",
   "promocja",
+  "napiwki",
+  "spokoj",
 ] as const satisfies readonly EventId[];
+
+/** Wagi losowania: spokojny tydzień i napiwki ważą więcej, żeby gra nie karała co turę. */
+export const EVENT_WEIGHTS: Record<EventId, number> = {
+  korek: 1,
+  lotto: 1,
+  pralka: 1,
+  tesciowa: 1,
+  aukcje: 1,
+  kontrola: 1,
+  pit: 1,
+  promocja: 1,
+  napiwki: 1.5,
+  spokoj: 2.5,
+};
 
 export type EventDef = {
   id: EventId;
@@ -28,6 +44,7 @@ export const AUKCJE_COST = 90;
 export const KONTROLA_COST = 50;
 export const PIT_COST = 220;
 export const PROMOCJA_FOOD = 1;
+export const NAPIWKI_MONEY = 60;
 
 const idle = {
   money: 0,
@@ -45,6 +62,8 @@ export const EVENT_DEFS: Record<EventId, EventDef> = {
   kontrola: { ...idle, id: "kontrola", money: -KONTROLA_COST },
   pit: { ...idle, id: "pit", money: -PIT_COST },
   promocja: { ...idle, id: "promocja", foodWeeks: PROMOCJA_FOOD },
+  napiwki: { ...idle, id: "napiwki", money: NAPIWKI_MONEY },
+  spokoj: { ...idle, id: "spokoj" },
 };
 
 export function getEventDef(id: EventId): EventDef {
@@ -55,17 +74,22 @@ export function getEventDef(id: EventId): EventDef {
   return def;
 }
 
+const TOTAL_WEIGHT = eventIds.reduce((sum, id) => sum + EVENT_WEIGHTS[id], 0);
+
 export function pickEvent(seed: number): { id: EventId; seed: number } {
   const roll = advanceRng(seed);
-  const index = Math.min(
-    eventIds.length - 1,
-    Math.floor(roll.value * eventIds.length),
-  );
-  const id = eventIds[index];
-  if (id === undefined) {
+  let cursor = roll.value * TOTAL_WEIGHT;
+  for (const id of eventIds) {
+    cursor -= EVENT_WEIGHTS[id];
+    if (cursor < 0) {
+      return { id, seed: roll.seed };
+    }
+  }
+  const last = eventIds[eventIds.length - 1];
+  if (last === undefined) {
     throw new Error("Event table is empty");
   }
-  return { id, seed: roll.seed };
+  return { id: last, seed: roll.seed };
 }
 
 export function firstSeedFor(id: EventId): number {

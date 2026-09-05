@@ -27,7 +27,7 @@ Turowa gra **Symulator życia** (Mirków). Vite + TypeScript, vanilla DOM, Vites
 
 ## Tego nie ruszać bez decyzji produktowej
 
-- P2 grafiki (splash, zwycięstwo, pory dnia).
+- Pory dnia na kafelkach, walk cycle, dźwięk (P2 z 2026-09-05 jest wpięte: panorama, Kowalski, ikony akcji, ciemna mata, laur).
 - Online / backend.
 - Podmiana stacku na React.
 

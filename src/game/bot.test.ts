@@ -107,4 +107,38 @@ describe("bot Kowalski", () => {
       expect(step.state.version).toBe(1);
     }
   });
+
+  it("has a coffee when it can afford it and rests at home when broke", () => {
+    const rich = createVersusMatch({
+      active: 1,
+      botLocationId: "cafe",
+      botNeeds: { foodWeeks: 3, clothesWeeks: 3 },
+      botJob: { id: "kebabLokal", weeks: 1 },
+      botStats: { money: 4000, happiness: 20, education: 60, career: 60 },
+      goals: { money: 3000, happiness: 80, education: 40, career: 40 },
+    });
+    expect(nextBotAction(rich)).toEqual({ type: "act", id: "restCafe" });
+
+    const broke = createVersusMatch({
+      active: 1,
+      botLocationId: "home",
+      botNeeds: { foodWeeks: 3, clothesWeeks: 3 },
+      botJob: { id: "kebabLokal", weeks: 1 },
+      botStats: { money: 600, happiness: 20, education: 60, career: 60 },
+      goals: { money: 300, happiness: 80, education: 40, career: 40 },
+    });
+    expect(nextBotAction(broke)).toEqual({ type: "act", id: "restHome" });
+  });
+
+  it("opens its own lokal once it is a manager with the buy-in", () => {
+    const manager = createVersusMatch({
+      active: 1,
+      botLocationId: "kebab",
+      botNeeds: { foodWeeks: 3, clothesWeeks: 3 },
+      botJob: { id: "kebabKierownik", weeks: 6 },
+      botStats: { money: 5000, happiness: 20, education: 60, career: 30 },
+      goals: { money: 9000, happiness: 80, education: 40, career: 80 },
+    });
+    expect(nextBotAction(manager)).toEqual({ type: "act", id: "openLokal" });
+  });
 });

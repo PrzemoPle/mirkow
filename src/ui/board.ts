@@ -26,6 +26,8 @@ export type Board = {
   place(state: GameState): void;
   travel(who: "human" | "bot", state: GameState, from: LocationId, to: LocationId): Promise<void>;
   relayout(): void;
+  /** Podświetla kafelek z celu tygodnia (pierwsze tygodnie partii). */
+  hint(id: LocationId | null): void;
 };
 
 export function locationName(id: LocationId): MessageKey {
@@ -156,7 +158,9 @@ export function buildBoard(): Board {
     const cost = el("span", "ticket tile-cost");
     const name = el("span", "plaque tile-name");
     name.textContent = t(location.nameKey);
-    tile.append(cost, name);
+    const hintTag = el("span", "plaque plaque-accent tile-hint-tag");
+    hintTag.textContent = t("tileHint");
+    tile.append(cost, name, hintTag);
     tiles.set(location.id, tile);
     root.append(tile);
   }
@@ -287,5 +291,11 @@ export function buildBoard(): Board {
     }
   }
 
-  return { root, tiles, syncTiles, place, travel, relayout };
+  function hint(id: LocationId | null): void {
+    for (const [tileId, tile] of tiles) {
+      tile.classList.toggle("tile-hint", tileId === id);
+    }
+  }
+
+  return { root, tiles, syncTiles, place, travel, relayout, hint };
 }

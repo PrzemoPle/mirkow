@@ -16,11 +16,12 @@ import { buildCampusBoard, type CampusHandlers } from "./campus";
 import { buildJobsBoard, type JobsBoardHandlers } from "./jobs-board";
 import { getJobDef } from "../game";
 import { locationName } from "./board";
-import { actionEffects, actionLabel, blockReason } from "./copy";
+import { actionEffects, actionLabel, blockReason, placeDescription } from "./copy";
 import { el } from "./dom";
 import { formatZl, interpolate } from "./format";
+import { WORK_TIME } from "../game";
 
-const CONFIRM_FROM = 3;
+const CONFIRM_FROM = 5;
 
 export type PanelHandlers = JobsBoardHandlers & CampusHandlers & HomeHandlers & ShopHandlers & BankHandlers & {
   onAct(id: ActionId): void;
@@ -30,6 +31,8 @@ export type PanelHandlers = JobsBoardHandlers & CampusHandlers & HomeHandlers & 
 export type Panel = {
   root: HTMLElement;
   sync(state: GameState, player: Player, humanTurn: boolean): void;
+  /** Dolny arkusz na telefonie: rozwinięty na cały ekran albo zwinięty do paska. */
+  setOpen(open: boolean): void;
 };
 
 function withPlayer(state: GameState, player: Player): GameState {
@@ -92,6 +95,16 @@ export function buildPanel(handlers: PanelHandlers): Panel {
   here.textContent = t("youAreHere");
   copy.append(placeName, here);
   place.append(art, room.root, copy);
+  const desc = el("p", "place-desc");
+
+  const sheetToggle = el("button", "btn sheet-toggle");
+  sheetToggle.type = "button";
+  sheetToggle.setAttribute("aria-expanded", "false");
+  const sheetLabel = el("span");
+  sheetToggle.append(sheetLabel);
+  const sheetClose = el("button", "btn-quiet sheet-close");
+  sheetClose.type = "button";
+  sheetClose.textContent = t("sheetClose");
 
   const acts = el("div", "acts");
   acts.setAttribute("role", "group");
@@ -131,9 +144,25 @@ export function buildPanel(handlers: PanelHandlers): Panel {
   endButton.textContent = t("endWeek");
   endweek.append(confirm, endButton);
 
-  root.append(place, acts, jobs.root, campus.root, homeBoard.root, elektro.root, lombard.root, bank.root, endweek);
+  const body = el("div", "panel-body");
+  body.append(desc, acts, jobs.root, campus.root, homeBoard.root, elektro.root, lombard.root, bank.root);
+  root.append(sheetClose, place, sheetToggle, body, endweek);
 
   let timeLeft = 0;
+  let hasLegalAction = false;
+
+  function setOpen(open: boolean): void {
+    root.classList.toggle("panel-open", open);
+    sheetToggle.setAttribute("aria-expanded", open ? "true" : "false");
+    if (open) {
+      root.scrollTop = 0;
+    }
+    if (!open) {
+      confirm.hidden = true;
+    }
+  }
+  sheetToggle.addEventListener("click", () => setOpen(!root.classList.contains("panel-open")));
+  sheetClose.addEventListener("click", () => setOpen(false));
 
   list.addEventListener("click", (event) => {
     const target = event.target;
@@ -152,8 +181,8 @@ export function buildPanel(handlers: PanelHandlers): Panel {
   });
 
   endButton.addEventListener("click", () => {
-    if (timeLeft >= CONFIRM_FROM) {
-      confirmText.textContent = interpolate("endWeekConfirm", { n: timeLeft });
+    if (timeLeft >= CONFIRM_FROM && hasLegalAction) {
+      confirmText.textContent = interpolate(timeLeft >= WORK_TIME ? "endWeekConfirmShift" : "endWeekConfirm", { n: timeLeft });
       confirm.hidden = false;
       yes.focus();
       return;
@@ -189,6 +218,7 @@ export function buildPanel(handlers: PanelHandlers): Panel {
         room.sync(player);
       }
       placeName.textContent = t(locationName(player.locationId));
+      desc.textContent = placeDescription(player.locationId);
 
       const scoped = withPlayer(state, player);
       const ids = actionsAt(player.locationId, player);
@@ -222,6 +252,9 @@ export function buildPanel(handlers: PanelHandlers): Panel {
         lombard.sync(scoped, player, humanTurn);
       }
       acts.hidden = (atPup || atCampus || atElektro) && ids.length === 0;
+      hasLegalAction = false;
+      const boards = [atPup, atCampus, atHome, atElektro, atLombard, atBank].filter(Boolean).length;
+      sheetLabel.textContent = interpolate("sheetActions", { n: ids.length + boards });
       if (ids.length === 0) {
         const empty = el("p", "acts-empty");
         empty.textContent = t("actionEmpty");
@@ -231,6 +264,9 @@ export function buildPanel(handlers: PanelHandlers): Panel {
           const def = resolveAction(scoped, id);
           const block = humanTurn ? actionBlock(scoped, id) : null;
           const reason = block === null ? null : blockReason(block);
+          if (block === null && humanTurn) {
+            hasLegalAction = true;
+          }
           return buildActionRow(def, reason, humanTurn && block === null, player);
         });
         list.replaceChildren(...rows);
@@ -239,5 +275,6 @@ export function buildPanel(handlers: PanelHandlers): Panel {
       endButton.disabled = !humanTurn;
       endButton.classList.toggle("endweek-urgent", humanTurn && state.timeLeft === 0);
     },
+    setOpen,
   };
 }

@@ -83,6 +83,24 @@
   font-variant-numeric: tabular-nums;
 }
 
+.card-foot {
+  margin: 0;
+  padding-top: 0.4rem;
+  border-top: 1px dashed rgb(43 38 34 / 0.25);
+  font-size: 0.9rem;
+  color: rgb(43 38 34 / 0.8);
+  text-wrap: pretty;
+}
+
+.card-foot-label {
+  margin-right: 0.3em;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(43 38 34 / 0.55);
+}
+
 .card-close {
   justify-self: start;
   margin-top: 0.3rem;
@@ -226,4 +244,62 @@
     width: 100%;
     text-align: left;
   }
+}
+
+/* Karta „Jak się gra”: instrukcja z pudełka. */
+.howto {
+  display: grid;
+  gap: 1rem;
+  width: min(560px, 92vw);
+  max-height: calc(100dvh - 2rem);
+  overflow-y: auto;
+  padding: 1.5rem;
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow-paper);
+  animation: card-in 420ms var(--ease);
+}
+
+.howto-head {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+
+.howto-stamp {
+  width: 3.6rem;
+  height: 3.6rem;
+  object-fit: contain;
+  transform: rotate(-8deg);
+}
+
+.howto-title {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.7rem;
+  font-weight: 750;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.howto-list {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding-left: 1.4rem;
+  font-size: 1rem;
+  line-height: 1.45;
+  text-wrap: pretty;
+}
+
+.howto-list li::marker {
+  font-family: var(--display);
+  font-weight: 750;
+  color: var(--accent);
+}
+
+.howto .btn-primary {
+  justify-self: start;
 }

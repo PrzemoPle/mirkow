@@ -1,6 +1,6 @@
 import { avatarColor, type AvatarId, type EventId, type GameState, type NoticeId, type Player } from "../game";
 import { t } from "../i18n";
-import { artImg, avatarArtUrl, eventArtUrl, noticeArtUrl, stampWinUrl } from "./art";
+import { artImg, avatarArtUrl, eventArtUrl, noticeArtUrl, stampArtUrl, stampWinUrl } from "./art";
 import { eventEffect, eventTitle, noticeEffect, noticeTitle } from "./copy";
 import { el } from "./dom";
 import { formatZl, interpolate } from "./format";
@@ -23,15 +23,18 @@ type CardInput = {
   who: string;
   title: string;
   effect: string;
+  /** Linijka weekendu pod efektem eventu. */
+  foot?: string;
 };
 
 /** Pokazuje kartę eventu w pełnym kadrze i czeka na zamknięcie (klik albo czas). */
-export function showEventCard(id: EventId, who: "you" | "bot"): Promise<void> {
+export function showEventCard(id: EventId, who: "you" | "bot", foot?: string): Promise<void> {
   return showCard({
     art: eventArtUrl(id),
     who: who === "you" ? t("eventYours") : t("eventBots"),
     title: eventTitle(id),
     effect: eventEffect(id),
+    ...(foot !== undefined ? { foot } : {}),
   });
 }
 
@@ -59,7 +62,15 @@ function showCard(input: CardInput): Promise<void> {
     const close = el("button", "btn card-close");
     close.type = "button";
     close.textContent = t("eventClose");
-    band.append(whoLine, title, effect, close);
+    band.append(whoLine, title, effect);
+    if (input.foot !== undefined) {
+      const foot = el("p", "card-foot");
+      const label = el("span", "card-foot-label");
+      label.textContent = t("weekendLabel");
+      foot.append(label, document.createTextNode(` ${input.foot}`));
+      band.append(foot);
+    }
+    band.append(close);
     card.append(band);
 
     const overlay = mountOverlay(card, input.title);
@@ -146,4 +157,40 @@ export function showVictory(input: VictoryInput): void {
     input.onNewGame();
   });
   again.focus();
+}
+
+/** Jednorazowa karta zasad na start partii. Zamyka ją tylko przycisk. */
+export function showHowToCard(): Promise<void> {
+  return new Promise((resolve) => {
+    const panel = el("div", "howto");
+    const head = el("div", "howto-head");
+    head.append(artImg(stampArtUrl(), "howto-stamp"));
+    const title = el("h2", "howto-title");
+    title.textContent = t("howtoTitle");
+    head.append(title);
+    const list = el("ol", "howto-list");
+    for (const key of ["howtoTime", "howtoJob", "howtoNeeds", "howtoWin"] as const) {
+      const item = el("li");
+      item.textContent = t(key);
+      list.append(item);
+    }
+    const go = el("button", "btn btn-primary");
+    go.type = "button";
+    go.textContent = t("howtoGo");
+    panel.append(head, list, go);
+    const overlay = mountOverlay(panel, t("howtoTitle"));
+    const finish = (): void => {
+      overlay.remove();
+      document.removeEventListener("keydown", onKey);
+      resolve();
+    };
+    const onKey = (event: KeyboardEvent): void => {
+      if (event.key === "Escape" || event.key === "Enter") {
+        finish();
+      }
+    };
+    document.addEventListener("keydown", onKey);
+    go.addEventListener("click", finish);
+    go.focus();
+  });
 }

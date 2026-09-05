@@ -66,7 +66,7 @@ function displayGoal(value: number, money: boolean): string {
 }
 
 function goalsLine(goals: Stats): string {
-  return `${formatZl(goals.money)} · ${goals.happiness} · ${goals.education} · ${goals.career}`;
+  return interpolate("presetGoals", { money: formatZl(goals.money), happiness: goals.happiness, education: goals.education, career: goals.career });
 }
 
 export function buildSetup(handlers: SetupHandlers): HTMLElement {

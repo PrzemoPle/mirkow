@@ -8,7 +8,7 @@ import {
 } from "../game";
 import { t, type MessageKey } from "../i18n";
 import { artImg, avatarArtUrl, diplomaArtUrl, hudIconUrl, stampArtUrl, type HudIconId } from "./art";
-import { diplomaName } from "./copy";
+import { diplomaName, weekGoal } from "./copy";
 import { el } from "./dom";
 import { economyLabel } from "./copy";
 import { wealth } from "../game";
@@ -259,6 +259,64 @@ export function buildNeeds(): NeedsRow {
       } else {
         deposit.node.hidden = false;
         deposit.value.textContent = interpolate("depositWeeks", { n: player.deposit.weeksLeft });
+      }
+    },
+  };
+}
+
+export type GoalLine = {
+  root: HTMLElement;
+  sync(state: GameState, player: Player): void;
+};
+
+/** Jedno zdanie prowadzenia pod paskiem górnym. */
+export function buildGoalLine(): GoalLine {
+  const root = el("p", "week-goal");
+  const label = el("span", "plaque plaque-accent week-goal-label");
+  label.textContent = t("goalLabel");
+  const text = el("span", "week-goal-text");
+  root.append(label, text);
+  return {
+    root,
+    sync(state, player) {
+      text.textContent = weekGoal(state, player).text;
+    },
+  };
+}
+
+export type RivalRow = {
+  root: HTMLElement;
+  sync(state: GameState): void;
+};
+
+/** Wyniki Kowalskiego pod statami: ta sama czwórka, żeby było widać wyścig. */
+export function buildRivalRow(): RivalRow {
+  const root = el("div", "rival");
+  const face = buildFace("face face-bot rival-face");
+  const name = el("span", "rival-name");
+  const values = el("span", "rival-values");
+  root.append(face, name, values);
+  return {
+    root,
+    sync(state) {
+      const rival = getBotPlayer(state);
+      if (rival === undefined) {
+        root.hidden = true;
+        return;
+      }
+      root.hidden = false;
+      syncFace(face, rival.avatarId);
+      name.textContent = rival.name;
+      values.replaceChildren();
+      for (const meter of meterFields) {
+        const cell = el("span", "rival-cell");
+        cell.append(artImg(hudIconUrl(meter.icon), "pix", "icon"));
+        const value = el("span");
+        const shown = meter.money ? wealth(rival, state.stockPrice) : rival.stats[meter.field];
+        value.textContent = meter.money ? formatZl(shown) : String(shown);
+        cell.append(value);
+        cell.classList.toggle("rival-done", shown >= state.goals[meter.field]);
+        values.append(cell);
       }
     },
   };

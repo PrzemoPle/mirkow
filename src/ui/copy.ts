@@ -1,6 +1,6 @@
 import { assertNever } from "../game/assert-never";
 import type { ActionDef } from "../game/actions";
-import { DEPOSIT_PAYOUT, DEPOSIT_WEEKS } from "../game/actions";
+import { DEPOSIT_PAYOUT, DEPOSIT_WEEKS, RENT_INTERVAL_WEEKS } from "../game/actions";
 import {
   AUKCJE_COST,
   KONTROLA_COST,
@@ -12,7 +12,10 @@ import {
   PROMOCJA_FOOD,
   TESCIOWA_HAPPINESS,
 } from "../game/events";
-import { getJobDef, RELIABILITY_PER_SHIFT, type JobDef } from "../game/jobs";
+import { FIRE_MARGIN, getJobDef, jobLocation, RELIABILITY_DECAY, RELIABILITY_PER_SHIFT, type JobDef } from "../game/jobs";
+import { classesDone, examChance, getDiplomaDef } from "../game/diplomas";
+import { wealth } from "../game/bank";
+import type { LocationId } from "../game/catalog";
 import type { EngineError } from "../game/result";
 import type {
   ActionId,
@@ -26,6 +29,7 @@ import type {
   Job,
   JobId,
   NoticeId,
+  Player,
   WeekendId,
   WeekEffect,
 } from "../game/types";
@@ -701,4 +705,105 @@ export function weekStatus(state: GameState): string {
     ...state.lastWeekEffects.filter((effect) => effect.kind !== "event").map(effectLine),
   ];
   return lines.join(" ");
+}
+
+export type WeekGoal = {
+  text: string;
+  /** Kafelek, który warto podświetlić w pierwszych tygodniach. */
+  location: LocationId | null;
+};
+
+/** Jedno zdanie prowadzenia: co teraz jest najważniejsze dla tego gracza. */
+export function weekGoal(state: GameState, player: Player): WeekGoal {
+  if (player.job === null) {
+    return player.locationId === "pup" ? { text: t("goalNoJobHere"), location: null } : { text: t("goalNoJob"), location: "pup" };
+  }
+  const def = getJobDef(player.job.id);
+  const workplace = jobLocation(player.job.id);
+  if (player.reliability - RELIABILITY_DECAY < def.requiredReliability - FIRE_MARGIN) {
+    return { text: interpolate("goalReliability", { have: player.reliability, min: def.requiredReliability }), location: workplace };
+  }
+  if (player.needs.foodWeeks <= 0) {
+    return { text: t("goalHungry"), location: "shop" };
+  }
+  if (player.needs.foodWeeks === 1) {
+    return { text: t("goalFoodLow"), location: "shop" };
+  }
+  if (player.needs.clothesWeeks <= 1) {
+    return { text: t("goalClothesLow"), location: "shop" };
+  }
+  const rentNextWeek = (state.week + 1) % RENT_INTERVAL_WEEKS === 0;
+  if (rentNextWeek && player.stats.money < player.home.rent) {
+    return {
+      text: interpolate("goalRentSoon", { rent: player.home.rent, n: player.home.rent - player.stats.money }),
+      location: workplace,
+    };
+  }
+  if (state.timeLeft === 0) {
+    return { text: t("goalNoTime"), location: null };
+  }
+  const goals = state.goals;
+  const have = {
+    money: wealth(player, state.stockPrice),
+    happiness: player.stats.happiness,
+    education: player.stats.education,
+    career: player.stats.career,
+  };
+  const ratio = (field: keyof typeof have): number => (goals[field] <= 0 ? 1 : have[field] / goals[field]);
+  const fields: (keyof typeof have)[] = ["money", "happiness", "education", "career"];
+  const weakest = fields.reduce((best, field) => (ratio(field) < ratio(best) ? field : best), fields[0] ?? "money");
+  switch (weakest) {
+    case "money":
+      return { text: interpolate("goalMoney", { n: goals.money - have.money }), location: workplace };
+    case "happiness":
+      return { text: interpolate("goalHappiness", { have: have.happiness, goal: goals.happiness }), location: "cafe" };
+    case "career":
+      return { text: interpolate("goalCareer", { have: have.career, goal: goals.career }), location: "pup" };
+    case "education": {
+      const studying = player.studying;
+      if (studying === null) {
+        return { text: interpolate("goalEducationEnroll", { have: have.education, goal: goals.education }), location: "campus" };
+      }
+      const course = getDiplomaDef(studying);
+      const done = classesDone(player, studying);
+      if (done < course.classes) {
+        return {
+          text: interpolate("goalEducationClasses", { have: done, needed: course.classes, diploma: diplomaName(studying) }),
+          location: "campus",
+        };
+      }
+      return { text: interpolate("goalEducationExam", { n: Math.round(examChance(player, studying, state.week) * 100) }), location: "campus" };
+    }
+  }
+}
+
+export function placeDescription(id: LocationId): string {
+  switch (id) {
+    case "pup":
+      return t("placePup");
+    case "campus":
+      return t("placeCampus");
+    case "bank":
+      return t("placeBank");
+    case "zajezdnia":
+      return t("placeZajezdnia");
+    case "cafe":
+      return t("placeCafe");
+    case "elektro":
+      return t("placeElektro");
+    case "gym":
+      return t("placeGym");
+    case "home":
+      return t("placeHome");
+    case "shop":
+      return t("placeShop");
+    case "lombard":
+      return t("placeLombard");
+    case "kebab":
+      return t("placeKebab");
+    default: {
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
 }

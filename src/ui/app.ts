@@ -28,21 +28,26 @@ import { t } from "../i18n";
 import { eventArtUrl } from "./art";
 import { buildBoard, locationName } from "./board";
 import { browserStore } from "./browser-store";
-import { actedMessage, actionLabel, companyName, diplomaName, effectLine, eventMessage, homeName, itemName, jobName, noticeTitle } from "./copy";
+import type { SaveStore } from "../game/save";
+import { actedMessage, actionLabel, companyName, diplomaName, effectLine, eventMessage, homeName, itemName, jobName, noticeTitle, placeDescription, weekGoal } from "./copy";
 import { sellPrice } from "../game";
 import { el } from "./dom";
 import { errorMessage } from "./errors";
 import { interpolate } from "./format";
-import { buildNeeds, buildStats, buildTopBar } from "./hud";
+import { buildGoalLine, buildNeeds, buildRivalRow, buildStats, buildTopBar } from "./hud";
 import { buildJournal } from "./journal";
 import { setFastForward, wait } from "./motion";
-import { showEventCard, showNoticeCard, showVictory } from "./overlays";
+import { showEventCard, showHowToCard, showNoticeCard, showVictory } from "./overlays";
 import { buildPanel } from "./panel";
 import { buildSetup, type SetupHandlers } from "./setup";
 import { buildWorkCard } from "./work";
 
 const BOT_ACT_MS = 520;
 const BOT_END_MS = 300;
+/** Przez tyle tygodni plansza podświetla kafelek z celu tygodnia. */
+const HINT_WEEKS = 3;
+const HOWTO_KEY = "mirkow.howto.v1";
+const MOBILE_QUERY = "(max-width: 1023px)";
 
 type Shell = {
   root: HTMLElement;
@@ -50,6 +55,8 @@ type Shell = {
   board: ReturnType<typeof buildBoard>;
   stats: ReturnType<typeof buildStats>;
   needs: ReturnType<typeof buildNeeds>;
+  goal: ReturnType<typeof buildGoalLine>;
+  rival: ReturnType<typeof buildRivalRow>;
   work: ReturnType<typeof buildWorkCard>;
   panel: ReturnType<typeof buildPanel>;
   journal: ReturnType<typeof buildJournal>;
@@ -60,6 +67,31 @@ type Shell = {
 
 function humanEffects(effects: readonly WeekEffect[]): string[] {
   return effects.filter((effect) => effect.kind !== "event").map(effectLine);
+}
+
+function weekendLine(effects: readonly WeekEffect[]): string | undefined {
+  const weekend = effects.find((effect) => effect.kind === "weekend");
+  return weekend === undefined ? undefined : effectLine(weekend);
+}
+
+function isMobile(): boolean {
+  return window.matchMedia(MOBILE_QUERY).matches;
+}
+
+function howToSeen(store: SaveStore | null): boolean {
+  try {
+    return store?.getItem(HOWTO_KEY) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function markHowToSeen(store: SaveStore | null): void {
+  try {
+    store?.setItem(HOWTO_KEY, "1");
+  } catch {
+    /* zapis nieobowiązkowy */
+  }
 }
 
 export function renderApp(root: HTMLElement): void {
@@ -112,10 +144,14 @@ export function renderApp(root: HTMLElement): void {
     shell.top.sync(state, shownTime, actorLabel);
     shell.stats.sync(state, player);
     shell.needs.sync(player);
+    shell.goal.sync({ ...state, timeLeft: shownTime }, player);
+    shell.rival.sync(state);
     shell.work.sync(state, player);
     shell.panel.sync({ ...state, timeLeft: shownTime }, player, turn);
     shell.board.syncTiles({ ...state, timeLeft: shownTime }, player, turn);
     shell.board.place(state);
+    const hint = state.week <= HINT_WEEKS && turn ? weekGoal({ ...state, timeLeft: shownTime }, player).location : null;
+    shell.board.hint(hint === player.locationId ? null : hint);
     shell.status.textContent = message ?? statusText();
     shell.status.classList.toggle("status-error", lastError !== null && message === undefined);
     shell.root.classList.toggle("game-locked", !turn && state.phase === "playing");
@@ -163,7 +199,10 @@ export function renderApp(root: HTMLElement): void {
     shell.board.syncTiles(state, getHumanPlayer(state) ?? player, false);
     await shell.board.travel("human", state, player.locationId, to);
     busy = false;
-    paint(`${t(locationName(to))}.`);
+    paint(`${t(locationName(to))}. ${placeDescription(to)}`);
+    if (isMobile()) {
+      shell.panel.setOpen(true);
+    }
   }
 
   async function applyForJob(job: JobId): Promise<void> {
@@ -451,13 +490,14 @@ export function renderApp(root: HTMLElement): void {
         text: eventMessage(human.lastEvent),
         art: eventArtUrl(human.lastEvent),
       });
-      await showEventCard(human.lastEvent, "you");
+      await showEventCard(human.lastEvent, "you", weekendLine(state.lastWeekEffects));
     }
     if (human?.lastNotice !== null && human?.lastNotice !== undefined) {
       await showNoticeCard(human.lastNotice, "you");
     }
 
     busy = false;
+    shell.panel.setOpen(false);
     if (checkVictory()) {
       paint();
       return;
@@ -485,6 +525,8 @@ export function renderApp(root: HTMLElement): void {
     const board = buildBoard();
     const stats = buildStats();
     const needs = buildNeeds();
+    const goal = buildGoalLine();
+    const rival = buildRivalRow();
     const work = buildWorkCard();
     const panel = buildPanel({
       onAct: applyAct,
@@ -520,6 +562,8 @@ export function renderApp(root: HTMLElement): void {
     });
     const statusRow = el("div", "status-row");
     statusRow.append(status, skip);
+    const strip = el("div", "strip");
+    strip.append(goal.root, statusRow);
 
     const newGame = el("button", "btn-quiet");
     newGame.type = "button";
@@ -530,14 +574,16 @@ export function renderApp(root: HTMLElement): void {
     tools.append(note, newGame);
 
     const side = el("div", "side");
-    side.append(stats.root, work.root, needs.root, statusRow);
+    const sideRow = el("div", "side-row");
+    sideRow.append(work.root, needs.root);
+    side.append(stats.root, rival.root, sideRow);
 
     const rootNode = el("div", "game");
-    rootNode.append(top.root, board.root, side, panel.root, journal.root, tools);
-    return { root: rootNode, top, board, stats, needs, work, panel, journal, status, skip, newGame };
+    rootNode.append(top.root, strip, board.root, side, panel.root, journal.root, tools);
+    return { root: rootNode, top, board, stats, needs, goal, rival, work, panel, journal, status, skip, newGame };
   }
 
-  function mountPlay(): void {
+  function mountPlay(fresh = false): void {
     observer?.disconnect();
     shell = buildShell();
     root.replaceChildren(shell.root);
@@ -560,6 +606,16 @@ export function renderApp(root: HTMLElement): void {
     shell.board.relayout();
     paint();
     if (checkVictory()) {
+      return;
+    }
+    if (fresh && !howToSeen(store)) {
+      busy = true;
+      paint();
+      void showHowToCard().then(() => {
+        markHowToSeen(store);
+        busy = false;
+        paint();
+      });
       return;
     }
     if (!isHumanTurn(state) && state.phase === "playing") {
@@ -611,7 +667,7 @@ export function renderApp(root: HTMLElement): void {
         }
         state = started.state;
         lastError = null;
-        mountPlay();
+        mountPlay(true);
       },
     };
     if (loaded.status === "ok") {

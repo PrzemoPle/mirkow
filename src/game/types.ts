@@ -11,6 +11,7 @@ export const MOPS_HELP = 350;
 export const METER_MAX = 100;
 export const STARTING_FOOD_WEEKS = 2;
 export const STARTING_CLOTHES_WEEKS = 3;
+export const STARTING_RELIABILITY = 20;
 
 export type Stats = {
   money: number;
@@ -24,24 +25,52 @@ export type Phase = "setup" | "playing" | "victory";
 export type SafetyNetKind = "ciocia" | "mops";
 
 export type ActionId =
-  | "searchJob"
-  | "applyKierownik"
+  | "work"
   | "openLokal"
-  | "workKebab"
   | "studyCourse"
   | "studyDegree"
   | "buyFood"
   | "buyClothes"
+  | "buySuit"
   | "restHome"
   | "restCafe"
   | "restGym"
   | "deposit";
 
-export type JobId = "kebabKasjer" | "kebabKierownik" | "kebabLokal";
+export type CompanyId = "kebab" | "shop" | "bank" | "pup" | "depot";
+
+export type JobId =
+  | "kebabPomoc"
+  | "kebabKasjer"
+  | "kebabKierownik"
+  | "kebabLokal"
+  | "shopPolki"
+  | "shopKasjer"
+  | "shopKierownik"
+  | "bankKasjer"
+  | "bankDoradca"
+  | "bankDyrektor"
+  | "pupReferent"
+  | "pupNaczelnik"
+  | "depotMonter"
+  | "depotBrygadzista"
+  | "depotInzynier"
+  | "depotDyrektor";
 
 export type Job = {
   id: JobId;
+  /** Tygodnie na tym stanowisku. */
   weeks: number;
+  /** Liczba przyznanych podwyżek. */
+  raises: number;
+};
+
+export type EconomyPhase = "boom" | "normal" | "recession";
+
+export type Economy = {
+  phase: EconomyPhase;
+  /** Firma, która w recesji nie zatrudnia. */
+  hiringFrozen: CompanyId | null;
 };
 
 export type EventId =
@@ -56,6 +85,9 @@ export type EventId =
   | "napiwki"
   | "spokoj";
 
+/** Karty pokazywane po zdarzeniach z pracy (nie losowane jak eventy). */
+export type NoticeId = "zwolnienie" | "redukcja" | "podwyzka" | "awans";
+
 export type WeekEffect =
   | { kind: "rent"; amount: number }
   | { kind: "rentHike"; amount: number }
@@ -64,7 +96,9 @@ export type WeekEffect =
   | { kind: "safetyNet"; grant: SafetyNetKind; amount: number }
   | { kind: "shopPrices"; food: number; clothes: number }
   | { kind: "event"; id: EventId }
-  | { kind: "deposit"; amount: number };
+  | { kind: "deposit"; amount: number }
+  | { kind: "fired"; job: JobId; reason: "reliability" | "reduction" }
+  | { kind: "economy"; phase: EconomyPhase; hiringFrozen: CompanyId | null };
 
 export type Market = {
   food: number;
@@ -89,15 +123,20 @@ export type Player = {
   locationId: LocationId;
   stats: Stats;
   job: Job | null;
+  /** Łączny staż: liczba przepracowanych zmian, nigdy nie spada. */
+  experience: number;
+  /** Solidność 0–100: rośnie z pracą, spada co tydzień. */
+  reliability: number;
   home: { id: "stancja"; rent: number };
-  needs: { foodWeeks: number; clothesWeeks: number };
+  needs: { foodWeeks: number; clothesWeeks: number; suitWeeks: number };
   nextTimeLeft: number;
   lastEvent: EventId | null;
+  lastNotice: NoticeId | null;
   deposit: Deposit | null;
 };
 
 export type GameState = {
-  version: 1;
+  version: 2;
   phase: Phase;
   week: number;
   timeLeft: number;
@@ -110,6 +149,7 @@ export type GameState = {
   lastEvent: EventId | null;
   lastWeekEffects: readonly WeekEffect[];
   market: Market;
+  economy: Economy;
 };
 
 export type GameAction =
@@ -122,4 +162,6 @@ export type GameAction =
     }
   | { type: "move"; to: LocationId }
   | { type: "act"; id: ActionId }
+  | { type: "apply"; job: JobId }
+  | { type: "askRaise" }
   | { type: "endWeek" };

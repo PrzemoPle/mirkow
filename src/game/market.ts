@@ -17,13 +17,13 @@ function quote(base: number, roll: number): number {
   return Math.round(base * (PRICE_FLOOR + roll * PRICE_SPAN));
 }
 
-export function rollShopPrices(seed: number): { market: Market; seed: number } {
+export function rollShopPrices(seed: number, multiplier = 1): { market: Market; seed: number } {
   const foodRoll = advanceRng(seed);
   const clothesRoll = advanceRng(foodRoll.seed);
   return {
     market: {
-      food: quote(FOOD_BASE, foodRoll.value),
-      clothes: quote(CLOTHES_BASE, clothesRoll.value),
+      food: Math.round(quote(FOOD_BASE, foodRoll.value) * multiplier),
+      clothes: Math.round(quote(CLOTHES_BASE, clothesRoll.value) * multiplier),
     },
     seed: clothesRoll.seed,
   };

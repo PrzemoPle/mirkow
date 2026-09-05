@@ -1,5 +1,5 @@
-export { TIME_MAX, locationIds, locationPreview } from "./catalog";
-export type { LocationId } from "./catalog";
+export { TIME_MAX, locationIds, locationPreview, parkCell } from "./catalog";
+export type { LocationId, GridCol, GridRow } from "./catalog";
 export { boardEdges, isLocationId, travelCost, travelPath } from "./board";
 export {
   actionBlock,
@@ -8,22 +8,46 @@ export {
   getBotPlayer,
   getHumanPlayer,
   isHumanTurn,
+  jobBlock,
+  raiseBlock,
 } from "./selectors";
 export { dispatch } from "./reducer";
 export { fail, ok } from "./result";
 export type { EngineError, EngineResult } from "./result";
-export { createMatch, createSetup, createVersusMatch, DEFAULT_GOALS } from "./state";
+export { createMatch, createSetup, createVersusMatch, DEFAULT_GOALS, startingNeeds } from "./state";
 export {
   ACTION_DEFS,
-  WORK_KEBAB_WAGE,
   actionsAt,
   getActionDef,
   isActionId,
   resolveAction,
+  shiftWage,
+  DEPOSIT_COST,
+  DEPOSIT_PAYOUT,
+  DEPOSIT_WEEKS,
+  SUIT_COST,
+  SUIT_STOCK_WEEKS,
 } from "./actions";
 export type { ActionDef } from "./actions";
-export { JOB_DEFS, KIEROWNIK_EDU, KIEROWNIK_WAGE, LOKAL_BUYIN } from "./jobs";
-export { DEPOSIT_COST, DEPOSIT_PAYOUT, DEPOSIT_WEEKS } from "./actions";
+export {
+  COMPANY_DEFS,
+  companyIds,
+  FIRE_MARGIN,
+  getJobDef,
+  isJobId,
+  JOB_DEFS,
+  jobIds,
+  jobLocation,
+  jobsByCompany,
+  LOKAL_BUYIN,
+  RAISE_MAX,
+  RAISE_TENURE_BONUS,
+  RELIABILITY_DECAY,
+  RELIABILITY_PER_SHIFT,
+  WORK_TIME,
+} from "./jobs";
+export type { CompanyDef, JobDef } from "./jobs";
+export { ECONOMY_PERIOD_WEEKS, wageMultiplier, priceMultiplier, startingEconomy } from "./economy";
 export { EVENT_DEFS, eventIds, pickEvent } from "./events";
 export type { EventDef } from "./events";
 export { FOOD_BASE, RENT_HIKE, RENT_MAX, startingMarket } from "./market";
@@ -55,19 +79,24 @@ export {
   REST_TIME_COST,
   STARTING_HAPPINESS,
   STARTING_MONEY,
+  STARTING_RELIABILITY,
   STARTING_RENT,
 } from "./types";
 export type {
   ActionId,
   AvatarId,
+  CompanyId,
   Controller,
   Deposit,
+  Economy,
+  EconomyPhase,
   EventId,
   GameAction,
   GameState,
   Job,
   JobId,
   Market,
+  NoticeId,
   Phase,
   Player,
   SafetyNetKind,

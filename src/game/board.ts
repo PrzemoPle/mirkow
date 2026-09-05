@@ -3,14 +3,19 @@ import { locationIds, type LocationId } from "./catalog";
 export const boardEdges: readonly (readonly [LocationId, LocationId, number])[] = [
   ["pup", "campus", 2],
   ["campus", "bank", 2],
+  ["bank", "zajezdnia", 1],
   ["pup", "cafe", 1],
   ["cafe", "home", 1],
   ["home", "shop", 1],
-  ["shop", "kebab", 1],
+  ["shop", "lombard", 1],
+  ["lombard", "kebab", 1],
   ["kebab", "gym", 1],
-  ["gym", "bank", 1],
+  ["gym", "zajezdnia", 1],
+  ["bank", "elektro", 1],
+  ["elektro", "gym", 1],
+  ["elektro", "lombard", 1],
   ["cafe", "shop", 2],
-  ["campus", "gym", 2],
+  ["campus", "elektro", 2],
   ["campus", "shop", 2],
 ];
 

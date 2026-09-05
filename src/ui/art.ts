@@ -1,7 +1,12 @@
 import { assertNever } from "../game/assert-never";
 import type { LocationId } from "../game/catalog";
-import type { ActionId, AvatarId, EventId } from "../game/types";
+import type { ActionId, AvatarId, EventId, NoticeId } from "../game/types";
 import { el } from "./dom";
+
+/** Placeholder dla bitmap, które jeszcze nie przyszły od ilustratora (brief P3). */
+const MISSING_TILE = "./art/tiles/park.png";
+const MISSING_ICON = "./art/ui/need-job.png";
+const MISSING_CARD = "./art/events/spokoj.png";
 
 export function tileArtUrl(id: LocationId): string {
   switch (id) {
@@ -11,14 +16,20 @@ export function tileArtUrl(id: LocationId): string {
       return "./art/tiles/campus.png";
     case "bank":
       return "./art/tiles/bank.png";
+    case "zajezdnia":
+      return "./art/tiles/zajezdnia.png";
     case "cafe":
       return "./art/tiles/cafe.png";
+    case "elektro":
+      return "./art/tiles/elektro.png";
     case "gym":
       return "./art/tiles/gym.png";
     case "home":
       return "./art/tiles/home.png";
     case "shop":
       return "./art/tiles/shop.png";
+    case "lombard":
+      return "./art/tiles/lombard.png";
     case "kebab":
       return "./art/tiles/kebab.png";
     default: {
@@ -103,6 +114,23 @@ export function eventArtUrl(id: EventId): string {
   }
 }
 
+export function noticeArtUrl(id: NoticeId): string {
+  switch (id) {
+    case "zwolnienie":
+      return "./art/events/zwolnienie.png";
+    case "redukcja":
+      return "./art/events/redukcja.png";
+    case "podwyzka":
+      return "./art/events/podwyzka.png";
+    case "awans":
+      return "./art/events/awans.png";
+    default: {
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
 export const hudIconIds = [
   "stat-money",
   "stat-happiness",
@@ -112,6 +140,10 @@ export const hudIconIds = [
   "need-clothes",
   "need-job",
   "time",
+  "reliability",
+  "experience",
+  "boom",
+  "recession",
 ] as const;
 
 export type HudIconId = (typeof hudIconIds)[number];
@@ -134,6 +166,14 @@ export function hudIconUrl(id: HudIconId): string {
       return "./art/ui/need-job.png";
     case "time":
       return "./art/ui/time.png";
+    case "reliability":
+      return "./art/ui/reliability.png";
+    case "experience":
+      return "./art/ui/experience.png";
+    case "boom":
+      return "./art/ui/boom.png";
+    case "recession":
+      return "./art/ui/recession.png";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -155,14 +195,10 @@ export function stampWinUrl(): string {
 
 export function actionIconUrl(id: ActionId): string {
   switch (id) {
-    case "searchJob":
-      return "./art/actions/search-job.png";
-    case "applyKierownik":
-      return "./art/actions/apply-kierownik.png";
+    case "work":
+      return "./art/actions/work-kebab.png";
     case "openLokal":
       return "./art/actions/open-lokal.png";
-    case "workKebab":
-      return "./art/actions/work-kebab.png";
     case "studyCourse":
       return "./art/actions/study-course.png";
     case "studyDegree":
@@ -171,6 +207,8 @@ export function actionIconUrl(id: ActionId): string {
       return "./art/actions/buy-food.png";
     case "buyClothes":
       return "./art/actions/buy-clothes.png";
+    case "buySuit":
+      return "./art/actions/suit.png";
     case "restHome":
       return "./art/actions/rest-home.png";
     case "restCafe":
@@ -186,20 +224,73 @@ export function actionIconUrl(id: ActionId): string {
   }
 }
 
-export function artImg(src: string, className: string): HTMLImageElement {
+/** Ikona zmiany zależna od firmy; brakujące pliki wracają do ikony kebaba. */
+export function workIconUrl(company: "kebab" | "shop" | "bank" | "pup" | "depot"): string {
+  switch (company) {
+    case "kebab":
+      return "./art/actions/work-kebab.png";
+    case "shop":
+      return "./art/actions/work-shop.png";
+    case "bank":
+      return "./art/actions/work-bank.png";
+    case "pup":
+      return "./art/actions/work-pup.png";
+    case "depot":
+      return "./art/actions/work-depot.png";
+    default: {
+      const exhaustive: never = company;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
+export function applyIconUrl(): string {
+  return "./art/actions/apply.png";
+}
+
+export function raiseIconUrl(): string {
+  return "./art/actions/raise.png";
+}
+
+type ArtKind = "tile" | "icon" | "card" | "none";
+
+function fallbackFor(kind: ArtKind): string | null {
+  switch (kind) {
+    case "tile":
+      return MISSING_TILE;
+    case "icon":
+      return MISSING_ICON;
+    case "card":
+      return MISSING_CARD;
+    case "none":
+      return null;
+  }
+}
+
+export function artImg(src: string, className: string, kind: ArtKind = "none"): HTMLImageElement {
   const img = el("img", className);
   img.src = src;
   img.alt = "";
   img.draggable = false;
   img.setAttribute("aria-hidden", "true");
+  const fallback = fallbackFor(kind);
+  if (fallback !== null) {
+    img.addEventListener(
+      "error",
+      () => {
+        if (img.src.endsWith(fallback.slice(1))) {
+          return;
+        }
+        img.src = fallback;
+        img.classList.add("art-missing");
+      },
+      { once: true },
+    );
+  }
   return img;
 }
 
-export function paintBitmap(
-  host: HTMLElement,
-  src: string,
-  className: string,
-): void {
+export function paintBitmap(host: HTMLElement, src: string, className: string): void {
   if (host.dataset.src === src) {
     return;
   }

@@ -18,7 +18,7 @@ describe("selectors", () => {
 
   it("explains why an action is blocked without changing state", () => {
     const state = createMatch({ locationId: "kebab" });
-    expect(actionBlock(state, "workKebab")).toEqual({ code: "noJob" });
+    expect(actionBlock(state, "work")).toEqual({ code: "noJob" });
     expect(actionBlock(state, "buyFood")?.code).toBe("wrongLocation");
     expect(actionBlock(createMatch({ locationId: "home" }), "restHome")).toBeNull();
   });

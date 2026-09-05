@@ -8,8 +8,8 @@ import {
 } from "../game";
 import { t, type MessageKey } from "../i18n";
 import { artImg, avatarArtUrl, hudIconUrl, stampArtUrl, type HudIconId } from "./art";
-import { jobShort } from "./copy";
 import { el } from "./dom";
+import { economyLabel } from "./copy";
 import { formatNumber, formatZl, interpolate, meterPercent } from "./format";
 
 type MeterField = "money" | "happiness" | "education" | "career";
@@ -66,6 +66,10 @@ export function buildTopBar(): TopBar {
   const ticks: HTMLElement[] = [];
   weekBlock.append(week, tickets);
 
+  const economy = el("span", "plaque economy");
+  economy.hidden = true;
+  weekBlock.append(economy);
+
   const wallet = el("div", "wallet");
   const money = el("p", "money");
   const faces = el("div", "faces");
@@ -109,6 +113,12 @@ export function buildTopBar(): TopBar {
       });
       tickets.setAttribute("aria-valuenow", String(shownTime));
       tickets.setAttribute("aria-valuemax", String(state.timeMax));
+
+      const phase = state.economy.phase;
+      economy.hidden = phase === "normal";
+      economy.textContent = economyLabel(phase);
+      economy.classList.toggle("economy-boom", phase === "boom");
+      economy.classList.toggle("economy-recession", phase === "recession");
 
       money.textContent = formatZl(player.stats.money);
       if (lastMoney !== null && lastMoney !== player.stats.money) {
@@ -201,11 +211,12 @@ export function buildNeeds(): NeedsRow {
   const root = el("div", "needs");
   const food = buildNeed("need-food", "needFood");
   const clothes = buildNeed("need-clothes", "needClothes");
-  const job = buildNeed("need-job", "needJob");
+  const suit = buildNeed("need-clothes", "needSuit");
+  suit.node.classList.add("need-suit");
   const deposit = buildNeed("stat-money", "depositLabel");
   deposit.node.classList.add("need-deposit");
   deposit.node.hidden = true;
-  root.append(food.node, clothes.node, job.node, deposit.node);
+  root.append(food.node, clothes.node, suit.node, deposit.node);
 
   function syncWeeks(need: { node: HTMLElement; value: HTMLElement }, weeks: number): void {
     const low = weeks <= 0;
@@ -218,8 +229,9 @@ export function buildNeeds(): NeedsRow {
     sync(player) {
       syncWeeks(food, player.needs.foodWeeks);
       syncWeeks(clothes, player.needs.clothesWeeks);
-      job.value.textContent = jobShort(player.job);
-      job.node.classList.toggle("need-low", player.job === null);
+      suit.value.textContent = player.needs.suitWeeks > 0 ? interpolate("needWeeks", { n: player.needs.suitWeeks }) : t("needLow");
+      suit.node.classList.toggle("need-low", player.needs.suitWeeks <= 0);
+      suit.node.classList.toggle("need-muted", player.needs.suitWeeks <= 0 && player.job === null);
       if (player.deposit === null) {
         deposit.node.hidden = true;
       } else {

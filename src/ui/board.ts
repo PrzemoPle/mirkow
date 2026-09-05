@@ -5,6 +5,7 @@ import {
   getBotPlayer,
   getHumanPlayer,
   locationPreview,
+  parkCell,
   travelPath,
   type GameState,
   type LocationId,
@@ -147,9 +148,11 @@ export function buildBoard(): Board {
   for (const location of locationPreview) {
     const tile = el("button", "tile");
     tile.type = "button";
-    tile.style.gridColumn = String(location.col);
-    tile.style.gridRow = String(location.row);
-    tile.append(artImg(tileArtUrl(location.id), "tile-art"));
+    tile.style.setProperty("--col", String(location.col));
+    tile.style.setProperty("--row", String(location.row));
+    tile.style.setProperty("--mcol", String(location.mobileCol));
+    tile.style.setProperty("--mrow", String(location.mobileRow));
+    tile.append(artImg(tileArtUrl(location.id), "tile-art", "tile"));
     const cost = el("span", "ticket tile-cost");
     const name = el("span", "plaque tile-name");
     name.textContent = t(location.nameKey);
@@ -159,8 +162,10 @@ export function buildBoard(): Board {
   }
 
   const park = el("div", "tile tile-park");
-  park.style.gridColumn = "2";
-  park.style.gridRow = "2";
+  park.style.setProperty("--col", String(parkCell.col));
+  park.style.setProperty("--row", String(parkCell.row));
+  park.style.setProperty("--mcol", String(parkCell.mobileCol));
+  park.style.setProperty("--mrow", String(parkCell.mobileRow));
   park.setAttribute("aria-hidden", "true");
   park.append(artImg(parkArtUrl(), "tile-art"));
   root.append(park);

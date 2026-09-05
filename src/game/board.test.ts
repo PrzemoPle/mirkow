@@ -23,11 +23,14 @@ describe("board graph", () => {
   it("charges adjacent streets the listed time", () => {
     expect(travelCost("home", "shop")).toBe(1);
     expect(travelCost("home", "cafe")).toBe(1);
-    expect(travelCost("home", "kebab")).toBe(2);
+    expect(travelCost("home", "lombard")).toBe(2);
+    expect(travelCost("home", "kebab")).toBe(3);
     expect(travelCost("home", "pup")).toBe(2);
     expect(travelCost("home", "campus")).toBe(3);
-    expect(travelCost("home", "gym")).toBe(3);
+    expect(travelCost("home", "elektro")).toBe(3);
+    expect(travelCost("home", "gym")).toBe(4);
     expect(travelCost("home", "bank")).toBe(4);
+    expect(travelCost("home", "zajezdnia")).toBe(5);
   });
 
   it("is symmetric", () => {
@@ -38,8 +41,8 @@ describe("board graph", () => {
   it("returns the cheapest route as a node list", () => {
     expect(travelPath("home", "home")).toEqual(["home"]);
     expect(travelPath("home", "shop")).toEqual(["home", "shop"]);
-    expect(travelPath("home", "kebab")).toEqual(["home", "shop", "kebab"]);
-    expect(travelPath("home", "bank")).toEqual(["home", "shop", "kebab", "gym", "bank"]);
+    expect(travelPath("home", "kebab")).toEqual(["home", "shop", "lombard", "kebab"]);
+    expect(travelPath("home", "elektro")).toEqual(["home", "shop", "lombard", "elektro"]);
   });
 
   it("path cost matches travelCost", () => {

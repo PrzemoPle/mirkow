@@ -22,10 +22,10 @@ describe("i18n", () => {
 });
 
 describe("catalog", () => {
-  it("has eight locations and a week of ten time units", () => {
-    expect(locationIds).toHaveLength(8);
-    expect(locationPreview).toHaveLength(8);
-    expect(TIME_MAX).toBe(10);
+  it("has eleven locations and a week of twelve time units", () => {
+    expect(locationIds).toHaveLength(11);
+    expect(locationPreview).toHaveLength(11);
+    expect(TIME_MAX).toBe(12);
   });
 
   it("leaves the center square for the park", () => {

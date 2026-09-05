@@ -4,7 +4,7 @@ import { EVENT_WEIGHTS, eventIds, pickEvent } from "./events";
 import { createVersusMatch, DEFAULT_GOALS } from "./state";
 import type { GameState, Stats } from "./types";
 
-const WEEK_CAP = 120;
+const WEEK_CAP = 200;
 
 /** Obaj gracze grają heurystyką bota: miara tempa partii bez człowieka. */
 function botVersusBot(goals: Stats, seed: number): GameState {
@@ -20,12 +20,12 @@ function botVersusBot(goals: Stats, seed: number): GameState {
 }
 
 describe("balans", () => {
-  it("normal preset ends between 20 and 80 weeks for a bot", () => {
+  it("normal preset ends between 30 and 130 weeks for a bot", () => {
     for (const seed of [1, 7, 42, 1234]) {
       const end = botVersusBot(DEFAULT_GOALS, seed);
       expect(end.phase).toBe("victory");
-      expect(end.week).toBeGreaterThanOrEqual(20);
-      expect(end.week).toBeLessThanOrEqual(80);
+      expect(end.week).toBeGreaterThanOrEqual(30);
+      expect(end.week).toBeLessThanOrEqual(130);
     }
   });
 

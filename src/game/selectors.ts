@@ -2,7 +2,7 @@ import { travelCost } from "./board";
 import { dispatch } from "./reducer";
 import type { EngineError } from "./result";
 import type { LocationId } from "./catalog";
-import type { ActionId, GameState, Player } from "./types";
+import type { ActionId, GameState, JobId, Player } from "./types";
 
 export function getActivePlayer(state: GameState): Player | undefined {
   return state.players[state.active];
@@ -38,5 +38,16 @@ export function costToLocation(
 /** Dry-runs an action for the active player; null means it can be taken now. */
 export function actionBlock(state: GameState, id: ActionId): EngineError | null {
   const result = dispatch(state, { type: "act", id });
+  return result.ok ? null : result.error;
+}
+
+/** Dry-run podania o pracę; null = można złożyć teraz (będąc w PUP). */
+export function jobBlock(state: GameState, job: JobId): EngineError | null {
+  const result = dispatch(state, { type: "apply", job });
+  return result.ok ? null : result.error;
+}
+
+export function raiseBlock(state: GameState): EngineError | null {
+  const result = dispatch(state, { type: "askRaise" });
   return result.ok ? null : result.error;
 }

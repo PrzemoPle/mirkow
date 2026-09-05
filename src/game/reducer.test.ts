@@ -136,7 +136,7 @@ describe("dispatch endWeek", () => {
       dispatch(
         createMatch({
           timeLeft: 3,
-          needs: { foodWeeks: 2, clothesWeeks: 3 },
+          needs: { foodWeeks: 2, clothesWeeks: 3, suitWeeks: 0 },
         }),
         { type: "endWeek" },
       ),
@@ -155,7 +155,7 @@ describe("dispatch endWeek", () => {
         createMatch({
           stats: { money: 0 },
           rngSeed: firstSeedFor("korek"),
-          needs: { foodWeeks: 2, clothesWeeks: 3 },
+          needs: { foodWeeks: 2, clothesWeeks: 3, suitWeeks: 0 },
         }),
         {
           type: "endWeek",
@@ -176,7 +176,7 @@ describe("dispatch endWeek", () => {
     const setup = {
       stats: { money: 0 },
       rngSeed: firstSeedFor("korek"),
-      needs: { foodWeeks: 2, clothesWeeks: 3 },
+      needs: { foodWeeks: 2, clothesWeeks: 3, suitWeeks: 0 },
     };
     const first = unwrap(dispatch(createMatch(setup), action));
     const second = unwrap(dispatch(createMatch(setup), action));
@@ -220,7 +220,7 @@ describe("victory", () => {
           goals: { money: 10, happiness: 10, education: 10, career: 10 },
           stats: { money: 10, happiness: 10, education: 10, career: 10 },
           rngSeed: firstSeedFor("korek"),
-          needs: { foodWeeks: 2, clothesWeeks: 3 },
+          needs: { foodWeeks: 2, clothesWeeks: 3, suitWeeks: 0 },
         }),
         { type: "endWeek" },
       ),

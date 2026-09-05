@@ -14,23 +14,27 @@ import {
   type BotStep,
   type EngineError,
   type GameState,
+  type JobId,
   type LocationId,
+  type NoticeId,
   type WeekEffect,
 } from "../game";
+import { getJobDef } from "../game";
 import { t } from "../i18n";
 import { eventArtUrl } from "./art";
 import { buildBoard, locationName } from "./board";
 import { browserStore } from "./browser-store";
-import { actedMessage, actionLabel, effectLine, eventMessage } from "./copy";
+import { actedMessage, actionLabel, companyName, effectLine, eventMessage, jobName, noticeTitle } from "./copy";
 import { el } from "./dom";
 import { errorMessage } from "./errors";
 import { interpolate } from "./format";
 import { buildNeeds, buildStats, buildTopBar } from "./hud";
 import { buildJournal } from "./journal";
 import { setFastForward, wait } from "./motion";
-import { showEventCard, showVictory } from "./overlays";
+import { showEventCard, showNoticeCard, showVictory } from "./overlays";
 import { buildPanel } from "./panel";
 import { buildSetup, type SetupHandlers } from "./setup";
+import { buildWorkCard } from "./work";
 
 const BOT_ACT_MS = 520;
 const BOT_END_MS = 300;
@@ -41,6 +45,7 @@ type Shell = {
   board: ReturnType<typeof buildBoard>;
   stats: ReturnType<typeof buildStats>;
   needs: ReturnType<typeof buildNeeds>;
+  work: ReturnType<typeof buildWorkCard>;
   panel: ReturnType<typeof buildPanel>;
   journal: ReturnType<typeof buildJournal>;
   status: HTMLElement;
@@ -102,6 +107,7 @@ export function renderApp(root: HTMLElement): void {
     shell.top.sync(state, shownTime, actorLabel);
     shell.stats.sync(state, player);
     shell.needs.sync(player);
+    shell.work.sync(state, player);
     shell.panel.sync({ ...state, timeLeft: shownTime }, player, turn);
     shell.board.syncTiles({ ...state, timeLeft: shownTime }, player, turn);
     shell.board.place(state);
@@ -155,6 +161,59 @@ export function renderApp(root: HTMLElement): void {
     paint(`${t(locationName(to))}.`);
   }
 
+  async function applyForJob(job: JobId): Promise<void> {
+    if (!humanTurn() || shell === null) {
+      return;
+    }
+    const result = dispatch(state, { type: "apply", job });
+    if (!result.ok) {
+      lastError = result.error;
+      paint();
+      return;
+    }
+    lastError = null;
+    const def = getJobDef(job);
+    const line = interpolate("actedApply", { job: jobName(job), company: companyName(def.company) });
+    shell.journal.add({ week: state.week, who: "you", text: line });
+    commit(result.state, line);
+    await showHumanNotice();
+    checkVictory();
+  }
+
+  async function askForRaise(): Promise<void> {
+    if (!humanTurn() || shell === null) {
+      return;
+    }
+    const result = dispatch(state, { type: "askRaise" });
+    if (!result.ok) {
+      lastError = result.error;
+      paint();
+      return;
+    }
+    lastError = null;
+    shell.journal.add({ week: state.week, who: "you", text: t("actedRaise") });
+    commit(result.state, t("actedRaise"));
+    await showHumanNotice();
+  }
+
+  /** Karta z pracy dla człowieka (awans, podwyżka, zwolnienie), potem czyścimy znacznik. */
+  async function showHumanNotice(): Promise<void> {
+    const human = getHumanPlayer(state);
+    const notice: NoticeId | null = human?.lastNotice ?? null;
+    if (human === undefined || notice === null) {
+      return;
+    }
+    busy = true;
+    await showNoticeCard(notice, "you");
+    busy = false;
+    state = {
+      ...state,
+      players: state.players.map((entry) => (entry.id === human.id ? { ...entry, lastNotice: null } : entry)),
+    };
+    persist(state);
+    paint();
+  }
+
   function applyAct(id: ActionId): void {
     if (!humanTurn()) {
       return;
@@ -190,9 +249,24 @@ export function renderApp(root: HTMLElement): void {
         paint(line);
         shell.journal.add({ week: state.week, who: "bot", text: label });
         await wait(BOT_ACT_MS);
+      } else if (step.action.type === "apply") {
+        state = step.state;
+        const def = getJobDef(step.action.job);
+        const line = interpolate("botApplies", { job: jobName(step.action.job), company: companyName(def.company) });
+        paint(line);
+        shell.journal.add({ week: state.week, who: "bot", text: line });
+        await wait(BOT_ACT_MS);
+      } else if (step.action.type === "askRaise") {
+        state = step.state;
+        paint(t("botRaise"));
+        shell.journal.add({ week: state.week, who: "bot", text: t("botRaise") });
+        await wait(BOT_ACT_MS);
       } else if (step.action.type === "endWeek") {
         const bot = getBotPlayer(step.state);
         state = step.state;
+        if (bot?.lastNotice === "zwolnienie" || bot?.lastNotice === "redukcja") {
+          shell.journal.add({ week: state.week, who: "bot", text: `${t("botFired")}: ${noticeTitle(bot.lastNotice)}` });
+        }
         if (bot?.lastEvent !== null && bot?.lastEvent !== undefined) {
           shell.journal.add({
             week: state.week,
@@ -260,6 +334,9 @@ export function renderApp(root: HTMLElement): void {
       });
       await showEventCard(human.lastEvent, "you");
     }
+    if (human?.lastNotice !== null && human?.lastNotice !== undefined) {
+      await showNoticeCard(human.lastNotice, "you");
+    }
 
     busy = false;
     if (checkVictory()) {
@@ -289,8 +366,15 @@ export function renderApp(root: HTMLElement): void {
     const board = buildBoard();
     const stats = buildStats();
     const needs = buildNeeds();
+    const work = buildWorkCard();
     const panel = buildPanel({
       onAct: applyAct,
+      onApply: (job) => {
+        void applyForJob(job);
+      },
+      onRaise: () => {
+        void askForRaise();
+      },
       onEndWeek: () => {
         void applyEndWeek();
       },
@@ -319,11 +403,11 @@ export function renderApp(root: HTMLElement): void {
     tools.append(note, newGame);
 
     const side = el("div", "side");
-    side.append(stats.root, needs.root, statusRow);
+    side.append(stats.root, work.root, needs.root, statusRow);
 
     const rootNode = el("div", "game");
     rootNode.append(top.root, board.root, side, panel.root, journal.root, tools);
-    return { root: rootNode, top, board, stats, needs, panel, journal, status, skip, newGame };
+    return { root: rootNode, top, board, stats, needs, work, panel, journal, status, skip, newGame };
   }
 
   function mountPlay(): void {
@@ -363,12 +447,15 @@ export function renderApp(root: HTMLElement): void {
     busy = false;
 
     const loaded = store === null ? { status: "unavailable" as const } : loadSave(store);
-    let notice: "corrupt" | "unavailable" | null = null;
+    let notice: "corrupt" | "unavailable" | "outdated" | null = null;
     if (store === null) {
       notice = "unavailable";
     } else if (loaded.status === "corrupt") {
       clearSave(store);
       notice = "corrupt";
+    } else if (loaded.status === "outdated") {
+      clearSave(store);
+      notice = "outdated";
     }
 
     const saved =

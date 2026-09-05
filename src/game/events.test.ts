@@ -59,7 +59,7 @@ describe("events", () => {
   it("rolls a repeatable event at the end of the week", () => {
     const seed = seedFor("korek");
     const action = { type: "endWeek" } as const;
-    const needs = { foodWeeks: 2, clothesWeeks: 3 };
+    const needs = { foodWeeks: 2, clothesWeeks: 3, suitWeeks: 0 };
     const first = unwrap(dispatch(createMatch({ rngSeed: seed, needs }), action));
     const second = unwrap(
       dispatch(createMatch({ rngSeed: seed, needs }), action),
@@ -74,7 +74,7 @@ describe("events", () => {
       dispatch(
         createMatch({
           rngSeed: seedFor("korek"),
-          needs: { foodWeeks: 2, clothesWeeks: 3 },
+          needs: { foodWeeks: 2, clothesWeeks: 3, suitWeeks: 0 },
         }),
         { type: "endWeek" },
       ),
@@ -88,7 +88,7 @@ describe("events", () => {
       dispatch(
         createMatch({
           rngSeed: seedFor("lotto"),
-          needs: { foodWeeks: 2, clothesWeeks: 3 },
+          needs: { foodWeeks: 2, clothesWeeks: 3, suitWeeks: 0 },
         }),
         { type: "endWeek" },
       ),
@@ -102,7 +102,7 @@ describe("events", () => {
       dispatch(
         createMatch({
           rngSeed: seedFor("promocja"),
-          needs: { foodWeeks: 1, clothesWeeks: 3 },
+          needs: { foodWeeks: 1, clothesWeeks: 3, suitWeeks: 0 },
         }),
         { type: "endWeek" },
       ),
@@ -120,7 +120,7 @@ describe("events", () => {
         createMatch({
           rngSeed: seedFor("pit"),
           stats: { money: 0 },
-          needs: { foodWeeks: 2, clothesWeeks: 3 },
+          needs: { foodWeeks: 2, clothesWeeks: 3, suitWeeks: 0 },
         }),
         { type: "endWeek" },
       ),

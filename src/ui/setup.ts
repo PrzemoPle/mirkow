@@ -17,7 +17,7 @@ export type SetupChoice = {
   goals: Stats;
 };
 
-export type SetupNotice = "corrupt" | "unavailable" | null;
+export type SetupNotice = "corrupt" | "unavailable" | "outdated" | null;
 
 export type SavedMatch = {
   week: number;
@@ -94,10 +94,11 @@ export function buildSetup(handlers: SetupHandlers): HTMLElement {
   head.append(headCopy);
   root.append(head);
 
-  if (handlers.notice === "corrupt" || handlers.notice === "unavailable") {
+  if (handlers.notice !== null && handlers.notice !== undefined) {
     const notice = el("p", "setup-notice");
     notice.setAttribute("role", "status");
-    notice.textContent = handlers.notice === "corrupt" ? t("saveCorrupt") : t("saveUnavailable");
+    const key = handlers.notice === "corrupt" ? "saveCorrupt" : handlers.notice === "outdated" ? "saveOutdated" : "saveUnavailable";
+    notice.textContent = t(key);
     root.append(notice);
   }
 

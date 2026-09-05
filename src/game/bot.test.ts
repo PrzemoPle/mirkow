@@ -26,7 +26,7 @@ describe("bot Kowalski", () => {
   it("buys food before anything else", () => {
     const hungry = createVersusMatch({
       active: 1,
-      botNeeds: { foodWeeks: 0, clothesWeeks: 2 },
+      botNeeds: { foodWeeks: 0, clothesWeeks: 2, suitWeeks: 0 },
       botLocationId: "home",
     });
     expect(nextBotAction(hungry)).toEqual({ type: "move", to: "shop" });
@@ -38,7 +38,7 @@ describe("bot Kowalski", () => {
   it("does not rest at the gym while starving", () => {
     const hungry = createVersusMatch({
       active: 1,
-      botNeeds: { foodWeeks: 0, clothesWeeks: 2 },
+      botNeeds: { foodWeeks: 0, clothesWeeks: 2, suitWeeks: 0 },
       botLocationId: "gym",
     });
     expect(nextBotAction(hungry)).toEqual({ type: "move", to: "shop" });
@@ -49,8 +49,8 @@ describe("bot Kowalski", () => {
       active: 1,
       timeLeft: 3,
       botLocationId: "pup",
-      botJob: { id: "kebabKasjer", weeks: 1 },
-      botNeeds: { foodWeeks: 2, clothesWeeks: 2 },
+      botJob: { id: "kebabKasjer", weeks: 1, raises: 0 },
+      botNeeds: { foodWeeks: 2, clothesWeeks: 2, suitWeeks: 0 },
       botStats: { money: 800, happiness: 20, education: 0, career: 4 },
     });
     expect(nextBotAction(short)).toEqual({ type: "move", to: "home" });
@@ -104,7 +104,7 @@ describe("bot Kowalski", () => {
     expect(trace.steps.at(-1)?.action).toEqual({ type: "endWeek" });
     expect(trace.state).toEqual(playBotUntilIdle(start));
     for (const step of trace.steps) {
-      expect(step.state.version).toBe(1);
+      expect(step.state.version).toBe(2);
     }
   });
 
@@ -112,9 +112,10 @@ describe("bot Kowalski", () => {
     const rich = createVersusMatch({
       active: 1,
       botLocationId: "cafe",
-      botNeeds: { foodWeeks: 3, clothesWeeks: 3 },
-      botJob: { id: "kebabLokal", weeks: 1 },
-      botStats: { money: 4000, happiness: 20, education: 60, career: 60 },
+      botNeeds: { foodWeeks: 3, clothesWeeks: 3, suitWeeks: 0 },
+      botJob: { id: "kebabLokal", weeks: 1, raises: 0 },
+      botReliability: 80,
+      botStats: { money: 4000, happiness: 20, education: 60, career: 70 },
       goals: { money: 3000, happiness: 80, education: 40, career: 40 },
     });
     expect(nextBotAction(rich)).toEqual({ type: "act", id: "restCafe" });
@@ -122,9 +123,10 @@ describe("bot Kowalski", () => {
     const broke = createVersusMatch({
       active: 1,
       botLocationId: "home",
-      botNeeds: { foodWeeks: 3, clothesWeeks: 3 },
-      botJob: { id: "kebabLokal", weeks: 1 },
-      botStats: { money: 600, happiness: 20, education: 60, career: 60 },
+      botNeeds: { foodWeeks: 3, clothesWeeks: 3, suitWeeks: 0 },
+      botJob: { id: "kebabLokal", weeks: 1, raises: 0 },
+      botReliability: 80,
+      botStats: { money: 600, happiness: 20, education: 60, career: 70 },
       goals: { money: 300, happiness: 80, education: 40, career: 40 },
     });
     expect(nextBotAction(broke)).toEqual({ type: "act", id: "restHome" });
@@ -134,8 +136,10 @@ describe("bot Kowalski", () => {
     const manager = createVersusMatch({
       active: 1,
       botLocationId: "kebab",
-      botNeeds: { foodWeeks: 3, clothesWeeks: 3 },
-      botJob: { id: "kebabKierownik", weeks: 6 },
+      botNeeds: { foodWeeks: 3, clothesWeeks: 3, suitWeeks: 0 },
+      botJob: { id: "kebabKierownik", weeks: 6, raises: 0 },
+      botReliability: 60,
+      botExperience: 20,
       botStats: { money: 5000, happiness: 20, education: 60, career: 30 },
       goals: { money: 9000, happiness: 80, education: 40, career: 80 },
     });

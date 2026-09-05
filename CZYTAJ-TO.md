@@ -135,7 +135,7 @@ Osiem lokacji + skwer wizualny na środku (skwer **nie jest** `LocationId`, nie 
 | `shop` | Żuczek | jedzenie, ciuchy |
 | `kebab` | Nocna Buła | zmiana, własny lokal |
 
-Kariera MVP (jedna drabinka): kasjer Nocnej Buli → kierownik zmiany → własny lokal (`kebabKasjer` / `kebabKierownik` / `kebabLokal`).
+Praca (od G1, 2026-09-05): 5 firm i 15 stanowisk w `src/game/jobs.ts` (Nocna Buła, Żuczek, Nasza Kasa, PUP, Zajezdnia), podania i podwyżki w PUP, własny lokal jako 16. stanowisko. Kariera = prestiż aktualnego stanowiska, po zwolnieniu 0. Pełny model: `docs/projekt-glebia.md`.
 
 Mieszkanie: tylko `stancja`. Czynsz start 400 zł, co 4 tygodnie płatność i podwyżka +50 zł. Nie ma przeprowadzki.
 
@@ -263,16 +263,20 @@ To nie są bugi zapomnienia. Albo decyzja MVP je wycięła, albo silnik ma haczy
 
 | Stała | Wartość | Gdzie |
 |---|---|---|
-| Pula czasu | 10 | `catalog.ts` |
+| Pula czasu | 12 (od G1; wcześniej 10) | `catalog.ts` |
 | Start kasy / szczęścia | 800 / 20 | `types.ts` |
 | Czynsz | 400, +50 co 4 tyg., sufit 800 (`RENT_MAX`) | `types.ts`, `market.ts`, `actions.ts` |
 | Start zapasów | jedzenie 2 tyg., ubranie 3 tyg. | `types.ts` |
 | Lokata (Nasza Kasa) | 1 cz., 1000 zł, wypłata 1080 zł po 4 tyg., jedna naraz | `actions.ts` |
 | Eventy | 10 kart, losowanie ważone: spokój 2,5, napiwki 1,5, reszta 1 | `events.ts` |
 | Ciocia / MOPS | 500 / 350 | `types.ts` |
-| Zmiana kasjer | 4 cz., +280 zł, +4 kariery | `jobs.ts` |
-| Kierownik | 420 zł, edu 18, staż 4 tyg. | `jobs.ts` |
-| Własny lokal | buy-in 1800, edu 36, staż 4 | `jobs.ts` |
+| Zmiana | 3 cz., płaca wg stanowiska (220–950 zł) × podwyżki × koniunktura, +1 staż, +4 solidności | `jobs.ts`, `actions.ts` |
+| Solidność | start 20, −3 co tydzień, zwolnienie 10 pkt poniżej wymagania stanowiska | `jobs.ts`, `reducer.ts` |
+| Podwyżka | w PUP, 1 cz., staż na stanowisku 8 tyg. × (n+1), solidność ≥ min + 10, +10%, max 2 | `jobs.ts` |
+| Koniunktura | losowana co 8 tyg.: boom (płace +15%), normalnie, recesja (płace −15%, jedna firma nie zatrudnia, redukcja 10% gdy solidność < min + 5) | `economy.ts` |
+| Garnitur | Lombard, 1 cz., 350 zł, 6 tyg.; wymagany w banku, PUP, u kierownika sklepu i dyrektorów | `actions.ts` |
+| Własny lokal | dla kierownika zmiany Nocnej Buły, buy-in 1800, staż 16, solidność 40, prestiż 70 | `jobs.ts` |
+| Progi edukacji (zastępują dyplomy do G2) | kurs 10, matura 20, licencjat 40, inżynieria 45, magister 70 | `jobs.ts` |
 | Kurs / studia | 3 cz. 150 zł +6 edu / 5 cz. 400 zł +14 edu | `actions.ts` |
 | Jedzenie / ciuchy | 1 cz., 2 tyg. zapasu / 1 cz., 3 tyg. | `actions.ts` |
 | Głód / nagość | −2 czasu / −5 szczęścia | `actions.ts` |

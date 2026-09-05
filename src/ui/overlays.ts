@@ -1,7 +1,7 @@
-import { avatarColor, type AvatarId, type EventId, type GameState, type Player } from "../game";
+import { avatarColor, type AvatarId, type EventId, type GameState, type NoticeId, type Player } from "../game";
 import { t } from "../i18n";
-import { artImg, avatarArtUrl, eventArtUrl, stampWinUrl } from "./art";
-import { eventEffect, eventTitle } from "./copy";
+import { artImg, avatarArtUrl, eventArtUrl, noticeArtUrl, stampWinUrl } from "./art";
+import { eventEffect, eventTitle, noticeEffect, noticeTitle } from "./copy";
 import { el } from "./dom";
 import { formatZl, interpolate } from "./format";
 import { wait } from "./motion";
@@ -18,25 +18,51 @@ function mountOverlay(content: HTMLElement, label: string): HTMLElement {
   return overlay;
 }
 
+type CardInput = {
+  art: string;
+  who: string;
+  title: string;
+  effect: string;
+};
+
 /** Pokazuje kartę eventu w pełnym kadrze i czeka na zamknięcie (klik albo czas). */
 export function showEventCard(id: EventId, who: "you" | "bot"): Promise<void> {
+  return showCard({
+    art: eventArtUrl(id),
+    who: who === "you" ? t("eventYours") : t("eventBots"),
+    title: eventTitle(id),
+    effect: eventEffect(id),
+  });
+}
+
+/** Karta zdarzenia z pracy: zwolnienie, redukcja, podwyżka, awans. */
+export function showNoticeCard(id: NoticeId, who: "you" | "bot"): Promise<void> {
+  return showCard({
+    art: noticeArtUrl(id),
+    who: who === "you" ? t("eventYours") : t("eventBots"),
+    title: noticeTitle(id),
+    effect: noticeEffect(id),
+  });
+}
+
+function showCard(input: CardInput): Promise<void> {
   return new Promise((resolve) => {
     const card = el("div", "card");
-    card.append(artImg(eventArtUrl(id), "card-art"));
+    card.append(artImg(input.art, "card-art", "card"));
     const band = el("div", "card-band");
     const whoLine = el("span", "card-who");
-    whoLine.textContent = who === "you" ? t("eventYours") : t("eventBots");
+    whoLine.textContent = input.who;
     const title = el("h2", "card-title");
-    title.textContent = eventTitle(id);
+    title.textContent = input.title;
     const effect = el("p", "card-effect");
-    effect.textContent = eventEffect(id);
+    effect.textContent = input.effect;
     const close = el("button", "btn card-close");
     close.type = "button";
     close.textContent = t("eventClose");
     band.append(whoLine, title, effect, close);
     card.append(band);
 
-    const overlay = mountOverlay(card, eventTitle(id));
+    const overlay = mountOverlay(card, input.title);
     let done = false;
     const finish = (): void => {
       if (done) {

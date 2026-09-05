@@ -29,7 +29,7 @@ describe("lokata w Naszej Kasie", () => {
       locationId: "bank",
       stats: { money: 1500 },
       rngSeed: firstSeedFor("spokoj"),
-      needs: { foodWeeks: 9, clothesWeeks: 9 },
+      needs: { foodWeeks: 9, clothesWeeks: 9, suitWeeks: 0 },
     });
     const opened = unwrap(dispatch(start, { type: "act", id: "deposit" }));
     expect(playerOf(opened).stats.money).toBe(1500 - DEPOSIT_COST);
@@ -61,7 +61,7 @@ describe("czynsz", () => {
     let state = createMatch({
       week: 4,
       stats: { money: 100_000 },
-      needs: { foodWeeks: 99, clothesWeeks: 99 },
+      needs: { foodWeeks: 99, clothesWeeks: 99, suitWeeks: 0 },
     });
     for (let round = 0; round < 40; round += 1) {
       state = unwrap(dispatch({ ...state, week: 4, rngSeed: firstSeedFor("spokoj") }, { type: "endWeek" }));
@@ -75,6 +75,7 @@ describe("balans startu", () => {
     expect(startingNeeds()).toEqual({
       foodWeeks: STARTING_FOOD_WEEKS,
       clothesWeeks: STARTING_CLOTHES_WEEKS,
+      suitWeeks: 0,
     });
     expect(STARTING_FOOD_WEEKS).toBe(2);
     expect(STARTING_CLOTHES_WEEKS).toBe(3);

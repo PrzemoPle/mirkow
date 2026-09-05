@@ -919,3 +919,263 @@
     display: contents;
   }
 }
+
+/* Plansza 4×3 na desktopie, 3×4 na telefonie: pozycje z atrybutów kafelka. */
+.board {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.tile {
+  grid-column: var(--mcol);
+  grid-row: var(--mrow);
+}
+
+@media (min-width: 1024px) {
+  .board {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .tile {
+    grid-column: var(--col);
+    grid-row: var(--row);
+  }
+}
+
+.art-missing {
+  filter: grayscale(1) brightness(0.55);
+}
+
+.tile .art-missing {
+  opacity: 0.7;
+}
+
+/* Karta pracy */
+.work {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--r);
+  background: var(--table-2);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+
+.work-head {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.work-icon {
+  width: 2.2rem;
+  height: 2.2rem;
+}
+
+.work-title {
+  display: grid;
+  min-width: 0;
+}
+
+.work-job {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.05rem;
+  text-transform: capitalize;
+}
+
+.work-company {
+  font-size: 0.8rem;
+  color: var(--text-2);
+}
+
+.work-none .work-job {
+  text-transform: none;
+  color: var(--text-2);
+}
+
+.work-wage {
+  font-family: var(--display);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent-2);
+  white-space: nowrap;
+}
+
+.work-meters {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.work-meter {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 0.2rem 0.5rem;
+}
+
+.work-meter-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.work-meter-label img {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+.work-meter-value {
+  justify-self: end;
+  font-size: 0.8rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.rel-bar {
+  position: relative;
+  grid-column: 1 / -1;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--line-2);
+}
+
+.rel-fill {
+  display: block;
+  height: 100%;
+  border-radius: 1px;
+  background: var(--ok);
+  transition: width 250ms var(--ease);
+}
+
+.work-danger .rel-fill {
+  background: var(--accent);
+}
+
+.rel-min {
+  position: absolute;
+  top: -3px;
+  width: 2px;
+  height: 12px;
+  background: var(--paper);
+  transform: translateX(-1px);
+}
+
+.rel-min[hidden] {
+  display: none;
+}
+
+.work-foot {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--text-3);
+}
+
+.work-warning {
+  margin: 0;
+  padding: 0.35rem 0.5rem;
+  border-radius: var(--r);
+  background: rgb(212 101 47 / 0.18);
+  color: var(--accent-2);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.work-warning[hidden] {
+  display: none;
+}
+
+.need-muted {
+  opacity: 0.5;
+}
+
+.economy {
+  font-size: 0.72rem;
+}
+
+.economy-boom {
+  background: var(--ok);
+  color: var(--ink);
+}
+
+.economy-recession {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.economy[hidden] {
+  display: none;
+}
+
+/* Tablica ofert w PUP */
+.jobs {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.jobs[hidden],
+.acts[hidden] {
+  display: none;
+}
+
+.jobs-hint {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--text-3);
+}
+
+.jobs-list {
+  display: grid;
+  gap: 0.6rem;
+  max-height: 24rem;
+  overflow-y: auto;
+  padding-right: 0.2rem;
+}
+
+.jobs-group {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.jobs-company {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.jobs-company img {
+  width: 1.4rem;
+  height: 1.4rem;
+}
+
+.jobs-frozen {
+  margin-left: auto;
+  font-size: 0.68rem;
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+.job-row .act-name {
+  text-transform: capitalize;
+}
+
+.job-tag {
+  font-size: 0.65rem;
+  vertical-align: middle;
+}
+
+.job-mine {
+  border-color: var(--accent);
+  opacity: 1;
+}
+
+@media (max-width: 1023px) {
+  .jobs-list {
+    max-height: 16rem;
+  }
+}

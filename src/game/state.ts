@@ -1,14 +1,17 @@
 import { BOT_NAME, pickBotAvatar } from "./avatars";
 import { TIME_MAX, type LocationId } from "./catalog";
+import { startingEconomy } from "./economy";
 import { startingMarket } from "./market";
 import {
   STARTING_CLOTHES_WEEKS,
   STARTING_FOOD_WEEKS,
   STARTING_HAPPINESS,
   STARTING_MONEY,
+  STARTING_RELIABILITY,
   STARTING_RENT,
   type AvatarId,
   type Controller,
+  type Economy,
   type GameState,
   type Job,
   type Market,
@@ -24,7 +27,7 @@ export const DEFAULT_GOALS: Stats = {
 };
 
 export function startingNeeds(): Player["needs"] {
-  return { foodWeeks: STARTING_FOOD_WEEKS, clothesWeeks: STARTING_CLOTHES_WEEKS };
+  return { foodWeeks: STARTING_FOOD_WEEKS, clothesWeeks: STARTING_CLOTHES_WEEKS, suitWeeks: 0 };
 }
 
 export function startingStats(): Stats {
@@ -44,6 +47,8 @@ export function createPlayer(input: {
   locationId: LocationId;
   stats: Stats;
   job?: Job | null;
+  experience?: number;
+  reliability?: number;
   needs?: Player["needs"];
   nextTimeLeft?: number;
   lastEvent?: Player["lastEvent"];
@@ -57,17 +62,20 @@ export function createPlayer(input: {
     locationId: input.locationId,
     stats: input.stats,
     job: input.job ?? null,
+    experience: input.experience ?? 0,
+    reliability: input.reliability ?? STARTING_RELIABILITY,
     home: { id: "stancja", rent: STARTING_RENT },
     needs: input.needs ?? startingNeeds(),
     nextTimeLeft: input.nextTimeLeft ?? TIME_MAX,
     lastEvent: input.lastEvent ?? null,
+    lastNotice: null,
     deposit: input.deposit ?? null,
   };
 }
 
 export function createSetup(rngSeed = 1): GameState {
   return {
-    version: 1,
+    version: 2,
     phase: "setup",
     week: 1,
     timeLeft: TIME_MAX,
@@ -80,10 +88,11 @@ export function createSetup(rngSeed = 1): GameState {
     lastEvent: null,
     lastWeekEffects: [],
     market: startingMarket(),
+    economy: startingEconomy(),
   };
 }
 
-export function createMatch(overrides: {
+export type MatchOverrides = {
   name?: string;
   avatarId?: AvatarId;
   locationId?: LocationId;
@@ -94,49 +103,59 @@ export function createMatch(overrides: {
   rngSeed?: number;
   phase?: GameState["phase"];
   job?: Job | null;
+  experience?: number;
+  reliability?: number;
   needs?: Player["needs"];
   market?: Market;
-} = {}): GameState {
+  economy?: Economy;
+};
+
+export function createMatch(overrides: MatchOverrides = {}): GameState {
   const stats: Stats = {
     ...startingStats(),
     ...overrides.stats,
   };
 
+  const player = createPlayer({
+    id: "p1",
+    controller: "human",
+    name: overrides.name ?? "Gracz",
+    avatarId: overrides.avatarId ?? "ola",
+    locationId: overrides.locationId ?? "home",
+    stats,
+    job: overrides.job ?? null,
+    needs: overrides.needs ?? startingNeeds(),
+    ...(overrides.experience !== undefined ? { experience: overrides.experience } : {}),
+    ...(overrides.reliability !== undefined ? { reliability: overrides.reliability } : {}),
+  });
+
   return {
-    version: 1,
+    version: 2,
     phase: overrides.phase ?? "playing",
     week: overrides.week ?? 1,
     timeLeft: overrides.timeLeft ?? TIME_MAX,
     timeMax: TIME_MAX,
     goals: { ...DEFAULT_GOALS, ...overrides.goals },
-    players: [
-      createPlayer({
-        id: "p1",
-        controller: "human",
-        name: overrides.name ?? "Gracz",
-        avatarId: overrides.avatarId ?? "ola",
-        locationId: overrides.locationId ?? "home",
-        stats,
-        job: overrides.job ?? null,
-        needs: overrides.needs ?? startingNeeds(),
-      }),
-    ],
+    players: [player],
     active: 0,
     rngSeed: overrides.rngSeed ?? 1,
     lastSafetyNet: null,
     lastEvent: null,
     lastWeekEffects: [],
     market: overrides.market ?? startingMarket(),
+    economy: overrides.economy ?? startingEconomy(),
   };
 }
 
 export function createVersusMatch(
-  overrides: Parameters<typeof createMatch>[0] & {
+  overrides: MatchOverrides & {
     active?: number;
     botNeeds?: Player["needs"];
     botLocationId?: LocationId;
     botJob?: Job | null;
     botStats?: Partial<Stats>;
+    botExperience?: number;
+    botReliability?: number;
   } = {},
 ): GameState {
   const match = createMatch(overrides);
@@ -154,6 +173,8 @@ export function createVersusMatch(
     stats: { ...startingStats(), ...overrides.botStats },
     job: overrides.botJob ?? null,
     needs: overrides.botNeeds ?? startingNeeds(),
+    ...(overrides.botExperience !== undefined ? { experience: overrides.botExperience } : {}),
+    ...(overrides.botReliability !== undefined ? { reliability: overrides.botReliability } : {}),
   });
 
   return {

@@ -8,7 +8,9 @@ import {
   type Player,
 } from "../game";
 import { t } from "../i18n";
-import { actionIconUrl, artImg, tileArtUrl } from "./art";
+import { actionIconUrl, artImg, tileArtUrl, workIconUrl } from "./art";
+import { buildJobsBoard, type JobsBoardHandlers } from "./jobs-board";
+import { getJobDef } from "../game";
 import { locationName } from "./board";
 import { actionEffects, actionLabel, blockReason } from "./copy";
 import { el } from "./dom";
@@ -16,7 +18,7 @@ import { formatZl, interpolate } from "./format";
 
 const CONFIRM_FROM = 3;
 
-export type PanelHandlers = {
+export type PanelHandlers = JobsBoardHandlers & {
   onAct(id: ActionId): void;
   onEndWeek(): void;
 };
@@ -31,13 +33,14 @@ function withPlayer(state: GameState, player: Player): GameState {
   return index === -1 ? state : { ...state, active: index };
 }
 
-function buildActionRow(def: ActionDef, reason: string | null, enabled: boolean): HTMLButtonElement {
+function buildActionRow(def: ActionDef, reason: string | null, enabled: boolean, player: Player): HTMLButtonElement {
   const button = el("button", "act");
   button.type = "button";
   button.dataset.action = def.id;
   button.disabled = !enabled;
 
-  const icon = artImg(actionIconUrl(def.id), "act-icon pix");
+  const iconSrc = def.isWork && player.job !== null ? workIconUrl(getJobDef(player.job.id).company) : actionIconUrl(def.id);
+  const icon = artImg(iconSrc, "act-icon pix", "icon");
   const name = el("span", "act-name");
   name.textContent = actionLabel(def.id);
 
@@ -92,6 +95,8 @@ export function buildPanel(handlers: PanelHandlers): Panel {
   const list = el("div", "acts-list");
   list.className = "acts";
   acts.append(actsTitle, list);
+  const jobs = buildJobsBoard({ onApply: handlers.onApply, onRaise: handlers.onRaise });
+  jobs.root.hidden = true;
 
   const endweek = el("div", "endweek");
   const confirm = el("div", "confirm");
@@ -109,7 +114,7 @@ export function buildPanel(handlers: PanelHandlers): Panel {
   endButton.textContent = t("endWeek");
   endweek.append(confirm, endButton);
 
-  root.append(place, acts, endweek);
+  root.append(place, acts, jobs.root, endweek);
 
   let timeLeft = 0;
 
@@ -164,16 +169,22 @@ export function buildPanel(handlers: PanelHandlers): Panel {
 
       const scoped = withPlayer(state, player);
       const ids = actionsAt(player.locationId, player);
+      const atPup = player.locationId === "pup";
+      jobs.root.hidden = !atPup;
+      if (atPup) {
+        jobs.sync(scoped, player, humanTurn);
+      }
+      acts.hidden = atPup && ids.length === 0;
       if (ids.length === 0) {
         const empty = el("p", "acts-empty");
-        empty.textContent = t("actionEmpty");
+        empty.textContent = player.locationId === "elektro" ? t("actionSoon") : t("actionEmpty");
         list.replaceChildren(empty);
       } else {
         const rows = ids.map((id) => {
           const def = resolveAction(scoped, id);
           const block = humanTurn ? actionBlock(scoped, id) : null;
           const reason = block === null ? null : blockReason(block);
-          return buildActionRow(def, reason, humanTurn && block === null);
+          return buildActionRow(def, reason, humanTurn && block === null, player);
         });
         list.replaceChildren(...rows);
       }

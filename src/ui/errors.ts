@@ -8,10 +8,7 @@ export function errorMessage(error: EngineError): string {
     case "wrongPhase":
       return t("errorWrongPhase");
     case "insufficientTime":
-      return interpolate("errorInsufficientTime", {
-        needed: error.needed,
-        have: error.have,
-      });
+      return interpolate("errorInsufficientTime", { needed: error.needed, have: error.have });
     case "alreadyThere":
       return t("errorAlreadyThere");
     case "unknownLocation":
@@ -24,23 +21,26 @@ export function errorMessage(error: EngineError): string {
       return t("errorWrongLocation");
     case "noJob":
       return t("errorNoJob");
-    case "alreadyEmployed":
-      return t("errorAlreadyEmployed");
+    case "alreadyThisJob":
+      return t("errorAlreadyThisJob");
     case "insufficientMoney":
-      return interpolate("errorInsufficientMoney", {
-        needed: error.needed,
-        have: error.have,
-      });
+      return interpolate("errorInsufficientMoney", { needed: error.needed, have: error.have });
     case "tooLittleEducation":
-      return interpolate("errorTooLittleEducation", {
-        needed: error.needed,
-        have: error.have,
-      });
-    case "tooLittleTenure":
-      return interpolate("errorTooLittleTenure", {
-        needed: error.needed,
-        have: error.have,
-      });
+      return interpolate("errorTooLittleEducation", { needed: error.needed, have: error.have });
+    case "tooLittleExperience":
+      return interpolate("errorTooLittleExperience", { needed: error.needed, have: error.have });
+    case "tooLittleReliability":
+      return interpolate("errorTooLittleReliability", { needed: error.needed, have: error.have });
+    case "needsSuit":
+      return t("errorNeedsSuit");
+    case "hiringFrozen":
+      return t("errorHiringFrozen");
+    case "notKierownik":
+      return t("errorNotKierownik");
+    case "raiseTooSoon":
+      return interpolate("errorRaiseTooSoon", { needed: error.needed, have: error.have });
+    case "raiseMaxed":
+      return t("errorRaiseMaxed");
     case "depositActive":
       return t("errorDepositActive");
     default: {

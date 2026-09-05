@@ -1,31 +1,18 @@
 import type { LocationId } from "./catalog";
+import { wageMultiplier } from "./economy";
 import {
-  KEBAB_JOBS,
-  KIEROWNIK_EDU,
-  KIEROWNIK_PROMOTE_CAREER,
-  KIEROWNIK_PROMOTE_TIME,
-  KIEROWNIK_WEEKS,
-  LOKAL_BUYIN,
-  LOKAL_EDU,
-  LOKAL_OPEN_CAREER,
-  LOKAL_OPEN_TIME,
-  LOKAL_WEEKS,
-  WORK_KEBAB_CAREER,
-  WORK_KEBAB_TIME,
-  WORK_KEBAB_WAGE,
   getJobDef,
+  jobLocation,
+  LOKAL_BUYIN,
+  LOKAL_OPEN_TIME,
+  RAISE_PERCENT,
+  WORK_TIME,
 } from "./jobs";
 import { FOOD_BASE, CLOTHES_BASE } from "./market";
-import { REST_HAPPINESS, REST_TIME_COST, type ActionId, type GameState, type JobId, type Player } from "./types";
+import { REST_HAPPINESS, REST_TIME_COST, type ActionId, type GameState, type Player } from "./types";
 
-export {
-  WORK_KEBAB_CAREER,
-  WORK_KEBAB_TIME,
-  WORK_KEBAB_WAGE,
-} from "./jobs";
 export { FOOD_BASE as BUY_FOOD_COST, CLOTHES_BASE as BUY_CLOTHES_COST } from "./market";
 
-export const SEARCH_JOB_TIME = 2;
 export const STUDY_COURSE_TIME = 3;
 export const STUDY_COURSE_COST = 150;
 export const STUDY_COURSE_EDU = 6;
@@ -36,6 +23,9 @@ export const BUY_FOOD_TIME = 1;
 export const FOOD_STOCK_WEEKS = 2;
 export const BUY_CLOTHES_TIME = 1;
 export const CLOTHES_STOCK_WEEKS = 3;
+export const BUY_SUIT_TIME = 1;
+export const SUIT_COST = 350;
+export const SUIT_STOCK_WEEKS = 6;
 export const REST_CAFE_TIME = 1;
 export const REST_CAFE_COST = 25;
 export const REST_CAFE_HAPPINESS = 5;
@@ -43,6 +33,7 @@ export const REST_GYM_TIME = 2;
 export const REST_GYM_COST = 40;
 export const REST_GYM_HAPPINESS = 8;
 export const HUNGER_TIME_PENALTY = 2;
+export const HUNGER_HAPPINESS_PENALTY = 3;
 export const BARE_HAPPINESS_PENALTY = 5;
 export const RENT_INTERVAL_WEEKS = 4;
 export const DEPOSIT_TIME = 1;
@@ -52,143 +43,57 @@ export const DEPOSIT_WEEKS = 4;
 
 export type ActionDef = {
   id: ActionId;
-  locationId: LocationId;
+  /** null = miejsce pracy gracza (zależy od etatu). */
+  locationId: LocationId | null;
   timeCost: number;
   moneyCost: number;
   wage: number;
   happiness: number;
   education: number;
-  career: number;
-  requiredJobs: readonly JobId[] | null;
   requiredEducation: number;
-  requiredWeeks: number;
-  rejectIfEmployed: boolean;
-  givesJob: JobId | null;
+  requiredMoney: number;
+  isWork: boolean;
+  opensLokal: boolean;
+  opensDeposit: boolean;
   foodWeeks: number | null;
   clothesWeeks: number | null;
-  opensDeposit: boolean;
+  suitWeeks: number | null;
 };
 
-const idleStats = {
+const idle = {
   moneyCost: 0,
   wage: 0,
   happiness: 0,
   education: 0,
-  career: 0,
-  requiredJobs: null,
   requiredEducation: 0,
-  requiredWeeks: 0,
-  rejectIfEmployed: false,
-  givesJob: null,
+  requiredMoney: 0,
+  isWork: false,
+  opensLokal: false,
+  opensDeposit: false,
   foodWeeks: null,
   clothesWeeks: null,
-  opensDeposit: false,
+  suitWeeks: null,
 } satisfies Omit<ActionDef, "id" | "locationId" | "timeCost">;
 
 export const ACTION_DEFS: Record<ActionId, ActionDef> = {
-  searchJob: {
-    ...idleStats,
-    id: "searchJob",
-    locationId: "pup",
-    timeCost: SEARCH_JOB_TIME,
-    rejectIfEmployed: true,
-    givesJob: "kebabKasjer",
-  },
-  applyKierownik: {
-    ...idleStats,
-    id: "applyKierownik",
-    locationId: "pup",
-    timeCost: KIEROWNIK_PROMOTE_TIME,
-    career: KIEROWNIK_PROMOTE_CAREER,
-    requiredJobs: ["kebabKasjer"],
-    requiredEducation: KIEROWNIK_EDU,
-    requiredWeeks: KIEROWNIK_WEEKS,
-    givesJob: "kebabKierownik",
-  },
+  work: { ...idle, id: "work", locationId: null, timeCost: WORK_TIME, isWork: true },
   openLokal: {
-    ...idleStats,
+    ...idle,
     id: "openLokal",
     locationId: "kebab",
     timeCost: LOKAL_OPEN_TIME,
     moneyCost: LOKAL_BUYIN,
-    career: LOKAL_OPEN_CAREER,
-    requiredJobs: ["kebabKierownik"],
-    requiredEducation: LOKAL_EDU,
-    requiredWeeks: LOKAL_WEEKS,
-    givesJob: "kebabLokal",
+    opensLokal: true,
   },
-  workKebab: {
-    ...idleStats,
-    id: "workKebab",
-    locationId: "kebab",
-    timeCost: WORK_KEBAB_TIME,
-    wage: WORK_KEBAB_WAGE,
-    career: WORK_KEBAB_CAREER,
-    requiredJobs: KEBAB_JOBS,
-  },
-  studyCourse: {
-    ...idleStats,
-    id: "studyCourse",
-    locationId: "campus",
-    timeCost: STUDY_COURSE_TIME,
-    moneyCost: STUDY_COURSE_COST,
-    education: STUDY_COURSE_EDU,
-  },
-  studyDegree: {
-    ...idleStats,
-    id: "studyDegree",
-    locationId: "campus",
-    timeCost: STUDY_DEGREE_TIME,
-    moneyCost: STUDY_DEGREE_COST,
-    education: STUDY_DEGREE_EDU,
-  },
-  buyFood: {
-    ...idleStats,
-    id: "buyFood",
-    locationId: "shop",
-    timeCost: BUY_FOOD_TIME,
-    moneyCost: FOOD_BASE,
-    foodWeeks: FOOD_STOCK_WEEKS,
-  },
-  buyClothes: {
-    ...idleStats,
-    id: "buyClothes",
-    locationId: "shop",
-    timeCost: BUY_CLOTHES_TIME,
-    moneyCost: CLOTHES_BASE,
-    clothesWeeks: CLOTHES_STOCK_WEEKS,
-  },
-  restHome: {
-    ...idleStats,
-    id: "restHome",
-    locationId: "home",
-    timeCost: REST_TIME_COST,
-    happiness: REST_HAPPINESS,
-  },
-  restCafe: {
-    ...idleStats,
-    id: "restCafe",
-    locationId: "cafe",
-    timeCost: REST_CAFE_TIME,
-    moneyCost: REST_CAFE_COST,
-    happiness: REST_CAFE_HAPPINESS,
-  },
-  restGym: {
-    ...idleStats,
-    id: "restGym",
-    locationId: "gym",
-    timeCost: REST_GYM_TIME,
-    moneyCost: REST_GYM_COST,
-    happiness: REST_GYM_HAPPINESS,
-  },
-  deposit: {
-    ...idleStats,
-    id: "deposit",
-    locationId: "bank",
-    timeCost: DEPOSIT_TIME,
-    moneyCost: DEPOSIT_COST,
-    opensDeposit: true,
-  },
+  studyCourse: { ...idle, id: "studyCourse", locationId: "campus", timeCost: STUDY_COURSE_TIME, moneyCost: STUDY_COURSE_COST, education: STUDY_COURSE_EDU },
+  studyDegree: { ...idle, id: "studyDegree", locationId: "campus", timeCost: STUDY_DEGREE_TIME, moneyCost: STUDY_DEGREE_COST, education: STUDY_DEGREE_EDU },
+  buyFood: { ...idle, id: "buyFood", locationId: "shop", timeCost: BUY_FOOD_TIME, moneyCost: FOOD_BASE, foodWeeks: FOOD_STOCK_WEEKS },
+  buyClothes: { ...idle, id: "buyClothes", locationId: "shop", timeCost: BUY_CLOTHES_TIME, moneyCost: CLOTHES_BASE, clothesWeeks: CLOTHES_STOCK_WEEKS },
+  buySuit: { ...idle, id: "buySuit", locationId: "lombard", timeCost: BUY_SUIT_TIME, moneyCost: SUIT_COST, suitWeeks: SUIT_STOCK_WEEKS },
+  restHome: { ...idle, id: "restHome", locationId: "home", timeCost: REST_TIME_COST, happiness: REST_HAPPINESS },
+  restCafe: { ...idle, id: "restCafe", locationId: "cafe", timeCost: REST_CAFE_TIME, moneyCost: REST_CAFE_COST, happiness: REST_CAFE_HAPPINESS },
+  restGym: { ...idle, id: "restGym", locationId: "gym", timeCost: REST_GYM_TIME, moneyCost: REST_GYM_COST, happiness: REST_GYM_HAPPINESS },
+  deposit: { ...idle, id: "deposit", locationId: "bank", timeCost: DEPOSIT_TIME, moneyCost: DEPOSIT_COST, opensDeposit: true },
 };
 
 export function isActionId(value: string): value is ActionId {
@@ -203,30 +108,35 @@ export function getActionDef(id: ActionId): ActionDef {
   return def;
 }
 
+/** Wypłata za zmianę: stawka × podwyżki × koniunktura, zaokrąglona do 10 zł. */
+export function shiftWage(state: GameState, player: Player): number {
+  if (player.job === null) {
+    return 0;
+  }
+  const def = getJobDef(player.job.id);
+  const raw = def.wage * (1 + RAISE_PERCENT * player.job.raises) * wageMultiplier(state.economy.phase);
+  return Math.round(raw / 10) * 10;
+}
+
 function listedForPlayer(def: ActionDef, player: Player): boolean {
-  if (def.rejectIfEmployed) {
-    return player.job === null;
+  if (def.isWork) {
+    return player.job !== null;
   }
-  if (def.givesJob === "kebabKierownik") {
-    return player.job?.id === "kebabKasjer";
-  }
-  if (def.givesJob === "kebabLokal") {
+  if (def.opensLokal) {
     return player.job?.id === "kebabKierownik";
   }
   return true;
 }
 
-export function actionsAt(
-  locationId: LocationId,
-  player?: Player,
-): readonly ActionId[] {
+export function actionsAt(locationId: LocationId, player?: Player): readonly ActionId[] {
   return (Object.keys(ACTION_DEFS) as ActionId[]).filter((id) => {
     const def = getActionDef(id);
-    if (def.locationId !== locationId) {
+    const where = def.isWork ? (player?.job ? jobLocation(player.job.id) : null) : def.locationId;
+    if (where !== locationId) {
       return false;
     }
     if (player === undefined) {
-      return true;
+      return !def.isWork;
     }
     return listedForPlayer(def, player);
   });
@@ -241,9 +151,8 @@ export function resolveAction(state: GameState, id: ActionId): ActionDef {
   if (id === "buyClothes") {
     return { ...def, moneyCost: state.market.clothes };
   }
-  if (id === "workKebab" && player?.job !== undefined && player.job !== null) {
-    const job = getJobDef(player.job.id);
-    return { ...def, wage: job.wage, career: job.career, timeCost: job.timeCost };
+  if (id === "work" && player !== undefined && player.job !== null) {
+    return { ...def, locationId: jobLocation(player.job.id), wage: shiftWage(state, player) };
   }
   return def;
 }

@@ -10,10 +10,16 @@ export type EngineError =
   | { code: "noActivePlayer" }
   | { code: "wrongLocation"; here: LocationId; needed: LocationId }
   | { code: "noJob" }
-  | { code: "alreadyEmployed" }
+  | { code: "alreadyThisJob" }
   | { code: "insufficientMoney"; needed: number; have: number }
   | { code: "tooLittleEducation"; needed: number; have: number }
-  | { code: "tooLittleTenure"; needed: number; have: number }
+  | { code: "tooLittleExperience"; needed: number; have: number }
+  | { code: "tooLittleReliability"; needed: number; have: number }
+  | { code: "needsSuit" }
+  | { code: "hiringFrozen" }
+  | { code: "notKierownik" }
+  | { code: "raiseTooSoon"; needed: number; have: number }
+  | { code: "raiseMaxed" }
   | { code: "depositActive" };
 
 export type EngineResult =

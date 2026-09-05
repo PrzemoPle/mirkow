@@ -1,19 +1,30 @@
 import { assertNever } from "../game/assert-never";
 import type { ActionDef } from "../game/actions";
-import type { EngineError } from "../game/result";
-import type { ActionId, EventId, GameState, Job, WeekEffect } from "../game/types";
 import { DEPOSIT_PAYOUT, DEPOSIT_WEEKS } from "../game/actions";
 import {
   AUKCJE_COST,
-  NAPIWKI_MONEY,
   KONTROLA_COST,
   KOREK_TIME,
   LOTTO_MONEY,
+  NAPIWKI_MONEY,
   PIT_COST,
   PRALKA_COST,
   PROMOCJA_FOOD,
   TESCIOWA_HAPPINESS,
 } from "../game/events";
+import { getJobDef, RELIABILITY_PER_SHIFT, type JobDef } from "../game/jobs";
+import type { EngineError } from "../game/result";
+import type {
+  ActionId,
+  CompanyId,
+  EconomyPhase,
+  EventId,
+  GameState,
+  Job,
+  JobId,
+  NoticeId,
+  WeekEffect,
+} from "../game/types";
 import { t, type MessageKey } from "../i18n";
 import { interpolate } from "./format";
 
@@ -23,14 +34,10 @@ export function actionLabel(id: ActionId): string {
 
 function actionLabelKey(id: ActionId): MessageKey {
   switch (id) {
-    case "searchJob":
-      return "actSearchJob";
-    case "applyKierownik":
-      return "actApplyKierownik";
+    case "work":
+      return "actWork";
     case "openLokal":
       return "actOpenLokal";
-    case "workKebab":
-      return "actWorkKebab";
     case "studyCourse":
       return "actStudyCourse";
     case "studyDegree":
@@ -39,6 +46,8 @@ function actionLabelKey(id: ActionId): MessageKey {
       return "actBuyFood";
     case "buyClothes":
       return "actBuyClothes";
+    case "buySuit":
+      return "actBuySuit";
     case "restHome":
       return "actRestHome";
     case "restCafe":
@@ -55,34 +64,22 @@ function actionLabelKey(id: ActionId): MessageKey {
 }
 
 export function actionCaption(def: ActionDef): string {
-  const label = t(actionLabelKey(def.id));
+  const label = actionLabel(def.id);
   if (def.wage > 0) {
-    return interpolate("actionMetaWage", {
-      label,
-      time: def.timeCost,
-      money: def.wage,
-    });
+    return interpolate("actionMetaWage", { label, time: def.timeCost, money: def.wage });
   }
   if (def.moneyCost > 0) {
-    return interpolate("actionMetaPaid", {
-      label,
-      time: def.timeCost,
-      money: def.moneyCost,
-    });
+    return interpolate("actionMetaPaid", { label, time: def.timeCost, money: def.moneyCost });
   }
   return interpolate("actionMetaTime", { label, time: def.timeCost });
 }
 
 export function actedMessage(id: ActionId, wage: number): string {
   switch (id) {
-    case "searchJob":
-      return t("actedSearchJob");
-    case "applyKierownik":
-      return t("actedApplyKierownik");
+    case "work":
+      return interpolate("actedWork", { wage });
     case "openLokal":
       return t("actedOpenLokal");
-    case "workKebab":
-      return interpolate("actedWorkKebab", { wage });
     case "studyCourse":
       return t("actedStudyCourse");
     case "studyDegree":
@@ -91,6 +88,8 @@ export function actedMessage(id: ActionId, wage: number): string {
       return t("actedBuyFood");
     case "buyClothes":
       return t("actedBuyClothes");
+    case "buySuit":
+      return t("actedBuySuit");
     case "restHome":
       return t("actedRestHome");
     case "restCafe":
@@ -106,19 +105,106 @@ export function actedMessage(id: ActionId, wage: number): string {
   }
 }
 
-export function jobShort(job: Job | null): string {
-  if (job === null) {
-    return t("jobNoneShort");
-  }
-  switch (job.id) {
-    case "kebabKasjer":
-      return t("jobKebabKasjerShort");
-    case "kebabKierownik":
-      return t("jobKebabKierownikShort");
-    case "kebabLokal":
-      return t("jobKebabLokalShort");
+export function companyName(id: CompanyId): string {
+  switch (id) {
+    case "kebab":
+      return t("companyKebab");
+    case "shop":
+      return t("companyShop");
+    case "bank":
+      return t("companyBank");
+    case "pup":
+      return t("companyPup");
+    case "depot":
+      return t("companyDepot");
     default: {
-      const exhaustive: never = job.id;
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
+export function jobName(id: JobId): string {
+  switch (id) {
+    case "kebabPomoc":
+      return t("jobKebabPomoc");
+    case "kebabKasjer":
+      return t("jobKebabKasjer");
+    case "kebabKierownik":
+      return t("jobKebabKierownik");
+    case "kebabLokal":
+      return t("jobKebabLokal");
+    case "shopPolki":
+      return t("jobShopPolki");
+    case "shopKasjer":
+      return t("jobShopKasjer");
+    case "shopKierownik":
+      return t("jobShopKierownik");
+    case "bankKasjer":
+      return t("jobBankKasjer");
+    case "bankDoradca":
+      return t("jobBankDoradca");
+    case "bankDyrektor":
+      return t("jobBankDyrektor");
+    case "pupReferent":
+      return t("jobPupReferent");
+    case "pupNaczelnik":
+      return t("jobPupNaczelnik");
+    case "depotMonter":
+      return t("jobDepotMonter");
+    case "depotBrygadzista":
+      return t("jobDepotBrygadzista");
+    case "depotInzynier":
+      return t("jobDepotInzynier");
+    case "depotDyrektor":
+      return t("jobDepotDyrektor");
+    default: {
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
+export function jobLabel(job: Job | null): string {
+  if (job === null) {
+    return t("jobNone");
+  }
+  const def = getJobDef(job.id);
+  return interpolate("jobLabel", { job: jobName(job.id), company: companyName(def.company) });
+}
+
+export function jobShort(job: Job | null): string {
+  return job === null ? t("jobNoneShort") : jobName(job.id);
+}
+
+/** Wymagania stanowiska jako krótkie chipy. */
+export function jobRequirements(def: JobDef): string[] {
+  const out: string[] = [];
+  if (def.requiredExperience > 0) {
+    out.push(interpolate("jobReqExperience", { n: def.requiredExperience }));
+  }
+  if (def.requiredReliability > 0) {
+    out.push(interpolate("jobReqReliability", { n: def.requiredReliability }));
+  }
+  if (def.requiredEducation > 0) {
+    out.push(interpolate("jobReqEducation", { n: def.requiredEducation }));
+  }
+  if (def.requiresSuit) {
+    out.push(t("jobReqSuit"));
+  }
+  return out.length === 0 ? [t("jobReqNone")] : out;
+}
+
+export function economyLabel(phase: EconomyPhase): string {
+  switch (phase) {
+    case "boom":
+      return t("economyBoom");
+    case "normal":
+      return t("economyNormal");
+    case "recession":
+      return t("economyRecession");
+    default: {
+      const exhaustive: never = phase;
       return assertNever(exhaustive);
     }
   }
@@ -127,8 +213,11 @@ export function jobShort(job: Job | null): string {
 /** Efekty akcji jako krótkie chipy pod nazwą. */
 export function actionEffects(def: ActionDef): string[] {
   const out: string[] = [];
-  if (def.givesJob !== null) {
-    out.push(def.id === "searchJob" ? t("effectJob") : t("effectPromotion"));
+  if (def.isWork) {
+    out.push(interpolate("effectWork", { n: RELIABILITY_PER_SHIFT }));
+  }
+  if (def.opensLokal) {
+    out.push(interpolate("effectLokal", { n: getJobDef("kebabLokal").prestige }));
   }
   if (def.education > 0) {
     out.push(interpolate("effectEducation", { n: def.education }));
@@ -136,14 +225,14 @@ export function actionEffects(def: ActionDef): string[] {
   if (def.happiness > 0) {
     out.push(interpolate("effectHappiness", { n: def.happiness }));
   }
-  if (def.career > 0) {
-    out.push(interpolate("effectCareer", { n: def.career }));
-  }
   if (def.foodWeeks !== null) {
     out.push(interpolate("effectFood", { n: def.foodWeeks }));
   }
   if (def.clothesWeeks !== null) {
     out.push(interpolate("effectClothes", { n: def.clothesWeeks }));
+  }
+  if (def.suitWeeks !== null) {
+    out.push(interpolate("effectSuit", { n: def.suitWeeks }));
   }
   if (def.opensDeposit) {
     out.push(interpolate("effectDepositInfo", { payout: DEPOSIT_PAYOUT, n: DEPOSIT_WEEKS }));
@@ -156,14 +245,26 @@ export function blockReason(error: EngineError): string {
   switch (error.code) {
     case "noJob":
       return t("blockNoJob");
-    case "alreadyEmployed":
-      return t("blockEmployed");
+    case "alreadyThisJob":
+      return t("blockAlreadyThisJob");
     case "insufficientMoney":
       return interpolate("blockMoney", { n: error.needed - error.have });
     case "tooLittleEducation":
       return interpolate("blockEducation", { have: error.have, needed: error.needed });
-    case "tooLittleTenure":
-      return interpolate("blockTenure", { have: error.have, needed: error.needed });
+    case "tooLittleExperience":
+      return interpolate("blockExperience", { have: error.have, needed: error.needed });
+    case "tooLittleReliability":
+      return interpolate("blockReliability", { have: error.have, needed: error.needed });
+    case "needsSuit":
+      return t("blockSuit");
+    case "hiringFrozen":
+      return t("blockHiringFrozen");
+    case "notKierownik":
+      return t("blockNotKierownik");
+    case "raiseTooSoon":
+      return interpolate("blockRaiseTooSoon", { have: error.have, needed: error.needed });
+    case "raiseMaxed":
+      return t("blockRaiseMaxed");
     case "insufficientTime":
       return interpolate("blockTime", { needed: error.needed });
     case "depositActive":
@@ -177,6 +278,40 @@ export function blockReason(error: EngineError): string {
       return t("blockOther");
     default: {
       const exhaustive: never = error;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
+export function noticeTitle(id: NoticeId): string {
+  switch (id) {
+    case "zwolnienie":
+      return t("noticeZwolnienie");
+    case "redukcja":
+      return t("noticeRedukcja");
+    case "podwyzka":
+      return t("noticePodwyzka");
+    case "awans":
+      return t("noticeAwans");
+    default: {
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
+export function noticeEffect(id: NoticeId): string {
+  switch (id) {
+    case "zwolnienie":
+      return t("noticeZwolnienieEffect");
+    case "redukcja":
+      return t("noticeRedukcjaEffect");
+    case "podwyzka":
+      return t("noticePodwyzkaEffect");
+    case "awans":
+      return t("noticeAwansEffect");
+    default: {
+      const exhaustive: never = id;
       return assertNever(exhaustive);
     }
   }
@@ -240,24 +375,6 @@ export function eventEffect(id: EventId): string {
   }
 }
 
-export function jobLabel(job: Job | null): string {
-  if (job === null) {
-    return t("jobNone");
-  }
-  switch (job.id) {
-    case "kebabKasjer":
-      return t("jobKebabKasjer");
-    case "kebabKierownik":
-      return t("jobKebabKierownik");
-    case "kebabLokal":
-      return t("jobKebabLokal");
-    default: {
-      const exhaustive: never = job.id;
-      return assertNever(exhaustive);
-    }
-  }
-}
-
 export function effectLine(effect: WeekEffect): string {
   switch (effect.kind) {
     case "rent":
@@ -269,14 +386,26 @@ export function effectLine(effect: WeekEffect): string {
     case "noClothes":
       return interpolate("effectNoClothes", { n: effect.happinessLost });
     case "shopPrices":
-      return interpolate("effectShopPrices", {
-        food: effect.food,
-        clothes: effect.clothes,
-      });
+      return interpolate("effectShopPrices", { food: effect.food, clothes: effect.clothes });
     case "event":
       return eventMessage(effect.id);
     case "deposit":
       return interpolate("effectDepositPaid", { amount: effect.amount });
+    case "fired":
+      return effect.reason === "reliability"
+        ? interpolate("effectFired", { job: jobName(effect.job) })
+        : interpolate("effectReduction", { job: jobName(effect.job) });
+    case "economy": {
+      if (effect.phase === "boom") {
+        return t("effectEconomyBoom");
+      }
+      if (effect.phase === "normal") {
+        return t("effectEconomyNormal");
+      }
+      return interpolate("effectEconomyRecession", {
+        company: effect.hiringFrozen === null ? "" : companyName(effect.hiringFrozen),
+      });
+    }
     case "safetyNet": {
       switch (effect.grant) {
         case "ciocia":
@@ -331,9 +460,7 @@ export function eventMessage(id: EventId | null): string {
 export function weekStatus(state: GameState): string {
   const lines = [
     t("weekEnded"),
-    ...state.lastWeekEffects
-      .filter((effect) => effect.kind !== "event")
-      .map(effectLine),
+    ...state.lastWeekEffects.filter((effect) => effect.kind !== "event").map(effectLine),
   ];
   return lines.join(" ");
 }

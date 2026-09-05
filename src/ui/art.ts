@@ -322,12 +322,17 @@ export function hudIconUrl(id: HudIconId): string {
   }
 }
 
+/** Tła z CSS: url() w zmiennej CSS przeglądarka rozwiązuje względem arkusza (w buildzie assets/), więc adres musi być bezwzględny. */
+function absoluteArt(path: string): string {
+  return new URL(path, document.baseURI).href;
+}
+
 export function boardMatUrl(): string {
-  return "./art/ui/board-mat-dark.webp";
+  return absoluteArt("./art/ui/board-mat-dark.webp");
 }
 
 export function panoramaUrl(): string {
-  return "./art/brand/panorama.webp";
+  return absoluteArt("./art/brand/panorama.webp");
 }
 
 export function stampWinUrl(): string {

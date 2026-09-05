@@ -9,6 +9,16 @@ async function startNewGame(page: Page): Promise<void> {
   await page.getByRole("button", { name: "Wiem, gram" }).click();
 }
 
+/** Tła z CSS nie są <img>, więc sprawdzamy je osobno: każdy url() w computed style musi odpowiadać 200. */
+async function expectCssImageLoads(page: Page, backgroundImage: string): Promise<void> {
+  const urls = [...backgroundImage.matchAll(/url\("?([^")]+)"?\)/g)].map((match) => match[1] ?? "");
+  expect(urls.length).toBeGreaterThan(0);
+  for (const url of urls) {
+    const status = await page.evaluate(async (target) => (await fetch(target)).status, url);
+    expect(status, url).toBe(200);
+  }
+}
+
 test("plays the first week without errors", async ({ page }) => {
   const errors: string[] = [];
   page.on("pageerror", (error) => errors.push(error.message));
@@ -18,8 +28,15 @@ test("plays the first week without errors", async ({ page }) => {
     }
   });
 
+  await page.goto("./");
+  await expect(page.getByRole("button", { name: "Wejdź do Mirkowa" })).toBeVisible();
+  const panorama = await page.evaluate(() => getComputedStyle(document.querySelector(".setup-head")!).backgroundImage);
+  await expectCssImageLoads(page, panorama);
+
   await startNewGame(page);
   await expect(page.getByRole("button", { name: /^PUP Mirków/ })).toBeVisible();
+  const mat = await page.evaluate(() => getComputedStyle(document.querySelector(".board")!, "::before").backgroundImage);
+  await expectCssImageLoads(page, mat);
   await expect(page.locator(".tile")).toHaveCount(12);
   await expect(page.locator(".week-goal-text")).toContainText("PUP");
 

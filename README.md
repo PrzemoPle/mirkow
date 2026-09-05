@@ -24,6 +24,7 @@ Vite, TypeScript, vanilla DOM, Vitest. Stan gry to jeden obiekt JSON. Bez framew
 
 - [CZYTAJ-TO.md](CZYTAJ-TO.md) - paczka dla kolejnej osoby
 - [Przegląd i plan zmian (2026-09-05)](docs/przeglad-2026-09-05.md) - diagnoza wyglądu i kolejność prac
+- [Projekt „Głębia”](docs/projekt-glebia.md) - jak Mirków ma dorównać Jonesowi: praca, nauka, dom, pieniądze
 - [Założenia](docs/zalozenia.md) - pierwotna intencja
 - [Decyzje](docs/decyzje.md) - cięcia MVP
 - [Grafika](docs/grafika.md) - paleta i bitmapy

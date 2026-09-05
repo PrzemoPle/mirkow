@@ -42,6 +42,7 @@ Roboczy tytuł: **Symulator życia**. PWA `short_name`: **Mirków**. Ostateczna 
 | `docs/warianty-grafiki/` | archiwum prób stylu (nie używane w buildzie) |
 | `docs/przeglad-2026-09-05.md` | **przegląd wyglądu i plan zmian E1–E4** (czytać po tym pliku) |
 | `docs/brief-p2.md` | grafiki do zamówienia po E1–E2 (panorama, Kowalski, ikony akcji) |
+| `docs/projekt-glebia.md` | **projekt „Głębia”**: praca z solidnością, dyplomy z egzaminami, mieszkania, przedmioty, bank, weekendy; etapy G1–G5 |
 
 ---
 

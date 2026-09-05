@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { ACTION_DEFS } from "../game/actions";
 import { createMatch } from "../game/state";
-import { actionCaption, actedMessage, eventMessage, jobLabel, placeDescription, weekGoal, weekStatus } from "./copy";
+import { actionCaption, actedMessage, eventMessage, jobLabel, npcLine, placeDescription, rivalCard, weekGoal, weekStatus } from "./copy";
 
 describe("copy", () => {
   it("puts time and wage on action captions", () => {
@@ -53,5 +53,24 @@ describe("copy", () => {
     expect(goal.location).toBe("campus");
     expect(goal.text).toContain("WSMiK");
     expect(placeDescription("pup")).toContain("Tablica ofert");
+  });
+
+  it("gives every place a character with a line that fits the state", () => {
+    const pup = createMatch({ locationId: "pup" });
+    const clerk = npcLine(pup, pup.players[0]!);
+    expect(clerk?.id).toBe("urzedniczka");
+    expect(clerk?.text).toContain("Numerek");
+
+    const hungry = createMatch({ locationId: "kebab", needs: { foodWeeks: 0, clothesWeeks: 3, suitWeeks: 0 } });
+    expect(npcLine(hungry, hungry.players[0]!)?.text).toContain("Głodny");
+
+    const flat = createMatch({ locationId: "home", home: { id: "kawalerka", rent: 700 } });
+    expect(npcLine(flat, flat.players[0]!)).toBeNull();
+    const stancja = createMatch({ locationId: "home" });
+    expect(npcLine(stancja, stancja.players[0]!)?.name).toBe("Krysia");
+
+    expect(rivalCard("awans")?.mood).toBe("happy");
+    expect(rivalCard("zwolnienie")?.mood).toBe("angry");
+    expect(rivalCard("przeprowadzka")).toBeNull();
   });
 });

@@ -8,7 +8,7 @@ import {
   type Player,
 } from "../game";
 import { t } from "../i18n";
-import { actionIconUrl, artImg, homeTileArtUrl, tileArtUrl, workIconUrl } from "./art";
+import { actionIconUrl, artImg, homeTileArtUrl, npcArtUrl, tileArtUrl, workIconUrl } from "./art";
 import { buildHomeBoard, buildRoomView, type HomeHandlers } from "./home";
 import { buildElektroBoard, buildLombardBoard, type ShopHandlers } from "./shops";
 import { buildBankBoard, type BankHandlers } from "./bank";
@@ -16,7 +16,7 @@ import { buildCampusBoard, type CampusHandlers } from "./campus";
 import { buildJobsBoard, type JobsBoardHandlers } from "./jobs-board";
 import { getJobDef } from "../game";
 import { locationName } from "./board";
-import { actionEffects, actionLabel, blockReason, placeDescription } from "./copy";
+import { actionEffects, actionLabel, blockReason, npcLine, placeDescription } from "./copy";
 import { el } from "./dom";
 import { formatZl, interpolate } from "./format";
 import { WORK_TIME } from "../game";
@@ -96,6 +96,14 @@ export function buildPanel(handlers: PanelHandlers): Panel {
   copy.append(placeName, here);
   place.append(art, room.root, copy);
   const desc = el("p", "place-desc");
+  const npc = el("div", "npc");
+  const npcFace = el("div", "npc-face");
+  const npcBubble = el("div", "npc-bubble");
+  const npcName = el("span", "npc-name");
+  const npcText = el("p", "npc-text");
+  npcBubble.append(npcName, npcText);
+  npc.append(npcFace, npcBubble);
+  let npcKey = "";
 
   const sheetToggle = el("button", "btn sheet-toggle");
   sheetToggle.type = "button";
@@ -145,7 +153,7 @@ export function buildPanel(handlers: PanelHandlers): Panel {
   endweek.append(confirm, endButton);
 
   const body = el("div", "panel-body");
-  body.append(desc, acts, jobs.root, campus.root, homeBoard.root, elektro.root, lombard.root, bank.root);
+  body.append(desc, npc, acts, jobs.root, campus.root, homeBoard.root, elektro.root, lombard.root, bank.root);
   root.append(sheetClose, place, sheetToggle, body, endweek);
 
   let timeLeft = 0;
@@ -219,6 +227,16 @@ export function buildPanel(handlers: PanelHandlers): Panel {
       }
       placeName.textContent = t(locationName(player.locationId));
       desc.textContent = placeDescription(player.locationId);
+      const line = npcLine(state, player);
+      npc.hidden = line === null;
+      if (line !== null) {
+        if (npcKey !== line.id) {
+          npcKey = line.id;
+          npcFace.replaceChildren(artImg(npcArtUrl(line.id), "", "icon"));
+        }
+        npcName.textContent = line.name;
+        npcText.textContent = line.text;
+      }
 
       const scoped = withPlayer(state, player);
       const ids = actionsAt(player.locationId, player);

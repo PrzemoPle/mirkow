@@ -303,3 +303,52 @@
 .howto .btn-primary {
   justify-self: start;
 }
+
+/* Karta Kowalskiego: mina i jedno zdanie, znika sama. */
+.overlay-light {
+  background: rgb(10 8 6 / 0.45);
+}
+
+.rival-card {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 1rem;
+  width: min(440px, 90vw);
+  padding: 1rem 1.2rem;
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow-paper);
+  animation: card-in 320ms var(--ease);
+}
+
+.rival-card-face {
+  width: 5.5rem;
+  height: 5.5rem;
+  overflow: hidden;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px var(--paper-2);
+}
+
+.rival-card-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 12%;
+}
+
+.rival-card-copy {
+  display: grid;
+  gap: 0.3rem;
+  min-width: 0;
+}
+
+.rival-card-text {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  line-height: 1.2;
+  text-wrap: balance;
+}

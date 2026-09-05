@@ -29,7 +29,7 @@ import { eventArtUrl } from "./art";
 import { buildBoard, locationName } from "./board";
 import { browserStore } from "./browser-store";
 import type { SaveStore } from "../game/save";
-import { actedMessage, actionLabel, companyName, diplomaName, effectLine, eventMessage, homeName, itemName, jobName, noticeTitle, placeDescription, weekGoal } from "./copy";
+import { actedMessage, actionLabel, companyName, diplomaName, effectLine, eventMessage, homeName, itemName, jobName, noticeTitle, placeDescription, rivalCard, weekGoal } from "./copy";
 import { sellPrice } from "../game";
 import { el } from "./dom";
 import { errorMessage } from "./errors";
@@ -37,7 +37,7 @@ import { interpolate } from "./format";
 import { buildGoalLine, buildNeeds, buildRivalRow, buildStats, buildTopBar } from "./hud";
 import { buildJournal } from "./journal";
 import { setFastForward, wait } from "./motion";
-import { showEventCard, showHowToCard, showNoticeCard, showVictory } from "./overlays";
+import { showEventCard, showHowToCard, showNoticeCard, showRivalCard, showVictory } from "./overlays";
 import { buildPanel } from "./panel";
 import { buildSetup, type SetupHandlers } from "./setup";
 import { buildWorkCard } from "./work";
@@ -364,6 +364,23 @@ export function renderApp(root: HTMLElement): void {
     if (shell === null) {
       return;
     }
+    let shownNotice: NoticeId | null = null;
+    /** Karta z miną Kowalskiego po każdym kroku, który zostawił nowe zdarzenie z pracy albo życia. */
+    const maybeRivalCard = async (): Promise<void> => {
+      const bot = getBotPlayer(state);
+      const notice = bot?.lastNotice ?? null;
+      if (bot === undefined || notice === null || notice === shownNotice || shell === null) {
+        return;
+      }
+      shownNotice = notice;
+      const card = rivalCard(notice);
+      if (card === null) {
+        return;
+      }
+      shell.journal.add({ week: state.week, who: "bot", text: card.text });
+      paint(card.text);
+      await showRivalCard(bot, card.mood, card.text);
+    };
     for (const step of steps) {
       const before = getBotPlayer(state);
       if (step.action.type === "move" && before !== undefined) {
@@ -425,6 +442,7 @@ export function renderApp(root: HTMLElement): void {
         if (bot?.lastNotice === "zwolnienie" || bot?.lastNotice === "redukcja") {
           shell.journal.add({ week: state.week, who: "bot", text: `${t("botFired")}: ${noticeTitle(bot.lastNotice)}` });
         }
+
         if (bot?.lastEvent !== null && bot?.lastEvent !== undefined) {
           shell.journal.add({
             week: state.week,
@@ -441,6 +459,7 @@ export function renderApp(root: HTMLElement): void {
         paint(t("botEnds"));
         await wait(BOT_END_MS);
       }
+      await maybeRivalCard();
     }
   }
 

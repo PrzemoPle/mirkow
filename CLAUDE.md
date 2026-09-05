@@ -35,17 +35,17 @@ Turowa gra **Symulator życia** (Mirków). Vite + TypeScript, vanilla DOM, Vites
 
 - `src/ui/app.ts` pętla i przepływ tury (ruch, akcja, koniec tygodnia, replay bota)
 - `src/ui/board.ts` plansza, tory, pionki, animacja po `travelPath`
-- `src/ui/panel.ts` karta miejsca, akcje z powodem blokady (`actionBlock`), koniec tygodnia
+- `src/ui/panel.ts` karta miejsca, postać z kwestią (`npcLine` w `copy.ts`, `public/art/npc/`), akcje z powodem blokady (`actionBlock`), koniec tygodnia; na telefonie dolny arkusz (`setOpen`)
 - `src/ui/jobs-board.ts` tablica ofert w PUP (`jobBlock`, `raiseBlock`)
 - `src/ui/work.ts` karta pracy w HUD: stanowisko, płaca, solidność z minimum, staż
 - `src/ui/campus.ts` indeks w WSMiK (`enrollBlock`, szansa egzaminu)
 - `src/ui/home.ts` pokój z przedmiotami (sprite'y na strefach A/B/C) i umowy mieszkań
 - `src/ui/shops.ts` Elektro-Mir (nowe, naprawa) i Lombard (używane, skup)
 - `src/ui/bank.ts` Nasza Kasa: konto, kredyt, akcje z wykresem
-- `src/ui/hud.ts` pasek górny, bilety czasu, staty, potrzeby
-- `src/ui/overlays.ts` karta eventu, ekran zwycięstwa
+- `src/ui/hud.ts` pasek górny, bilety czasu, cel tygodnia (`weekGoal`), staty, wiersz Kowalskiego, potrzeby
+- `src/ui/overlays.ts` karta eventu (z weekendem), karta zasad na start, karta Kowalskiego z miną, ekran zwycięstwa
 - `src/ui/journal.ts` dziennik tygodnia (stan UI, nie zapis)
 - `src/ui/setup.ts` ekran startu z presetami długości partii
 - `src/styles/*.css` tokeny (jeden ciemny motyw, zablokowany), base, game, overlays, setup
 
-Kierunek wizualny: „Wieczór w Mirkowie”, patrz `docs/przeglad-2026-09-05.md`. Grafiki do zamówienia: `docs/brief-p2.md`.
+Kierunek wizualny: „Wieczór w Mirkowie”, patrz `docs/przeglad-2026-09-05.md`. Briefy grafik: `docs/brief-p2.md`, `brief-p3.md`, `brief-p4.md`. Audyt UX i status napraw: `docs/audyt-ux-2026-09-05.md`.

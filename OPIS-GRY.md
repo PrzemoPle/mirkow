@@ -1,6 +1,6 @@
 # Mirków. Opis gry, budowy i decyzji
 
-**Stan:** 5 września 2026, po etapach E1–E3 (wygląd i balans), G1–G5 (projekt „Głębia”) i krokach 1–3 audytu UX (`docs/audyt-ux-2026-09-05.md`: prowadzenie gracza, przypięty koniec tygodnia, arkusz na telefonie).
+**Stan:** 5 września 2026, po etapach E1–E3 (wygląd i balans), G1–G5 (projekt „Głębia”) i krokach 1–4 audytu UX (`docs/audyt-ux-2026-09-05.md`: prowadzenie gracza, przypięty koniec tygodnia, arkusz na telefonie, postacie Mirkowa z kwestiami, karta Kowalskiego z miną).
 **Repozytorium:** https://github.com/PrzemoPle/mirkow (prywatne, gałąź `main`).
 **Roboczy tytuł:** Mirków (podtytuł „Symulator życia”). Nazwa docelowa i domena nie są jeszcze ustalone.
 

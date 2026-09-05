@@ -153,6 +153,33 @@ export function avatarArtUrl(id: AvatarId): string {
   }
 }
 
+export type RivalMood = "neutral" | "happy" | "angry";
+
+/** Mina Kowalskiego na jego karcie: te same okulary i wąs, inna mina. */
+export function rivalMoodUrl(id: AvatarId, mood: RivalMood): string {
+  if (id !== "kowalski" || mood === "neutral") {
+    return avatarArtUrl(id);
+  }
+  return mood === "happy" ? "./art/avatars/kowalski-zadowolony.png" : "./art/avatars/kowalski-wkurzony.png";
+}
+
+export type NpcId =
+  | "krysia"
+  | "urzedniczka"
+  | "wykladowca"
+  | "kasjerka-banku"
+  | "brygadzista"
+  | "sprzedawczyni"
+  | "lombardzista"
+  | "kebabiarz"
+  | "elektryk"
+  | "barista"
+  | "trener";
+
+export function npcArtUrl(id: NpcId): string {
+  return `./art/npc/${id}.png`;
+}
+
 export function pawnArtUrl(id: AvatarId): string {
   switch (id) {
     case "ola":
@@ -319,7 +346,7 @@ export function actionIconUrl(id: ActionId): string {
     case "restGym":
       return "./art/actions/rest-gym.png";
     case "deposit":
-      return "./art/actions/account.png";
+      return "./art/actions/deposit.png";
     case "eatOut":
       return "./art/actions/eat.png";
     default: {

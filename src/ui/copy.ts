@@ -15,6 +15,8 @@ import {
 import { FIRE_MARGIN, getJobDef, jobLocation, RELIABILITY_DECAY, RELIABILITY_PER_SHIFT, type JobDef } from "../game/jobs";
 import { classesDone, examChance, getDiplomaDef } from "../game/diplomas";
 import { wealth } from "../game/bank";
+import { getHomeDef } from "../game/homes";
+import type { NpcId, RivalMood } from "./art";
 import type { LocationId } from "../game/catalog";
 import type { EngineError } from "../game/result";
 import type {
@@ -801,6 +803,189 @@ export function placeDescription(id: LocationId): string {
       return t("placeLombard");
     case "kebab":
       return t("placeKebab");
+    default: {
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
+export type NpcLine = {
+  id: NpcId;
+  name: string;
+  text: string;
+};
+
+type Quip = { key: MessageKey; when?: (state: GameState, player: Player) => boolean; vars?: (state: GameState, player: Player) => Record<string, string | number> };
+
+function pick(pool: readonly Quip[], state: GameState, player: Player, salt: number): string {
+  // Kwestie warunkowe mają pierwszeństwo w kolejności puli (najpilniejsza sprawa pierwsza);
+  // bez trafionego warunku postać rotuje po kwestiach ogólnych.
+  const conditional = pool.find((quip) => quip.when !== undefined && quip.when(state, player));
+  const general = pool.filter((quip) => quip.when === undefined);
+  const chosen = conditional ?? general[(state.week * 7 + salt) % Math.max(1, general.length)] ?? pool[pool.length - 1];
+  if (chosen === undefined) {
+    return "";
+  }
+  return chosen.vars === undefined ? t(chosen.key) : interpolate(chosen.key, chosen.vars(state, player));
+}
+
+const hasJobAt = (company: string) => (_state: GameState, player: Player): boolean => player.job !== null && getJobDef(player.job.id).company === company;
+
+const NPC_POOLS: Record<Exclude<LocationId, "home">, { id: NpcId; name: MessageKey; pool: readonly Quip[] }> = {
+  pup: {
+    id: "urzedniczka",
+    name: "npcUrzedniczka",
+    pool: [
+      { key: "quipUrzedniczkaNoJob", when: (_s, p) => p.job === null },
+      { key: "quipUrzedniczkaJob", when: (_s, p) => p.job !== null },
+      { key: "quipUrzedniczkaReliability", when: (_s, p) => p.job !== null && p.reliability < getJobDef(p.job.id).requiredReliability },
+      { key: "quipUrzedniczkaRecession", when: (s) => s.economy.phase === "recession" },
+      { key: "quipUrzedniczkaDefault" },
+    ],
+  },
+  campus: {
+    id: "wykladowca",
+    name: "npcWykladowca",
+    pool: [
+      { key: "quipWykladowcaNone", when: (_s, p) => p.studying === null && p.diplomas.length === 0 },
+      {
+        key: "quipWykladowcaStudying",
+        when: (_s, p) => p.studying !== null && classesDone(p, p.studying) < getDiplomaDef(p.studying).classes,
+        vars: (_s, p) => (p.studying === null ? {} : { have: classesDone(p, p.studying), needed: getDiplomaDef(p.studying).classes }),
+      },
+      { key: "quipWykladowcaExam", when: (_s, p) => p.studying !== null && classesDone(p, p.studying) >= getDiplomaDef(p.studying).classes },
+      { key: "quipWykladowcaDegree", when: (_s, p) => p.diplomas.length > 0 },
+      { key: "quipWykladowcaDefault" },
+    ],
+  },
+  bank: {
+    id: "kasjerka-banku",
+    name: "npcKasjerka",
+    pool: [
+      { key: "quipKasjerkaLoan", when: (_s, p) => p.loan !== null },
+      { key: "quipKasjerkaCash", when: (_s, p) => p.stats.money >= 1500 && p.account === 0 },
+      { key: "quipKasjerkaShares", when: (_s, p) => p.shares > 0 },
+      { key: "quipKasjerkaDeposit", when: (_s, p) => p.deposit !== null },
+      { key: "quipKasjerkaDefault" },
+    ],
+  },
+  zajezdnia: {
+    id: "brygadzista",
+    name: "npcBrygadzista",
+    pool: [
+      { key: "quipBrygadzistaWorks", when: hasJobAt("depot") },
+      { key: "quipBrygadzistaOutsider", when: (_s, p) => !hasJobAt("depot")(_s, p) && p.experience < 8 },
+      { key: "quipBrygadzistaBoom", when: (s) => s.economy.phase === "boom" },
+      { key: "quipBrygadzistaDefault" },
+    ],
+  },
+  cafe: {
+    id: "barista",
+    name: "npcBarista",
+    pool: [
+      { key: "quipBaristaLow", when: (_s, p) => p.stats.happiness < 30 },
+      { key: "quipBaristaHappy", when: (_s, p) => p.stats.happiness >= 60 },
+      { key: "quipBaristaDefault" },
+    ],
+  },
+  elektro: {
+    id: "elektryk",
+    name: "npcElektryk",
+    pool: [
+      { key: "quipElektrykBroken", when: (_s, p) => p.items.some((item) => item.broken) },
+      { key: "quipElektrykFull", when: (_s, p) => p.items.length >= getHomeDef(p.home.id).slots },
+      { key: "quipElektrykRich", when: (_s, p) => p.stats.money >= 1800 && !p.items.some((item) => item.id === "komputer") },
+      { key: "quipElektrykDefault" },
+    ],
+  },
+  gym: {
+    id: "trener",
+    name: "npcTrener",
+    pool: [
+      { key: "quipTrenerLow", when: (_s, p) => p.stats.happiness < 30 },
+      { key: "quipTrenerRegular", when: (_s, p) => p.stats.happiness >= 50 },
+      { key: "quipTrenerDefault" },
+    ],
+  },
+  shop: {
+    id: "sprzedawczyni",
+    name: "npcSprzedawczyni",
+    pool: [
+      { key: "quipSprzedawczyniHungry", when: (_s, p) => p.needs.foodWeeks <= 1 },
+      { key: "quipSprzedawczyniClothes", when: (_s, p) => p.needs.clothesWeeks <= 1 },
+      { key: "quipSprzedawczyniPromo", when: (_s, p) => p.lastEvent === "promocja" },
+      { key: "quipSprzedawczyniWorks", when: hasJobAt("shop") },
+      { key: "quipSprzedawczyniDefault" },
+    ],
+  },
+  lombard: {
+    id: "lombardzista",
+    name: "npcLombardzista",
+    pool: [
+      { key: "quipLombardzistaSell", when: (_s, p) => p.items.length > 0 },
+      { key: "quipLombardzistaSuit", when: (_s, p) => p.needs.suitWeeks <= 0 },
+      { key: "quipLombardzistaBuy" },
+      { key: "quipLombardzistaDefault" },
+    ],
+  },
+  kebab: {
+    id: "kebabiarz",
+    name: "npcKebabiarz",
+    pool: [
+      { key: "quipKebabiarzHungry", when: (_s, p) => p.needs.foodWeeks <= 0 },
+      { key: "quipKebabiarzKierownik", when: (_s, p) => p.job?.id === "kebabKierownik" },
+      { key: "quipKebabiarzWorks", when: hasJobAt("kebab") },
+      { key: "quipKebabiarzNoJob", when: (_s, p) => p.job === null },
+      { key: "quipKebabiarzDefault" },
+    ],
+  },
+};
+
+const KRYSIA_POOL: readonly Quip[] = [
+  { key: "quipKrysiaRent", when: (s, p) => (s.week + 1) % RENT_INTERVAL_WEEKS === 0 && p.stats.money < p.home.rent * 2 },
+  { key: "quipKrysiaEmpty", when: (_s, p) => p.items.length === 0 },
+  { key: "quipKrysiaItems", when: (_s, p) => p.items.length >= 2 },
+  { key: "quipKrysiaNoJob", when: (_s, p) => p.job === null },
+  { key: "quipKrysiaCake" },
+  { key: "quipKrysiaDefault" },
+];
+
+/** Postać w okienku danego miejsca z jedną kwestią zależną od stanu. Dom bez Krysi nie ma postaci. */
+export function npcLine(state: GameState, player: Player): NpcLine | null {
+  const here = player.locationId;
+  if (here === "home") {
+    if (player.home.id !== "stancja") {
+      return null;
+    }
+    return { id: "krysia", name: t("npcKrysia"), text: pick(KRYSIA_POOL, state, player, 0) };
+  }
+  const entry = NPC_POOLS[here];
+  const salt = Object.keys(NPC_POOLS).indexOf(here) + 1;
+  return { id: entry.id, name: t(entry.name), text: pick(entry.pool, state, player, salt) };
+}
+
+/** Karta Kowalskiego po jego zdarzeniu z pracy albo życia; null, gdy nie ma o czym mówić. */
+export function rivalCard(id: NoticeId): { mood: RivalMood; text: string } | null {
+  switch (id) {
+    case "awans":
+      return { mood: "happy", text: t("rivalCardAwans") };
+    case "podwyzka":
+      return { mood: "happy", text: t("rivalCardPodwyzka") };
+    case "dyplom":
+      return { mood: "happy", text: t("rivalCardDyplom") };
+    case "zwolnienie":
+      return { mood: "angry", text: t("rivalCardZwolnienie") };
+    case "redukcja":
+      return { mood: "angry", text: t("rivalCardRedukcja") };
+    case "oblanyEgzamin":
+      return { mood: "angry", text: t("rivalCardOblanyEgzamin") };
+    case "zdzichu":
+      return { mood: "angry", text: t("rivalCardZdzichu") };
+    case "komornik":
+      return { mood: "angry", text: t("rivalCardKomornik") };
+    case "przeprowadzka":
+      return null;
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);

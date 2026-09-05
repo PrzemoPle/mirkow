@@ -1,5 +1,7 @@
 # Brief P4: postacie Mirkowa i grafiki „zachęty” (po audycie UX)
 
+> **Dostarczone 5 września 2026:** paczki P4-A (11 postaci + ikona lokaty) i P4-B (2 miny Kowalskiego), wpięte w grę. Popiersia przyszły bez alfy, więc UI pokazuje je w okrągłym okienku z przycięciem. P4-C (winiety weekendów, karta instrukcji) nadal otwarte, opcjonalne.
+
 Data: 5 września 2026. Specyfikacja dla programu graficznego. Uzupełnia `brief-bitmapy.md` (P0), `brief-p1.md`, `brief-p2.md` i `brief-p3.md`. Powód i kontekst: `audyt-ux-2026-09-05.md`, §6 i §9. Krótko: Jones w każdym budynku miał człowieka, który coś mówił, a Mirków ma puste kadry. Ta paczka dodaje miastu ludzi.
 
 Styl lock bez zmian: HD pixel / dither, ten sam ilustrator, ta sama pora dnia i to samo światło co `avatars/ola.png`, `avatars/kowalski.png`, `tiles/kebab.png`, `brand/panorama.png`. Papier `#E8DCC8`, tusz `#2B2622`, akcent `#D4652F`. Tło aplikacji ciemne (`#16120E`): popiersia będą stały na ciemnym panelu obok kadru lokacji, więc kontur musi trzymać się na ciemnym tle (jasna krawędź, żadnych ciemnych włosów bez obrysu).

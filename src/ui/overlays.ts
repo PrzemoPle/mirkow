@@ -1,12 +1,13 @@
 import { avatarColor, type AvatarId, type EventId, type GameState, type NoticeId, type Player } from "../game";
 import { t } from "../i18n";
-import { artImg, avatarArtUrl, eventArtUrl, noticeArtUrl, stampArtUrl, stampWinUrl } from "./art";
+import { artImg, eventArtUrl, noticeArtUrl, rivalMoodUrl, stampArtUrl, stampWinUrl, type RivalMood } from "./art";
 import { eventEffect, eventTitle, noticeEffect, noticeTitle } from "./copy";
 import { el } from "./dom";
 import { formatZl, interpolate } from "./format";
 import { prefersReducedMotion, wait } from "./motion";
 
 const EVENT_AUTO_CLOSE_MS = 5200;
+const RIVAL_AUTO_CLOSE_MS = 2600;
 
 function mountOverlay(content: HTMLElement, label: string): HTMLElement {
   const overlay = el("div", "overlay");
@@ -125,7 +126,7 @@ export function showVictory(input: VictoryInput): void {
 
   const face = el("div", "victory-face");
   face.style.setProperty("--avatar", avatarColor(winner.avatarId as AvatarId));
-  face.append(artImg(avatarArtUrl(winner.avatarId), ""));
+  face.append(artImg(rivalMoodUrl(winner.avatarId as AvatarId, won ? "neutral" : "happy"), ""));
   const stamp = el("span", won ? "victory-stamp" : "victory-stamp victory-stamp-lose");
   stamp.textContent = won ? t("victoryWin") : t("victoryLose");
   if (won) {
@@ -192,5 +193,35 @@ export function showHowToCard(): Promise<void> {
     document.addEventListener("keydown", onKey);
     go.addEventListener("click", finish);
     go.focus();
+  });
+}
+
+/** Krótka karta Kowalskiego z miną: awans, zwolnienie, oblany egzamin. Zamyka się sama. */
+export function showRivalCard(rival: Player, mood: RivalMood, text: string): Promise<void> {
+  return new Promise((resolve) => {
+    const card = el("div", "rival-card");
+    const face = el("div", "rival-card-face");
+    face.style.setProperty("--avatar", avatarColor(rival.avatarId as AvatarId));
+    face.append(artImg(rivalMoodUrl(rival.avatarId as AvatarId, mood), ""));
+    const copy = el("div", "rival-card-copy");
+    const who = el("span", "card-who");
+    who.textContent = t("eventBots");
+    const line = el("p", "rival-card-text");
+    line.textContent = text;
+    copy.append(who, line);
+    card.append(face, copy);
+    const overlay = mountOverlay(card, text);
+    overlay.classList.add("overlay-light");
+    let done = false;
+    const finish = (): void => {
+      if (done) {
+        return;
+      }
+      done = true;
+      overlay.remove();
+      resolve();
+    };
+    overlay.addEventListener("click", finish);
+    void wait(RIVAL_AUTO_CLOSE_MS).then(finish);
   });
 }

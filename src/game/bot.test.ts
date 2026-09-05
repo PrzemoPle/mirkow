@@ -119,6 +119,7 @@ describe("bot Kowalski", () => {
       botItems: [
         { id: "lodowka", used: false, broken: false },
         { id: "telewizor", used: false, broken: false },
+        { id: "rower", used: false, broken: false },
       ],
       botStats: { money: 4000, happiness: 20, education: 60, career: 70 },
       goals: { money: 3000, happiness: 80, education: 40, career: 40 },

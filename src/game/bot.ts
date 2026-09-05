@@ -4,7 +4,9 @@ import {
   resolveAction,
   SUIT_COST,
 } from "./actions";
+import { ACCOUNT_STEP, LOAN_STEP, STOCK_LOT } from "./bank";
 import { diplomaIds, EXAM_FEE, getDiplomaDef, hasDiploma, prerequisiteMet } from "./diplomas";
+import { hasWorking, ownedItem, repairPrice } from "./items";
 import { playerTravelCost } from "./travel";
 import type { LocationId } from "./catalog";
 import { FIRE_MARGIN, getJobDef, jobIds, jobLocation, RELIABILITY_DECAY, type JobDef } from "./jobs";
@@ -290,8 +292,27 @@ export function nextBotAction(state: GameState): GameAction {
     }
   }
 
-  // 10. Dom i sprzęt: lodówka oszczędza wizyty, telewizor daje szczęście, kawalerka chroni rzeczy.
+  // 10. Dom i sprzęt: rower skraca drogę, lodówka oszczędza wizyty, komputer skraca naukę, kawalerka chroni rzeczy.
   const spare = player.stats.money - buffer * 2;
+  const broken = player.items.find((item) => item.broken);
+  if (broken !== undefined && spare >= repairPrice(broken.id)) {
+    const fix = firstLegal(state, goDo(state, "elektro", { type: "repairItem", item: broken.id }, 1));
+    if (fix !== null) {
+      return fix;
+    }
+  }
+  if (ownedItem(player, "rower") === undefined && spare >= 1000) {
+    const bike = firstLegal(state, goDo(state, "elektro", { type: "buyItem", item: "rower", used: false }, 1));
+    if (bike !== null) {
+      return bike;
+    }
+  }
+  if (player.studying !== null && ownedItem(player, "komputer") === undefined && spare >= 2500) {
+    const pc = firstLegal(state, goDo(state, "elektro", { type: "buyItem", item: "komputer", used: false }, 1));
+    if (pc !== null) {
+      return pc;
+    }
+  }
   if (!player.items.some((item) => item.id === "lodowka") && spare >= 900) {
     const fridge = firstLegal(state, goDo(state, "elektro", { type: "buyItem", item: "lodowka", used: false }, 1));
     if (fridge !== null) {
@@ -302,6 +323,61 @@ export function nextBotAction(state: GameState): GameAction {
     const flat = firstLegal(state, goDo(state, "home", { type: "relocate", home: "kawalerka" }, 2));
     if (flat !== null) {
       return flat;
+    }
+  }
+  if (
+    player.home.id === "kawalerka" &&
+    player.stats.happiness < state.goals.happiness &&
+    player.stats.money >= state.goals.money * 0.5 + 1200 * 2
+  ) {
+    const bigger = firstLegal(state, goDo(state, "home", { type: "relocate", home: "apartament" }, 2));
+    if (bigger !== null) {
+      return bigger;
+    }
+  }
+
+  // 10b. Bank: nadwyżka na konto, akcje w boomie, sprzedaż w recesji, mały kredyt na naukę.
+  const cashCap = Math.max(buffer * 3 + 1000, state.goals.money);
+  if (player.stats.money > cashCap + ACCOUNT_STEP) {
+    const amount = Math.floor((player.stats.money - cashCap) / ACCOUNT_STEP) * ACCOUNT_STEP;
+    const stash = firstLegal(state, goDo(state, "bank", { type: "account", amount }, 1));
+    if (stash !== null) {
+      return stash;
+    }
+  }
+  if (state.economy.phase === "boom" && spare >= state.stockPrice * STOCK_LOT + 500) {
+    const buy = firstLegal(state, goDo(state, "bank", { type: "trade", shares: STOCK_LOT }, 1));
+    if (buy !== null) {
+      return buy;
+    }
+  }
+  if (state.economy.phase === "recession" && player.shares > 0) {
+    const sell = firstLegal(state, goDo(state, "bank", { type: "trade", shares: -player.shares }, 1));
+    if (sell !== null) {
+      return sell;
+    }
+  }
+  if (
+    player.loan === null &&
+    player.job !== null &&
+    player.studying !== null &&
+    player.stats.money < getDiplomaDef(player.studying).classCost + buffer
+  ) {
+    const credit = firstLegal(state, goDo(state, "bank", { type: "loan", amount: LOAN_STEP }, 1));
+    if (credit !== null) {
+      return credit;
+    }
+  }
+  if (player.loan !== null && player.stats.money >= player.loan.principal + buffer * 2) {
+    const repay = firstLegal(state, goDo(state, "bank", { type: "loan", amount: -player.loan.principal }, 1));
+    if (repay !== null) {
+      return repay;
+    }
+  }
+  if (player.needs.foodWeeks === 0 && player.locationId === "kebab" && hasWorking(player, "lodowka") === false) {
+    const eat = firstLegal(state, [{ type: "act", id: "eatOut" }]);
+    if (eat !== null) {
+      return eat;
     }
   }
   if (

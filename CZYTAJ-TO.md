@@ -249,7 +249,7 @@ To nie są bugi zapomnienia. Albo decyzja MVP je wycięła, albo silnik ma haczy
 
 - ~~Nasza Kasa nic nie robi.~~ Od E3 (2026-09-05) bank ma lokatę.
 - ~~Event leci zawsze.~~ Od E3 są karty „Spokojny tydzień” (waga 2,5) i „Napiwki”.
-- Bot (od E3) sprawdza akcję „na sucho” przed dojazdem, uczy się gdy ma bufor na czynsz, pije kawę gdy go stać, otwiera lokal. Nie używa siłowni ani lokaty. `balance.test.ts` pilnuje, że bot kontra bot kończy partię w 20–80 tygodni.
+- Bot (od G5) gra całym systemem: cel kariery i dyplomy pod niego, praca do progu solidności, garnitur gdy blokuje podanie, naprawa sprzętu, rower, komputer, lodówka, telewizor, kawalerka i apartament, nadwyżka na konto powyżej celu, akcje w boomie i sprzedaż w recesji, mały kredyt na naukę, jedzenie na miejscu. Nie używa siłowni ani lokaty. `balance.test.ts` pilnuje, że bot kontra bot kończy normalną partię w 30–180 tygodni (typowo 63–83, krótka ok. 38, długa ok. 78).
 - Zwycięstwo to zmiana fazy i napis, HUD zostaje.
 - `glyphs.ts` / `avatar-art.ts` martwe.
 - `docs/grafika.md` i część briefów opisują stan sprzed wpięcia P1 (Phosphor, „bitmapy później”).

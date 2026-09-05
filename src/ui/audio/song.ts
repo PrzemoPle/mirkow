@@ -37,11 +37,25 @@ export type Timbre = {
   tickGain: number;
 };
 
+/** Aranżacja: kto gra. To ona odróżnia utwory od siebie bardziej niż barwa. */
+export type Arrangement = {
+  /** detuned: dwa rozstrojone oscylatory przez filtr; fmPiano: elektryczne pianino FM jak z OPL3; bell: dzwonek FM z długim wybrzmieniem. */
+  lead: "detuned" | "fmPiano" | "bell";
+  /** roots: podstawa na 1 i 3, kwinta na 4; walking: ósemki po akordzie; sub: jeden niski sinus na takt. */
+  bass: "roots" | "walking" | "sub";
+  pad: boolean;
+  /** tick: cichy szum na 2 i 4; hats: hi-hat na każdą ósemkę ze stopą; thump: jedno niskie uderzenie na takt; none. */
+  percussion: "tick" | "hats" | "thump" | "none";
+};
+
 export type Song = {
   id: TrackId;
   tempo: number;
+  /** Przesunięcie całego utworu w półtonach (osobna tonacja bez przepisywania nut). */
+  transpose: number;
   form: readonly Section[];
   timbre: Timbre;
+  arrangement: Arrangement;
 };
 
 const n = (step: number, midi: number, length: number, velocity = 0.8): Note => ({ step, midi, length, velocity });
@@ -123,7 +137,9 @@ const WIECZOR_B: Section = {
 export const WIECZOR: Song = {
   id: "wieczor",
   tempo: 84,
+  transpose: 0,
   form: [WIECZOR_A, WIECZOR_A, WIECZOR_B, WIECZOR_B],
+  arrangement: { lead: "detuned", bass: "roots", pad: true, percussion: "tick" },
   timbre: {
     leadWave: "square",
     leadDetune: 7,
@@ -139,7 +155,7 @@ export const WIECZOR: Song = {
   },
 };
 
-/* ---------- 2. Poranna zmiana: G miksolidyjskie, 100 BPM, arpeggia jak z OPL3, rześko ---------- */
+/* ---------- 2. Poranna zmiana: zapis w G, gra w B♭ (transpose +3), 104 BPM, pianino FM, chodzący bas, hi-hat ---------- */
 
 const E2 = 40;
 const D3 = 50;
@@ -192,8 +208,10 @@ const PORANEK_B: Section = {
 
 export const PORANEK: Song = {
   id: "poranek",
-  tempo: 100,
+  tempo: 104,
+  transpose: 3,
   form: [PORANEK_A, PORANEK_A, PORANEK_B, PORANEK_B],
+  arrangement: { lead: "fmPiano", bass: "walking", pad: false, percussion: "hats" },
   timbre: {
     leadWave: "square",
     leadDetune: 4,
@@ -209,7 +227,7 @@ export const PORANEK: Song = {
   },
 };
 
-/* ---------- 3. Nocna Buła: a-moll, 70 BPM, rzadka melodia na trójkącie, dużo pogłosu ---------- */
+/* ---------- 3. Nocna Buła: zapis w a-moll, gra w e-moll (transpose -5), 66 BPM, dzwonki FM, sub-bas, pad ---------- */
 
 const A1 = 33;
 
@@ -251,8 +269,10 @@ const NOC_B: Section = {
 
 export const NOC: Song = {
   id: "noc",
-  tempo: 70,
+  tempo: 66,
+  transpose: -5,
   form: [NOC_A, NOC_A, NOC_B, NOC_B],
+  arrangement: { lead: "bell", bass: "sub", pad: true, percussion: "thump" },
   timbre: {
     leadWave: "triangle",
     leadDetune: 9,

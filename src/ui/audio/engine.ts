@@ -149,6 +149,95 @@ function playLead(c: Ctx, song: Song, at: number, midi: number, lengthS: number,
   }
 }
 
+/** Dwuoperatorowe FM: nośna sinus, modulator o stosunku `ratio`, indeks opada z `index` do zera. */
+function playFm(
+  c: Ctx,
+  at: number,
+  midi: number,
+  lengthS: number,
+  gain: number,
+  ratio: number,
+  index: number,
+  indexDecayS: number,
+  releaseS: number,
+  sendReverb: boolean,
+): void {
+  const hz = midiToHz(midi);
+  const carrier = c.context.createOscillator();
+  carrier.type = "sine";
+  carrier.frequency.value = hz;
+  const modulator = c.context.createOscillator();
+  modulator.type = "sine";
+  modulator.frequency.value = hz * ratio;
+  const depth = c.context.createGain();
+  depth.gain.setValueAtTime(hz * index, at);
+  depth.gain.exponentialRampToValueAtTime(Math.max(1, hz * index * 0.05), at + indexDecayS);
+  modulator.connect(depth);
+  depth.connect(carrier.frequency);
+  const env = c.context.createGain();
+  env.gain.setValueAtTime(0, at);
+  env.gain.linearRampToValueAtTime(gain, at + 0.006);
+  env.gain.exponentialRampToValueAtTime(0.001, at + lengthS + releaseS);
+  carrier.connect(env);
+  env.connect(c.music);
+  if (sendReverb) {
+    env.connect(c.reverbSend);
+  }
+  modulator.start(at);
+  carrier.start(at);
+  modulator.stop(at + lengthS + releaseS + 0.05);
+  carrier.stop(at + lengthS + releaseS + 0.05);
+}
+
+function playLeadFor(c: Ctx, song: Song, at: number, midi: number, lengthS: number, velocity: number): void {
+  switch (song.arrangement.lead) {
+    case "detuned":
+      playLead(c, song, at, midi, lengthS, velocity);
+      return;
+    case "fmPiano":
+      // Elektryczne pianino z OPL3: krótki, perkusyjny atak, szybko opadający indeks.
+      playFm(c, at, midi, Math.min(lengthS, 0.35), 0.2 * velocity, 2, 2.2, 0.18, 0.25, false);
+      return;
+    case "bell":
+      // Dzwonek: nieharmoniczny stosunek, długie wybrzmienie do pogłosu.
+      playFm(c, at, midi, 0.05, 0.16 * velocity, 3.5, 1.6, 0.8, 1.8, true);
+      return;
+    default: {
+      const exhaustive: never = song.arrangement.lead;
+      return exhaustive;
+    }
+  }
+}
+
+function playSub(c: Ctx, song: Song, at: number, midi: number, lengthS: number): void {
+  const osc = c.context.createOscillator();
+  osc.type = "sine";
+  osc.frequency.value = midiToHz(midi - 12);
+  const env = c.context.createGain();
+  env.gain.setValueAtTime(0, at);
+  env.gain.linearRampToValueAtTime(song.timbre.bassGain, at + lengthS * 0.15);
+  env.gain.setValueAtTime(song.timbre.bassGain, at + lengthS * 0.6);
+  env.gain.linearRampToValueAtTime(0, at + lengthS);
+  osc.connect(env);
+  env.connect(c.music);
+  osc.start(at);
+  osc.stop(at + lengthS + 0.02);
+}
+
+function playThump(c: Ctx, at: number, gain: number): void {
+  const osc = c.context.createOscillator();
+  osc.type = "sine";
+  osc.frequency.setValueAtTime(90, at);
+  osc.frequency.exponentialRampToValueAtTime(42, at + 0.25);
+  const env = c.context.createGain();
+  env.gain.setValueAtTime(gain, at);
+  env.gain.exponentialRampToValueAtTime(0.001, at + 0.35);
+  osc.connect(env);
+  env.connect(c.music);
+  osc.start(at);
+  osc.stop(at + 0.4);
+}
+
 function playBass(c: Ctx, song: Song, at: number, midi: number, lengthS: number, velocity: number): void {
   const osc = c.context.createOscillator();
   osc.type = song.timbre.bassWave;
@@ -229,21 +318,68 @@ function scheduleStep(c: Ctx, song: Song, step: number, at: number): void {
   if (root === undefined || color === undefined) {
     return;
   }
-  if (inBar === 0) {
-    playBass(c, song, at, root, stepS * 7, 1);
-    playPad(c, song, at, [root + 12, root + 12 + color[0], root + 12 + color[1]], stepS * STEPS_PER_BAR, variant.padOpen);
-  } else if (inBar === 8) {
-    playBass(c, song, at, root, stepS * 5, 0.8);
-  } else if (inBar === 12) {
-    playBass(c, song, at, root + 7, stepS * 3, 0.55);
+  const tr = song.transpose;
+  const { arrangement } = song;
+  switch (arrangement.bass) {
+    case "roots":
+      if (inBar === 0) {
+        playBass(c, song, at, root + tr, stepS * 7, 1);
+      } else if (inBar === 8) {
+        playBass(c, song, at, root + tr, stepS * 5, 0.8);
+      } else if (inBar === 12) {
+        playBass(c, song, at, root + 7 + tr, stepS * 3, 0.55);
+      }
+      break;
+    case "walking":
+      if (inBar % 2 === 0) {
+        const walk = [0, 7, 12, 7, 0, 7, 10, 7];
+        const interval = walk[(inBar / 2) % walk.length] ?? 0;
+        playBass(c, song, at, root + interval + tr, stepS * 1.6, inBar % 4 === 0 ? 0.9 : 0.6);
+      }
+      break;
+    case "sub":
+      if (inBar === 0) {
+        playSub(c, song, at, root + tr, stepS * STEPS_PER_BAR);
+      }
+      break;
+    default: {
+      const exhaustive: never = arrangement.bass;
+      return exhaustive;
+    }
   }
-  if (inBar === 4 || inBar === 12) {
-    playTick(c, at, inBar === 4 ? song.timbre.tickGain : song.timbre.tickGain * 0.7);
+  if (arrangement.pad && inBar === 0) {
+    playPad(c, song, at, [root + 12 + tr, root + 12 + color[0] + tr, root + 12 + color[1] + tr], stepS * STEPS_PER_BAR, variant.padOpen);
+  }
+  switch (arrangement.percussion) {
+    case "tick":
+      if (inBar === 4 || inBar === 12) {
+        playTick(c, at, inBar === 4 ? song.timbre.tickGain : song.timbre.tickGain * 0.7);
+      }
+      break;
+    case "hats":
+      if (inBar % 2 === 0) {
+        playTick(c, at, inBar === 4 || inBar === 12 ? song.timbre.tickGain : song.timbre.tickGain * 0.45);
+      }
+      if (inBar === 0 || inBar === 8) {
+        playThump(c, at, 0.22);
+      }
+      break;
+    case "thump":
+      if (inBar === 0) {
+        playThump(c, at, 0.3);
+      }
+      break;
+    case "none":
+      break;
+    default: {
+      const exhaustive: never = arrangement.percussion;
+      return exhaustive;
+    }
   }
   if (variant.leadGain > 0) {
     for (const note of section.lead) {
       if (note.step === inSection) {
-        playLead(c, song, at, note.midi + variant.leadOctave, note.length * stepS, note.velocity * variant.leadGain);
+        playLeadFor(c, song, at, note.midi + variant.leadOctave + tr, note.length * stepS, note.velocity * variant.leadGain);
       }
     }
   }
@@ -329,10 +465,9 @@ function playSfx(c: Ctx, id: SfxId): void {
   const t = c.context.currentTime;
   switch (id) {
     case "move":
-      // dzwonek tramwaju: dwa krótkie uderzenia
-      blip(c, t, 1318, 0.18, "sine", 0.35);
-      blip(c, t, 2637, 0.12, "sine", 0.12);
-      blip(c, t + 0.16, 1318, 0.22, "sine", 0.3);
+      // cichy stuk pionka o blat, bez wysokich tonów
+      noise(c, t, 0.05, 0.22, "lowpass", 500);
+      blip(c, t, 180, 0.07, "sine", 0.18, 90);
       return;
     case "act":
       // pieczątka: tłumiony stuk

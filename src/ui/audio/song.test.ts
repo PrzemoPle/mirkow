@@ -25,9 +25,12 @@ describe("utwory w tle", () => {
     }
   });
 
-  it("gives the three tracks distinct tempo and colour", () => {
+  it("gives the three tracks distinct tempo, key, lead, bass and percussion", () => {
     expect(new Set(TRACK_IDS.map((id) => SONGS[id].tempo)).size).toBe(3);
-    expect(new Set(TRACK_IDS.map((id) => SONGS[id].timbre.leadWave)).size).toBeGreaterThanOrEqual(2);
+    expect(new Set(TRACK_IDS.map((id) => SONGS[id].transpose % 12)).size).toBe(3);
+    expect(new Set(TRACK_IDS.map((id) => SONGS[id].arrangement.lead)).size).toBe(3);
+    expect(new Set(TRACK_IDS.map((id) => SONGS[id].arrangement.bass)).size).toBe(3);
+    expect(new Set(TRACK_IDS.map((id) => SONGS[id].arrangement.percussion)).size).toBe(3);
     expect(midiToHz(69)).toBe(440);
   });
 

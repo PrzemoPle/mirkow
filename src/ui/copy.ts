@@ -1,5 +1,6 @@
 import { assertNever } from "../game/assert-never";
 import type { ActionDef } from "../game/actions";
+import type { EngineError } from "../game/result";
 import type { ActionId, EventId, GameState, Job, WeekEffect } from "../game/types";
 import {
   AUKCJE_COST,
@@ -13,6 +14,10 @@ import {
 } from "../game/events";
 import { t, type MessageKey } from "../i18n";
 import { interpolate } from "./format";
+
+export function actionLabel(id: ActionId): string {
+  return t(actionLabelKey(id));
+}
 
 function actionLabelKey(id: ActionId): MessageKey {
   switch (id) {
@@ -95,6 +100,127 @@ export function actedMessage(id: ActionId, wage: number): string {
   }
 }
 
+export function jobShort(job: Job | null): string {
+  if (job === null) {
+    return t("jobNoneShort");
+  }
+  switch (job.id) {
+    case "kebabKasjer":
+      return t("jobKebabKasjerShort");
+    case "kebabKierownik":
+      return t("jobKebabKierownikShort");
+    case "kebabLokal":
+      return t("jobKebabLokalShort");
+    default: {
+      const exhaustive: never = job.id;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
+/** Efekty akcji jako krótkie chipy pod nazwą. */
+export function actionEffects(def: ActionDef): string[] {
+  const out: string[] = [];
+  if (def.givesJob !== null) {
+    out.push(def.id === "searchJob" ? t("effectJob") : t("effectPromotion"));
+  }
+  if (def.education > 0) {
+    out.push(interpolate("effectEducation", { n: def.education }));
+  }
+  if (def.happiness > 0) {
+    out.push(interpolate("effectHappiness", { n: def.happiness }));
+  }
+  if (def.career > 0) {
+    out.push(interpolate("effectCareer", { n: def.career }));
+  }
+  if (def.foodWeeks !== null) {
+    out.push(interpolate("effectFood", { n: def.foodWeeks }));
+  }
+  if (def.clothesWeeks !== null) {
+    out.push(interpolate("effectClothes", { n: def.clothesWeeks }));
+  }
+  return out;
+}
+
+/** Jedno zdanie, dlaczego akcja jest zablokowana. */
+export function blockReason(error: EngineError): string {
+  switch (error.code) {
+    case "noJob":
+      return t("blockNoJob");
+    case "alreadyEmployed":
+      return t("blockEmployed");
+    case "insufficientMoney":
+      return interpolate("blockMoney", { n: error.needed - error.have });
+    case "tooLittleEducation":
+      return interpolate("blockEducation", { have: error.have, needed: error.needed });
+    case "tooLittleTenure":
+      return interpolate("blockTenure", { have: error.have, needed: error.needed });
+    case "insufficientTime":
+      return interpolate("blockTime", { needed: error.needed });
+    case "wrongPhase":
+    case "alreadyThere":
+    case "unknownLocation":
+    case "noPath":
+    case "noActivePlayer":
+    case "wrongLocation":
+      return t("blockOther");
+    default: {
+      const exhaustive: never = error;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
+export function eventTitle(id: EventId): string {
+  switch (id) {
+    case "korek":
+      return t("eventTitleKorek");
+    case "lotto":
+      return t("eventTitleLotto");
+    case "pralka":
+      return t("eventTitlePralka");
+    case "tesciowa":
+      return t("eventTitleTesciowa");
+    case "aukcje":
+      return t("eventTitleAukcje");
+    case "kontrola":
+      return t("eventTitleKontrola");
+    case "pit":
+      return t("eventTitlePit");
+    case "promocja":
+      return t("eventTitlePromocja");
+    default: {
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
+export function eventEffect(id: EventId): string {
+  switch (id) {
+    case "korek":
+      return interpolate("eventEffectTime", { n: KOREK_TIME });
+    case "lotto":
+      return interpolate("eventEffectMoneyPlus", { n: LOTTO_MONEY });
+    case "pralka":
+      return interpolate("eventEffectMoneyMinus", { n: PRALKA_COST });
+    case "tesciowa":
+      return interpolate("eventEffectHappiness", { n: TESCIOWA_HAPPINESS });
+    case "aukcje":
+      return interpolate("eventEffectMoneyMinus", { n: AUKCJE_COST });
+    case "kontrola":
+      return interpolate("eventEffectMoneyMinus", { n: KONTROLA_COST });
+    case "pit":
+      return interpolate("eventEffectMoneyMinus", { n: PIT_COST });
+    case "promocja":
+      return interpolate("eventEffectFood", { n: PROMOCJA_FOOD });
+    default: {
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
 export function jobLabel(job: Job | null): string {
   if (job === null) {
     return t("jobNone");
@@ -113,7 +239,7 @@ export function jobLabel(job: Job | null): string {
   }
 }
 
-function effectLine(effect: WeekEffect): string {
+export function effectLine(effect: WeekEffect): string {
   switch (effect.kind) {
     case "rent":
       return interpolate("effectRent", { amount: effect.amount });

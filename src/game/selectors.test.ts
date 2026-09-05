@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createMatch } from "./state";
-import { costToLocation, getActivePlayer } from "./selectors";
+import { actionBlock, costToLocation, getActivePlayer } from "./selectors";
 
 describe("selectors", () => {
   it("reads the active player", () => {
@@ -14,5 +14,12 @@ describe("selectors", () => {
     expect(costToLocation(state, "home")).toBe(0);
     expect(costToLocation(state, "shop")).toBe(1);
     expect(costToLocation(state, "bank")).toBe(4);
+  });
+
+  it("explains why an action is blocked without changing state", () => {
+    const state = createMatch({ locationId: "kebab" });
+    expect(actionBlock(state, "workKebab")).toEqual({ code: "noJob" });
+    expect(actionBlock(state, "buyFood")?.code).toBe("wrongLocation");
+    expect(actionBlock(createMatch({ locationId: "home" }), "restHome")).toBeNull();
   });
 });

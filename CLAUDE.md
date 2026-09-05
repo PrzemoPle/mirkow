@@ -31,4 +31,15 @@ Turowa gra **Symulator życia** (Mirków). Vite + TypeScript, vanilla DOM, Vites
 - Online / backend.
 - Podmiana stacku na React.
 
-Martwy kod do usunięcia gdy sprzątasz: `src/ui/glyphs.ts`, `src/ui/avatar-art.ts`.
+## Warstwa UI (po redesignie 2026-09-05)
+
+- `src/ui/app.ts` pętla i przepływ tury (ruch, akcja, koniec tygodnia, replay bota)
+- `src/ui/board.ts` plansza, tory, pionki, animacja po `travelPath`
+- `src/ui/panel.ts` karta miejsca, akcje z powodem blokady (`actionBlock`), koniec tygodnia
+- `src/ui/hud.ts` pasek górny, bilety czasu, staty, potrzeby
+- `src/ui/overlays.ts` karta eventu, ekran zwycięstwa
+- `src/ui/journal.ts` dziennik tygodnia (stan UI, nie zapis)
+- `src/ui/setup.ts` ekran startu z presetami długości partii
+- `src/styles/*.css` tokeny (jeden ciemny motyw, zablokowany), base, game, overlays, setup
+
+Kierunek wizualny: „Wieczór w Mirkowie”, patrz `docs/przeglad-2026-09-05.md`. Grafiki do zamówienia: `docs/brief-p2.md`.

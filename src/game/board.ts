@@ -39,8 +39,14 @@ function createAdjacency(): Record<LocationId, Neighbor[]> {
 
 const adjacency = createAdjacency();
 
-function costsFrom(start: LocationId): Record<LocationId, number> {
+type Route = {
+  distance: Record<LocationId, number>;
+  previous: Record<LocationId, LocationId | null>;
+};
+
+function routesFrom(start: LocationId): Route {
   const distance = locationRecord(() => Number.POSITIVE_INFINITY);
+  const previous = locationRecord<LocationId | null>(() => null);
   distance[start] = 0;
   const pending: LocationId[] = [...locationIds];
 
@@ -77,15 +83,16 @@ function costsFrom(start: LocationId): Record<LocationId, number> {
       const nextDistance = closestDistance + neighbor.cost;
       if (nextDistance < distance[neighbor.to]) {
         distance[neighbor.to] = nextDistance;
+        previous[neighbor.to] = closestId;
       }
     }
   }
 
-  return distance;
+  return { distance, previous };
 }
 
-const allCosts: Record<LocationId, Record<LocationId, number>> = locationRecord(
-  (from) => costsFrom(from),
+const allRoutes: Record<LocationId, Route> = locationRecord((from) =>
+  routesFrom(from),
 );
 
 export function isLocationId(value: string): value is LocationId {
@@ -93,10 +100,29 @@ export function isLocationId(value: string): value is LocationId {
 }
 
 export function travelCost(from: LocationId, to: LocationId): number | null {
-  const row = allCosts[from];
-  const cost = row[to];
+  const cost = allRoutes[from].distance[to];
   if (cost === undefined || cost === Number.POSITIVE_INFINITY) {
     return null;
   }
   return cost;
+}
+
+/** Cheapest route as a list of nodes, starting with `from` and ending with `to`. */
+export function travelPath(
+  from: LocationId,
+  to: LocationId,
+): readonly LocationId[] | null {
+  if (travelCost(from, to) === null) {
+    return null;
+  }
+  const route = allRoutes[from];
+  const path: LocationId[] = [to];
+  let cursor: LocationId | null = to;
+  while (cursor !== null && cursor !== from) {
+    cursor = route.previous[cursor];
+    if (cursor !== null) {
+      path.push(cursor);
+    }
+  }
+  return path.reverse();
 }

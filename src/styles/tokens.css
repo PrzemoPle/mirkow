@@ -1,0 +1,27 @@
+/* Wieczór w Mirkowie: jeden motyw, ciemny blat, papierowe tabliczki. */
+:root {
+  --table: #16120e;
+  --table-2: #201a15;
+  --table-3: #2b231d;
+  --ink: #2b2622;
+  --paper: #e8dcc8;
+  --paper-2: #d6c5a6;
+  --plaque: #f1e6d2;
+  --text: #eadfcb;
+  --text-2: rgb(234 223 203 / 0.68);
+  --text-3: rgb(234 223 203 / 0.42);
+  --line: rgb(234 223 203 / 0.12);
+  --line-2: rgb(234 223 203 / 0.24);
+  --accent: #d4652f;
+  --accent-2: #eb9a6a;
+  --accent-ink: #2b2622;
+  --road: #9c8a72;
+  --ok: #8fa86f;
+  --r: 4px;
+  --shadow: 0 10px 24px rgb(0 0 0 / 0.45);
+  --shadow-paper: 0 2px 0 rgb(0 0 0 / 0.35), 0 8px 18px rgb(0 0 0 / 0.35);
+  --display: "Bricolage Grotesque Variable", "Outfit", "Segoe UI", sans-serif;
+  --body: "Outfit", "Segoe UI", sans-serif;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+  color-scheme: dark;
+}

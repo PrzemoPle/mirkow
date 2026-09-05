@@ -1,6 +1,6 @@
 # Paczka handoff: Symulator życia (Mirków)
 
-**Data stanu:** 5 września 2026  
+**Data stanu:** 5 września 2026 (po południu: wdrożone etapy E1 i E2 z `docs/przeglad-2026-09-05.md`; sekcje 4–6 poniżej opisują silnik i grafikę, mapa UI jest w `CLAUDE.md`)  
 **Dla kogo:** kolejna osoba (albo agent), która ma kontynuować rozwój bez historii czatu.  
 **Status:** MVP jest grywalne lokalnie. Grafika P0 i P1 jest wpięta. Nie ma publikacji, nazwy marketingowej ani domeny.
 
@@ -41,6 +41,7 @@ Roboczy tytuł: **Symulator życia**. PWA `short_name`: **Mirków**. Ostateczna 
 | `docs/brief-p1.md` | spec reszty P1 (dostarczone) |
 | `docs/warianty-grafiki/` | archiwum prób stylu (nie używane w buildzie) |
 | `docs/przeglad-2026-09-05.md` | **przegląd wyglądu i plan zmian E1–E4** (czytać po tym pliku) |
+| `docs/brief-p2.md` | grafiki do zamówienia po E1–E2 (panorama, Kowalski, ikony akcji) |
 
 ---
 

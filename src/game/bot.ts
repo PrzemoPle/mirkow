@@ -142,8 +142,29 @@ export function nextBotAction(state: GameState): GameAction {
   return { type: "endWeek" };
 }
 
-export function playBotUntilIdle(state: GameState): GameState {
+export type BotStep = {
+  action: GameAction;
+  state: GameState;
+};
+
+export type BotTrace = {
+  state: GameState;
+  steps: readonly BotStep[];
+};
+
+function endTurn(current: GameState, steps: BotStep[]): BotTrace {
+  const ending = dispatch(current, { type: "endWeek" });
+  if (!ending.ok) {
+    return { state: current, steps };
+  }
+  steps.push({ action: { type: "endWeek" }, state: ending.state });
+  return { state: ending.state, steps };
+}
+
+/** Plays the bot's whole turn and returns every step, so the UI can replay it. */
+export function playBotWithTrace(state: GameState): BotTrace {
   let current = state;
+  const steps: BotStep[] = [];
 
   for (let step = 0; step < BOT_STEP_LIMIT; step += 1) {
     const player = getActivePlayer(current);
@@ -152,22 +173,25 @@ export function playBotUntilIdle(state: GameState): GameState {
       player === undefined ||
       player.controller !== "bot"
     ) {
-      return current;
+      return { state: current, steps };
     }
 
     const action = nextBotAction(current);
     const result = dispatch(current, action);
     if (!result.ok) {
-      const ending = dispatch(current, { type: "endWeek" });
-      return ending.ok ? ending.state : current;
+      return endTurn(current, steps);
     }
 
     current = result.state;
+    steps.push({ action, state: current });
     if (action.type === "endWeek") {
-      return current;
+      return { state: current, steps };
     }
   }
 
-  const ending = dispatch(current, { type: "endWeek" });
-  return ending.ok ? ending.state : current;
+  return endTurn(current, steps);
+}
+
+export function playBotUntilIdle(state: GameState): GameState {
+  return playBotWithTrace(state).state;
 }

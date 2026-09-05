@@ -1,0 +1,218 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgb(10 8 6 / 0.72);
+  animation: fade-in 200ms var(--ease);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Karta eventu 3:4, tekst w dolnym pasie papieru. */
+.card {
+  position: relative;
+  width: min(360px, 82vw, 62dvh * 0.75);
+  aspect-ratio: 3 / 4;
+  overflow: hidden;
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow-paper);
+  animation: card-in 380ms var(--ease);
+  transform-origin: 50% 110%;
+}
+
+@keyframes card-in {
+  from {
+    opacity: 0;
+    transform: translateY(24px) rotate(-3deg);
+  }
+}
+
+.card-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-band {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.9rem 1rem 1rem;
+  background: linear-gradient(to top, var(--paper) 78%, transparent);
+}
+
+.card-who {
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: rgb(43 38 34 / 0.6);
+}
+
+.card-title {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.45rem;
+  font-weight: 750;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+.card-effect {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.card-close {
+  justify-self: start;
+  margin-top: 0.3rem;
+  padding: 0.45rem 0.9rem;
+  border-color: var(--ink);
+  background: var(--ink);
+  color: var(--paper);
+  font-size: 0.9rem;
+}
+
+/* Ekran zwycięstwa */
+.victory {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.25rem 1.5rem;
+  width: min(640px, 92vw);
+  padding: 1.5rem;
+  border-radius: 6px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow-paper);
+  animation: card-in 420ms var(--ease);
+}
+
+.victory-face {
+  position: relative;
+  width: 9rem;
+  height: 9rem;
+}
+
+.victory-face img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 15%;
+  border-radius: 50%;
+  box-shadow: 0 0 0 4px var(--avatar, var(--accent));
+}
+
+.victory-stamp {
+  position: absolute;
+  right: -1.4rem;
+  bottom: -0.6rem;
+  padding: 0.25em 0.6em;
+  border: 3px double var(--accent);
+  border-radius: 3px;
+  background: rgb(241 230 210 / 0.92);
+  color: var(--accent);
+  font-family: var(--display);
+  font-weight: 750;
+  font-size: 1.05rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  transform: rotate(-9deg);
+  white-space: nowrap;
+}
+
+.victory-stamp-lose {
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.victory-copy {
+  display: grid;
+  gap: 0.6rem;
+  align-content: center;
+  min-width: 0;
+}
+
+.victory-title {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.9rem;
+  font-weight: 750;
+  line-height: 1.02;
+  letter-spacing: -0.02em;
+  text-wrap: balance;
+}
+
+.victory-weeks {
+  margin: 0;
+  font-weight: 600;
+  color: rgb(43 38 34 / 0.65);
+}
+
+.victory-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.4rem 1rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.victory-stat {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.3rem 0;
+  border-bottom: 1px solid rgb(43 38 34 / 0.16);
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.victory-stat b {
+  font-family: var(--display);
+  font-weight: 700;
+}
+
+.victory-stat small {
+  color: rgb(43 38 34 / 0.55);
+}
+
+.victory .btn-primary {
+  justify-self: start;
+  margin-top: 0.4rem;
+}
+
+@media (max-width: 640px) {
+  .victory {
+    grid-template-columns: 1fr;
+    justify-items: center;
+    text-align: center;
+  }
+
+  .victory-copy {
+    justify-items: center;
+  }
+
+  .victory-stats {
+    width: 100%;
+    text-align: left;
+  }
+}

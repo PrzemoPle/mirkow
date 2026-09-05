@@ -1,0 +1,292 @@
+/* Ekran startu: legitymacja mieszkańca Mirkowa. */
+.setup {
+  display: grid;
+  gap: 1.5rem;
+  max-width: 1100px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  padding: 1.25rem 1rem 2.5rem;
+}
+
+.setup-head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 1rem;
+}
+
+.setup-stamp {
+  width: 4.6rem;
+  height: 4.6rem;
+  object-fit: contain;
+  transform: rotate(-8deg);
+  filter: drop-shadow(0 1px 0 rgb(0 0 0 / 0.6));
+}
+
+.setup-title {
+  margin: 0;
+  font-family: var(--display);
+  font-size: clamp(2.6rem, 8vw, 4.2rem);
+  font-weight: 750;
+  line-height: 0.95;
+  letter-spacing: -0.03em;
+}
+
+.setup-kicker {
+  display: block;
+  margin-top: 0.4rem;
+  font-family: var(--body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.setup-rule {
+  margin: 0;
+  max-width: 44rem;
+  font-size: 1.05rem;
+  color: var(--text-2);
+}
+
+.setup-body {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.setup-section {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.setup-label {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 1.05rem;
+  font-weight: 650;
+}
+
+.setup-hint {
+  margin: 0;
+  font-size: 0.9rem;
+  color: var(--text-3);
+}
+
+.portraits {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.portrait {
+  position: relative;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: var(--r);
+  background: var(--table-2);
+  box-shadow: 0 2px 0 rgb(0 0 0 / 0.5);
+  transition: transform 140ms var(--ease);
+}
+
+.portrait img {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  filter: saturate(0.75) brightness(0.8);
+  transition: filter 160ms var(--ease);
+}
+
+.portrait:hover img,
+.portrait-on img {
+  filter: none;
+}
+
+.portrait-on {
+  box-shadow:
+    0 0 0 2px var(--table),
+    0 0 0 4px var(--avatar, var(--accent)),
+    0 2px 0 rgb(0 0 0 / 0.5);
+}
+
+.portrait-name {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  font-size: 0.95rem;
+}
+
+.portrait-on .portrait-name {
+  background: var(--avatar, var(--accent));
+  color: var(--paper);
+}
+
+.presets {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.preset {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--table-2);
+  text-align: left;
+}
+
+.preset:hover {
+  border-color: var(--line-2);
+}
+
+.preset-on {
+  border-color: var(--accent);
+  background: var(--table-3);
+}
+
+.preset-name {
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.preset-hint {
+  font-size: 0.8rem;
+  color: var(--text-3);
+}
+
+.preset-goals {
+  margin-top: 0.3rem;
+  font-size: 0.78rem;
+  color: var(--text-2);
+  font-variant-numeric: tabular-nums;
+}
+
+.custom {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.custom summary {
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--text-2);
+}
+
+.goals {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem 1rem;
+  padding-top: 0.4rem;
+}
+
+.goal {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 0.2rem 0.6rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.goal-value {
+  font-variant-numeric: tabular-nums;
+}
+
+.goal input[type="range"] {
+  grid-column: 1 / -1;
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.name-field {
+  display: grid;
+  gap: 0.35rem;
+  max-width: 22rem;
+}
+
+.name-field input {
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r);
+  background: var(--table-2);
+  color: var(--text);
+  font: inherit;
+  font-size: 1.05rem;
+}
+
+.setup-cta {
+  display: grid;
+  gap: 0.6rem;
+  justify-items: start;
+}
+
+.setup-cta .btn-primary {
+  padding: 0.85rem 1.6rem;
+  font-size: 1.1rem;
+}
+
+.setup-notice {
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  border-radius: var(--r);
+  background: var(--table-3);
+  color: var(--accent-2);
+  font-weight: 600;
+}
+
+.resume {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: var(--r);
+  background: var(--table-2);
+  box-shadow: inset 0 0 0 1px var(--line-2);
+}
+
+.resume p {
+  margin: 0;
+  font-weight: 600;
+}
+
+@media (min-width: 900px) {
+  .setup-body {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "presets portraits"
+      "name portraits"
+      "cta portraits";
+    align-items: start;
+    column-gap: 2.5rem;
+  }
+
+  .setup-presets {
+    grid-area: presets;
+  }
+
+  .setup-portraits {
+    grid-area: portraits;
+  }
+
+  .setup-name {
+    grid-area: name;
+  }
+
+  .setup-cta {
+    grid-area: cta;
+  }
+}
+
+@media (max-width: 520px) {
+  .presets {
+    grid-template-columns: 1fr;
+  }
+
+  .goals {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { nextBotAction, playBotUntilIdle } from "./bot";
+import { nextBotAction, playBotUntilIdle, playBotWithTrace } from "./bot";
 import { dispatch } from "./reducer";
 import { createSetup, createVersusMatch } from "./state";
 import { TIME_MAX } from "./catalog";
@@ -95,5 +95,16 @@ describe("bot Kowalski", () => {
     );
     expect(afterHuman.timeLeft).toBe(TIME_MAX);
     expect(afterHuman.players[0]?.nextTimeLeft).toBeGreaterThan(0);
+  });
+
+  it("trace ends with endWeek and its last state equals playBotUntilIdle", () => {
+    const start = createVersusMatch({ active: 1 });
+    const trace = playBotWithTrace(start);
+    expect(trace.steps.length).toBeGreaterThan(0);
+    expect(trace.steps.at(-1)?.action).toEqual({ type: "endWeek" });
+    expect(trace.state).toEqual(playBotUntilIdle(start));
+    for (const step of trace.steps) {
+      expect(step.state.version).toBe(1);
+    }
   });
 });

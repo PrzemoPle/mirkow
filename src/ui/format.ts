@@ -6,6 +6,10 @@ export function formatZl(value: number): string {
   return `${zloty.format(value)} zł`;
 }
 
+export function formatNumber(value: number): string {
+  return zloty.format(value);
+}
+
 export function formatRatio(current: number, goal: number): string {
   return `${zloty.format(current)} / ${zloty.format(goal)}`;
 }

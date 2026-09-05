@@ -1,0 +1,170 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  min-height: 100dvh;
+}
+
+body {
+  font-family: var(--body);
+  font-size: 16px;
+  line-height: 1.4;
+  background: var(--table);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+button:disabled {
+  cursor: default;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 2px;
+}
+
+.pix {
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+/* Papierowa tabliczka: wspólny materiał nazw, biletów i kart. */
+.plaque {
+  display: inline-block;
+  padding: 0.18em 0.5em;
+  border-radius: var(--r);
+  background: var(--plaque);
+  color: var(--ink);
+  font-family: var(--display);
+  font-weight: 650;
+  font-size: 0.82rem;
+  line-height: 1.2;
+  letter-spacing: 0.01em;
+  box-shadow:
+    inset 0 -1px 0 rgb(43 38 34 / 0.18),
+    0 1px 0 rgb(0 0 0 / 0.5);
+  white-space: nowrap;
+}
+
+.plaque-accent {
+  background: var(--accent);
+  color: var(--accent-ink);
+}
+
+/* Bilet tramwajowy: jednostka czasu. */
+.ticket {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3em;
+  padding: 0.1em 0.45em;
+  border-radius: 2px;
+  background: var(--paper-2);
+  color: var(--ink);
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  line-height: 1.3;
+  background-image: repeating-linear-gradient(
+    90deg,
+    transparent 0 3px,
+    rgb(43 38 34 / 0.09) 3px 4px
+  );
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.5);
+  white-space: nowrap;
+}
+
+.ticket-void {
+  text-decoration: line-through;
+  opacity: 0.55;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5em;
+  padding: 0.7rem 1.1rem;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r);
+  background: var(--table-3);
+  color: var(--text);
+  font-family: var(--display);
+  font-weight: 650;
+  font-size: 1rem;
+  line-height: 1.2;
+  transition:
+    transform 120ms var(--ease),
+    background-color 120ms var(--ease);
+}
+
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+}
+
+.btn-primary {
+  border-color: transparent;
+  background: var(--accent);
+  color: var(--accent-ink);
+  box-shadow: 0 3px 0 rgb(0 0 0 / 0.4);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: var(--accent-2);
+}
+
+.btn-quiet {
+  padding: 0.3rem 0;
+  border: 0;
+  background: none;
+  color: var(--text-2);
+  font-family: var(--body);
+  font-weight: 600;
+  font-size: 0.9rem;
+  text-decoration: underline;
+  text-underline-offset: 0.18em;
+}
+
+.btn-quiet:hover {
+  color: var(--text);
+}
+
+.status {
+  min-height: 1.4em;
+  margin: 0;
+  font-size: 0.95rem;
+  color: var(--text-2);
+}
+
+.status-error {
+  color: var(--accent-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

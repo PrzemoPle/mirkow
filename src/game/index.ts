@@ -1,7 +1,14 @@
 export { TIME_MAX, locationIds, locationPreview } from "./catalog";
 export type { LocationId } from "./catalog";
-export { boardEdges, isLocationId, travelCost } from "./board";
-export { costToLocation, getActivePlayer, getBotPlayer, getHumanPlayer, isHumanTurn } from "./selectors";
+export { boardEdges, isLocationId, travelCost, travelPath } from "./board";
+export {
+  actionBlock,
+  costToLocation,
+  getActivePlayer,
+  getBotPlayer,
+  getHumanPlayer,
+  isHumanTurn,
+} from "./selectors";
 export { dispatch } from "./reducer";
 export { fail, ok } from "./result";
 export type { EngineError, EngineResult } from "./result";
@@ -19,7 +26,8 @@ export { JOB_DEFS, KIEROWNIK_EDU, KIEROWNIK_WAGE, LOKAL_BUYIN } from "./jobs";
 export { EVENT_DEFS, eventIds, pickEvent } from "./events";
 export type { EventDef } from "./events";
 export { FOOD_BASE, RENT_HIKE, startingMarket } from "./market";
-export { nextBotAction, playBotUntilIdle } from "./bot";
+export { nextBotAction, playBotUntilIdle, playBotWithTrace } from "./bot";
+export type { BotStep, BotTrace } from "./bot";
 export {
   avatarColor,
   avatarIds,

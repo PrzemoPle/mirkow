@@ -104,7 +104,7 @@ describe("bot Kowalski", () => {
     expect(trace.steps.at(-1)?.action).toEqual({ type: "endWeek" });
     expect(trace.state).toEqual(playBotUntilIdle(start));
     for (const step of trace.steps) {
-      expect(step.state.version).toBe(3);
+      expect(step.state.version).toBe(4);
     }
   });
 
@@ -115,6 +115,11 @@ describe("bot Kowalski", () => {
       botNeeds: { foodWeeks: 3, clothesWeeks: 3, suitWeeks: 0 },
       botJob: { id: "kebabLokal", weeks: 1, raises: 0 },
       botReliability: 80,
+      botHome: { id: "kawalerka", rent: 700 },
+      botItems: [
+        { id: "lodowka", used: false, broken: false },
+        { id: "telewizor", used: false, broken: false },
+      ],
       botStats: { money: 4000, happiness: 20, education: 60, career: 70 },
       goals: { money: 3000, happiness: 80, education: 40, career: 40 },
     });

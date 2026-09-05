@@ -21,6 +21,8 @@ import type {
   EconomyPhase,
   EventId,
   GameState,
+  HomeId,
+  ItemId,
   Job,
   JobId,
   NoticeId,
@@ -122,6 +124,71 @@ export function diplomaName(id: DiplomaId): string {
       return t("diplomaInzynieria");
     case "magister":
       return t("diplomaMagister");
+    default: {
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
+export function homeName(id: HomeId): string {
+  switch (id) {
+    case "stancja":
+      return t("homeStancja");
+    case "kawalerka":
+      return t("homeKawalerka");
+    case "apartament":
+      return t("homeApartament");
+    default: {
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
+export function itemName(id: ItemId): string {
+  switch (id) {
+    case "lodowka":
+      return t("itemLodowka");
+    case "pralka":
+      return t("itemPralka");
+    case "kanapa":
+      return t("itemKanapa");
+    case "telewizor":
+      return t("itemTelewizor");
+    case "wieza":
+      return t("itemWieza");
+    case "komputer":
+      return t("itemKomputer");
+    case "encyklopedia":
+      return t("itemEncyklopedia");
+    case "rower":
+      return t("itemRower");
+    default: {
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
+export function itemEffect(id: ItemId): string {
+  switch (id) {
+    case "lodowka":
+      return t("itemEffectLodowka");
+    case "pralka":
+      return t("itemEffectPralka");
+    case "kanapa":
+      return t("itemEffectKanapa");
+    case "telewizor":
+      return t("itemEffectTelewizor");
+    case "wieza":
+      return t("itemEffectWieza");
+    case "komputer":
+      return t("itemEffectKomputer");
+    case "encyklopedia":
+      return t("itemEffectEncyklopedia");
+    case "rower":
+      return t("itemEffectRower");
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -301,6 +368,18 @@ export function blockReason(error: EngineError): string {
       return interpolate("blockTime", { needed: error.needed });
     case "depositActive":
       return t("blockDeposit");
+    case "sameHome":
+      return t("blockSameHome");
+    case "homeTooSmall":
+      return interpolate("blockHomeTooSmall", { have: error.have, slots: error.slots });
+    case "noSlot":
+      return interpolate("blockNoSlot", { slots: error.slots });
+    case "alreadyOwned":
+      return t("blockAlreadyOwned");
+    case "notOwned":
+      return t("blockNotOwned");
+    case "notBroken":
+      return t("blockNotBroken");
     case "wrongPhase":
     case "alreadyThere":
     case "unknownLocation":
@@ -329,6 +408,10 @@ export function noticeTitle(id: NoticeId): string {
       return t("noticeOblanyEgzamin");
     case "dyplom":
       return t("noticeDyplom");
+    case "zdzichu":
+      return t("noticeZdzichu");
+    case "przeprowadzka":
+      return t("noticePrzeprowadzka");
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -350,6 +433,10 @@ export function noticeEffect(id: NoticeId): string {
       return t("noticeOblanyEgzaminEffect");
     case "dyplom":
       return t("noticeDyplomEffect");
+    case "zdzichu":
+      return t("noticeZdzichuEffect").replace("{item}", "");
+    case "przeprowadzka":
+      return t("noticePrzeprowadzkaEffect").replace("{home}, {rent} zł / 4 tyg.", "");
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -435,6 +522,12 @@ export function effectLine(effect: WeekEffect): string {
       return effect.reason === "reliability"
         ? interpolate("effectFired", { job: jobName(effect.job) })
         : interpolate("effectReduction", { job: jobName(effect.job) });
+    case "theft":
+      return interpolate("effectTheft", { item: itemName(effect.item) });
+    case "itemBroke":
+      return interpolate("effectItemBroke", { item: itemName(effect.item) });
+    case "homeHappiness":
+      return interpolate("effectHomeHappiness", { n: effect.amount });
     case "exam":
       return effect.passed
         ? interpolate("effectExamPassed", { diploma: diplomaName(effect.diploma) })

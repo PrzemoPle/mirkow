@@ -265,7 +265,10 @@ To nie są bugi zapomnienia. Albo decyzja MVP je wycięła, albo silnik ma haczy
 |---|---|---|
 | Pula czasu | 12 (od G1; wcześniej 10) | `catalog.ts` |
 | Start kasy / szczęścia | 800 / 20 | `types.ts` |
-| Czynsz | 400, +50 co 4 tyg., sufit 800 (`RENT_MAX`) | `types.ts`, `market.ts`, `actions.ts` |
+| Mieszkania (od G3) | stancja 400 (3 miejsca, kradzieże), kawalerka 700 (6, +1 szczęścia/tydz., kaucja 1 czynsz), apartament 1200 (10, +3, kaucja). Czynsz zamrożony na stawce z dnia podpisania × koniunktura (boom 1,1, recesja 0,8), płatny co 4 tyg. Przeprowadzka 2 cz | `homes.ts` |
+| Przedmioty | Elektro-Mir nowe (1% awarii/tydz.), Lombard używane za 60% (3%), skup 50%, naprawa 20%. Lodówka 900 (jedzenie 6 tyg.), pralka 800, kanapa 400, telewizor 700 (+1/tydz.), wieża 600 (+1), komputer 1800 (zajęcia −1 cz, egzamin +10%), encyklopedia 300 (egzamin +10%), rower 500 (trasy ≥2 o 1 krócej) | `items.ts` |
+| Kradzież na stancji | 8% na tydzień, 12% przy ≥3 rzeczach, znika jeden przedmiot | `homes.ts`, `reducer.ts` |
+| Szczęście co tydzień | −1 bazowo, plus komfort mieszkania i sprzętu | `types.ts` |
 | Start zapasów | jedzenie 2 tyg., ubranie 3 tyg. | `types.ts` |
 | Lokata (Nasza Kasa) | 1 cz., 1000 zł, wypłata 1080 zł po 4 tyg., jedna naraz | `actions.ts` |
 | Eventy | 10 kart, losowanie ważone: spokój 2,5, napiwki 1,5, reszta 1 | `events.ts` |

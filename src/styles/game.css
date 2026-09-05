@@ -1204,3 +1204,81 @@
   width: 1.5rem;
   height: 1.5rem;
 }
+
+/* Pokój z rzeczami */
+.room {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  background: var(--table-3);
+}
+
+.room[hidden],
+.place-art[hidden] {
+  display: none;
+}
+
+.room-art {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.room-items {
+  position: absolute;
+  inset: 0;
+}
+
+.room-item {
+  position: absolute;
+  width: 17%;
+  transform: translate(-50%, -100%) scale(var(--scale, 1));
+  transform-origin: 50% 100%;
+}
+
+.room-sprite {
+  width: 100%;
+  height: auto;
+  filter: drop-shadow(0 3px 2px rgb(0 0 0 / 0.45));
+}
+
+.room-broken {
+  position: absolute;
+  right: -6%;
+  top: -10%;
+  width: 40%;
+  height: auto;
+}
+
+.room-caption {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  font-size: 0.8rem;
+}
+
+.item-icon {
+  width: 2.4rem;
+  height: 2.4rem;
+  object-fit: contain;
+}
+
+.item-row .act-name,
+.home-board .act-name {
+  text-transform: none;
+}
+
+@media (max-width: 1023px) {
+  .place .room {
+    width: 6.5rem;
+    aspect-ratio: 16 / 9;
+    border-radius: var(--r);
+  }
+
+  .room-caption {
+    display: none;
+  }
+}

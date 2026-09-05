@@ -8,9 +8,13 @@ export {
   getBotPlayer,
   getHumanPlayer,
   isHumanTurn,
+  buyItemBlock,
   enrollBlock,
   jobBlock,
   raiseBlock,
+  relocateBlock,
+  repairItemBlock,
+  sellItemBlock,
 } from "./selectors";
 export { dispatch } from "./reducer";
 export { fail, ok } from "./result";
@@ -64,9 +68,27 @@ export {
   recentClasses,
 } from "./diplomas";
 export type { DiplomaDef } from "./diplomas";
+export { getHomeDef, HOME_DEFS, homeIds, homeRank, leaseRent, RELOCATE_TIME } from "./homes";
+export type { HomeDef } from "./homes";
+export {
+  getItemDef,
+  hasWorking,
+  ITEM_DEFS,
+  itemIds,
+  ownedItem,
+  repairPrice,
+  sellPrice,
+  usedPrice,
+  FRIDGE_FOOD_WEEKS,
+  WASHER_CLOTHES_WEEKS,
+  COUCH_REST_HAPPINESS,
+  COMPUTER_CLASS_TIME_SAVED,
+} from "./items";
+export type { ItemDef, ItemZone } from "./items";
+export { playerTravelCost } from "./travel";
 export { EVENT_DEFS, eventIds, pickEvent } from "./events";
 export type { EventDef } from "./events";
-export { FOOD_BASE, RENT_HIKE, RENT_MAX, startingMarket } from "./market";
+export { FOOD_BASE, startingMarket } from "./market";
 export { nextBotAction, playBotUntilIdle, playBotWithTrace } from "./bot";
 export type { BotStep, BotTrace } from "./bot";
 export {
@@ -106,6 +128,9 @@ export type {
   Deposit,
   DiplomaId,
   Economy,
+  HomeId,
+  ItemId,
+  OwnedItem,
   EconomyPhase,
   EventId,
   GameAction,

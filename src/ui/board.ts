@@ -12,7 +12,7 @@ import {
   type Player,
 } from "../game";
 import { t, type MessageKey } from "../i18n";
-import { artImg, boardMatUrl, parkArtUrl, pawnArtUrl, tileArtUrl } from "./art";
+import { artImg, boardMatUrl, homeTileArtUrl, parkArtUrl, pawnArtUrl, tileArtUrl } from "./art";
 import { el, svgEl } from "./dom";
 import { interpolate } from "./format";
 import { slide } from "./motion";
@@ -243,6 +243,12 @@ export function buildBoard(): Board {
 
   function syncTiles(state: GameState, player: Player, humanTurn: boolean): void {
     const rival = getBotPlayer(state);
+    const homeTile = tiles.get("home");
+    const homeArt = homeTile?.querySelector(".tile-art");
+    const homeSrc = homeTileArtUrl(player.home.id);
+    if (homeArt instanceof HTMLImageElement && !homeArt.src.endsWith(homeSrc.slice(1))) {
+      homeArt.src = homeSrc;
+    }
     for (const [id, tile] of tiles) {
       const cost = costToLocation({ ...state, active: state.players.findIndex((p) => p.id === player.id) }, id);
       const costLabel = tile.querySelector(".tile-cost");

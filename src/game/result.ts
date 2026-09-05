@@ -24,7 +24,13 @@ export type EngineError =
   | { code: "notKierownik" }
   | { code: "raiseTooSoon"; needed: number; have: number }
   | { code: "raiseMaxed" }
-  | { code: "depositActive" };
+  | { code: "depositActive" }
+  | { code: "sameHome" }
+  | { code: "homeTooSmall"; slots: number; have: number }
+  | { code: "noSlot"; slots: number }
+  | { code: "alreadyOwned"; item: import("./types").ItemId }
+  | { code: "notOwned"; item: import("./types").ItemId }
+  | { code: "notBroken"; item: import("./types").ItemId };
 
 export type EngineResult =
   | { ok: true; state: GameState }

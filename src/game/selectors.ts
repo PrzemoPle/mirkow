@@ -1,8 +1,8 @@
-import { travelCost } from "./board";
+import { playerTravelCost } from "./travel";
 import { dispatch } from "./reducer";
 import type { EngineError } from "./result";
 import type { LocationId } from "./catalog";
-import type { ActionId, DiplomaId, GameState, JobId, Player } from "./types";
+import type { ActionId, DiplomaId, GameState, HomeId, ItemId, JobId, Player } from "./types";
 
 export function getActivePlayer(state: GameState): Player | undefined {
   return state.players[state.active];
@@ -32,7 +32,7 @@ export function costToLocation(
   if (player === undefined) {
     return null;
   }
-  return travelCost(player.locationId, to);
+  return playerTravelCost(player, player.locationId, to);
 }
 
 /** Dry-runs an action for the active player; null means it can be taken now. */
@@ -55,5 +55,25 @@ export function raiseBlock(state: GameState): EngineError | null {
 /** Dry-run zapisu na dyplom (będąc w WSMiK). */
 export function enrollBlock(state: GameState, diploma: DiplomaId): EngineError | null {
   const result = dispatch(state, { type: "enroll", diploma });
+  return result.ok ? null : result.error;
+}
+
+export function relocateBlock(state: GameState, home: HomeId): EngineError | null {
+  const result = dispatch(state, { type: "relocate", home });
+  return result.ok ? null : result.error;
+}
+
+export function buyItemBlock(state: GameState, item: ItemId, used: boolean): EngineError | null {
+  const result = dispatch(state, { type: "buyItem", item, used });
+  return result.ok ? null : result.error;
+}
+
+export function sellItemBlock(state: GameState, item: ItemId): EngineError | null {
+  const result = dispatch(state, { type: "sellItem", item });
+  return result.ok ? null : result.error;
+}
+
+export function repairItemBlock(state: GameState, item: ItemId): EngineError | null {
+  const result = dispatch(state, { type: "repairItem", item });
   return result.ok ? null : result.error;
 }

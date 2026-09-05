@@ -15,6 +15,8 @@ import {
   type EngineError,
   type DiplomaId,
   type GameState,
+  type HomeId,
+  type ItemId,
   type JobId,
   type LocationId,
   type NoticeId,
@@ -25,7 +27,8 @@ import { t } from "../i18n";
 import { eventArtUrl } from "./art";
 import { buildBoard, locationName } from "./board";
 import { browserStore } from "./browser-store";
-import { actedMessage, actionLabel, companyName, diplomaName, effectLine, eventMessage, jobName, noticeTitle } from "./copy";
+import { actedMessage, actionLabel, companyName, diplomaName, effectLine, eventMessage, homeName, itemName, jobName, noticeTitle } from "./copy";
+import { sellPrice } from "../game";
 import { el } from "./dom";
 import { errorMessage } from "./errors";
 import { interpolate } from "./format";
@@ -195,6 +198,46 @@ export function renderApp(root: HTMLElement): void {
     commit(result.state, interpolate("actedEnroll", { diploma: diplomaName(diploma) }));
   }
 
+  async function relocateTo(home: HomeId): Promise<void> {
+    if (!humanTurn() || shell === null) {
+      return;
+    }
+    const result = dispatch(state, { type: "relocate", home });
+    if (!result.ok) {
+      lastError = result.error;
+      paint();
+      return;
+    }
+    lastError = null;
+    const line = interpolate("actedRelocate", { home: homeName(home) });
+    shell.journal.add({ week: state.week, who: "you", text: line });
+    commit(result.state, line);
+    await showHumanNotice();
+  }
+
+  function tradeItem(action: { type: "buyItem"; item: ItemId; used: boolean } | { type: "sellItem"; item: ItemId } | { type: "repairItem"; item: ItemId }): void {
+    if (!humanTurn() || shell === null) {
+      return;
+    }
+    const result = dispatch(state, action);
+    if (!result.ok) {
+      lastError = result.error;
+      paint();
+      return;
+    }
+    lastError = null;
+    const name = itemName(action.item);
+    const line =
+      action.type === "buyItem"
+        ? interpolate("actedBuyItem", { item: name })
+        : action.type === "sellItem"
+          ? interpolate("actedSellItem", { item: name, money: sellPrice(action.item) })
+          : interpolate("actedRepairItem", { item: name });
+    shell.journal.add({ week: state.week, who: "you", text: line });
+    commit(result.state, line);
+    checkVictory();
+  }
+
   async function askForRaise(): Promise<void> {
     if (!humanTurn() || shell === null) {
       return;
@@ -282,6 +325,22 @@ export function renderApp(root: HTMLElement): void {
         const line = interpolate("botEnrolls", { diploma: diplomaName(step.action.diploma) });
         paint(line);
         shell.journal.add({ week: state.week, who: "bot", text: line });
+        await wait(BOT_ACT_MS);
+      } else if (step.action.type === "relocate") {
+        state = step.state;
+        const line = interpolate("botRelocates", { home: homeName(step.action.home) });
+        paint(line);
+        shell.journal.add({ week: state.week, who: "bot", text: line });
+        await wait(BOT_ACT_MS);
+      } else if (step.action.type === "buyItem") {
+        state = step.state;
+        const line = interpolate("botBuys", { item: itemName(step.action.item) });
+        paint(line);
+        shell.journal.add({ week: state.week, who: "bot", text: line });
+        await wait(BOT_ACT_MS);
+      } else if (step.action.type === "sellItem" || step.action.type === "repairItem") {
+        state = step.state;
+        paint();
         await wait(BOT_ACT_MS);
       } else if (step.action.type === "askRaise") {
         state = step.state;
@@ -403,6 +462,12 @@ export function renderApp(root: HTMLElement): void {
         void askForRaise();
       },
       onEnroll: enrollIn,
+      onRelocate: (home) => {
+        void relocateTo(home);
+      },
+      onBuy: (item, used) => tradeItem({ type: "buyItem", item, used }),
+      onSell: (item) => tradeItem({ type: "sellItem", item }),
+      onRepair: (item) => tradeItem({ type: "repairItem", item }),
       onEndWeek: () => {
         void applyEndWeek();
       },

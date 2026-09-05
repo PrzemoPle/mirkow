@@ -41,21 +41,46 @@ import {
   RELIABILITY_PER_SHIFT,
   COMPANY_DEFS,
 } from "./jobs";
-import { pricesChanged, RENT_HIKE, RENT_MAX, rollShopPrices, startingMarket } from "./market";
+import { pricesChanged, rollShopPrices, startingMarket } from "./market";
+import { getHomeDef, homeRank, leaseRent, RELOCATE_TIME, THEFT_CHANCE, THEFT_CHANCE_LOADED, THEFT_LOADED_ITEMS } from "./homes";
+import {
+  BREAK_CHANCE_NEW,
+  BREAK_CHANCE_USED,
+  BUY_ITEM_TIME,
+  COMPUTER_CLASS_TIME_SAVED,
+  COMPUTER_EXAM_BONUS,
+  BOOK_EXAM_BONUS,
+  COUCH_REST_HAPPINESS,
+  FRIDGE_FOOD_WEEKS,
+  getItemDef,
+  hasWorking,
+  ownedItem,
+  repairPrice,
+  REPAIR_TIME,
+  sellPrice,
+  SELL_ITEM_TIME,
+  usedPrice,
+  WASHER_CLOTHES_WEEKS,
+  weeklyItemHappiness,
+} from "./items";
 import { startingEconomy } from "./economy";
 import { createPlayer, startingStats } from "./state";
 import { assertNever } from "./assert-never";
-import { isLocationId, travelCost } from "./board";
+import { isLocationId } from "./board";
+import { playerTravelCost } from "./travel";
 import { fail, ok, type EngineResult } from "./result";
 import { advanceRng } from "./rng";
 import {
   AUNT_HELP,
+  HAPPINESS_DECAY,
   METER_MAX,
   MOPS_HELP,
   type ActionId,
   type DiplomaId,
   type GameAction,
   type GameState,
+  type HomeId,
+  type ItemId,
   type JobId,
   type Player,
   type Stats,
@@ -192,7 +217,7 @@ function moveTo(state: GameState, to: string): EngineResult {
     return fail({ code: "alreadyThere" });
   }
 
-  const needed = travelCost(player.locationId, to);
+  const needed = playerTravelCost(player, player.locationId, to);
   if (needed === null) {
     return fail({ code: "noPath" });
   }
@@ -281,7 +306,9 @@ function applyAction(state: GameState, def: ActionDef): EngineResult {
     });
   }
 
-  const spent = spendTime(state, def.timeCost);
+  const timeCost =
+    def.isClass && hasWorking(player, "komputer") ? Math.max(1, def.timeCost - COMPUTER_CLASS_TIME_SAVED) : def.timeCost;
+  const spent = spendTime(state, timeCost);
   if (!spent.ok) {
     return spent;
   }
@@ -296,9 +323,10 @@ function applyAction(state: GameState, def: ActionDef): EngineResult {
   }
 
   const lokal = def.opensLokal ? getJobDef("kebabLokal") : null;
+  const restBonus = def.id === "restHome" && hasWorking(current, "kanapa") ? COUCH_REST_HAPPINESS - def.happiness : 0;
   const nextStats: Stats = {
     money: current.stats.money - def.moneyCost + def.wage,
-    happiness: clampMeter(current.stats.happiness + def.happiness + (lokal !== null ? HIRE_HAPPINESS : 0)),
+    happiness: clampMeter(current.stats.happiness + def.happiness + restBonus + (lokal !== null ? HIRE_HAPPINESS : 0)),
     education: clampMeter(current.stats.education + def.education),
     career: lokal !== null ? lokal.prestige : current.stats.career,
   };
@@ -314,8 +342,18 @@ function applyAction(state: GameState, def: ActionDef): EngineResult {
           ? clampMeter(current.reliability + RELIABILITY_PER_SHIFT)
           : current.reliability,
         needs: {
-          foodWeeks: def.foodWeeks !== null ? def.foodWeeks : current.needs.foodWeeks,
-          clothesWeeks: def.clothesWeeks !== null ? def.clothesWeeks : current.needs.clothesWeeks,
+          foodWeeks:
+            def.foodWeeks !== null
+              ? hasWorking(current, "lodowka")
+                ? FRIDGE_FOOD_WEEKS
+                : def.foodWeeks
+              : current.needs.foodWeeks,
+          clothesWeeks:
+            def.clothesWeeks !== null
+              ? hasWorking(current, "pralka")
+                ? WASHER_CLOTHES_WEEKS
+                : def.clothesWeeks
+              : current.needs.clothesWeeks,
           suitWeeks: def.suitWeeks !== null ? def.suitWeeks : current.needs.suitWeeks,
         },
         deposit: def.opensDeposit
@@ -347,7 +385,9 @@ function studyStep(state: GameState, player: Player, def: ActionDef): GameState 
   }
 
   const roll = advanceRng(state.rngSeed);
-  const passed = roll.value < examChance(player, diplomaId, state.week);
+  const bonus =
+    (hasWorking(player, "komputer") ? COMPUTER_EXAM_BONUS : 0) + (hasWorking(player, "encyklopedia") ? BOOK_EXAM_BONUS : 0);
+  const passed = roll.value < Math.min(1, examChance(player, diplomaId, state.week) + bonus);
   const effects: WeekEffect[] = [...state.lastWeekEffects, { kind: "exam", diploma: diplomaId, passed }];
   if (!passed) {
     return {
@@ -537,18 +577,223 @@ function chargeRent(state: GameState): GameState {
   }
 
   const amount = player.home.rent;
-  const nextRent = Math.min(RENT_MAX, amount + RENT_HIKE);
   return {
     ...replaceActive(state, {
       ...player,
       stats: { ...player.stats, money: player.stats.money - amount },
-      home: { ...player.home, rent: nextRent },
     }),
-    lastWeekEffects: [
-      ...state.lastWeekEffects,
-      { kind: "rent", amount },
-      { kind: "rentHike", amount: nextRent },
-    ],
+    lastWeekEffects: [...state.lastWeekEffects, { kind: "rent", amount }],
+  };
+}
+
+/** Przeprowadzka albo przepisanie umowy: nowa stawka z dzisiejszej koniunktury, kaucja przy wprowadzce wyżej. */
+function relocate(state: GameState, homeId: HomeId): EngineResult {
+  if (state.phase !== "playing") {
+    return fail({ code: "wrongPhase", phase: state.phase });
+  }
+  const player = getActive(state);
+  if (player === undefined) {
+    return fail({ code: "noActivePlayer" });
+  }
+  if (player.locationId !== "home") {
+    return fail({ code: "wrongLocation", here: player.locationId, needed: "home" });
+  }
+  const def = getHomeDef(homeId);
+  const rent = leaseRent(homeId, state.economy.phase);
+  if (homeId === player.home.id && rent >= player.home.rent) {
+    return fail({ code: "sameHome" });
+  }
+  if (player.items.length > def.slots) {
+    return fail({ code: "homeTooSmall", slots: def.slots, have: player.items.length });
+  }
+  const upgrade = homeRank(homeId) > homeRank(player.home.id);
+  const deposit = upgrade ? rent * def.depositRents : 0;
+  if (player.stats.money < deposit) {
+    return fail({ code: "insufficientMoney", needed: deposit, have: player.stats.money });
+  }
+  const spent = spendTime(state, RELOCATE_TIME);
+  if (!spent.ok) {
+    return spent;
+  }
+  const current = getActive(spent.state);
+  if (current === undefined) {
+    return fail({ code: "noActivePlayer" });
+  }
+  return ok(
+    replaceActive(spent.state, {
+      ...current,
+      home: { id: homeId, rent },
+      stats: { ...current.stats, money: current.stats.money - deposit },
+      lastNotice: homeId === current.home.id ? current.lastNotice : "przeprowadzka",
+    }),
+  );
+}
+
+function buyItem(state: GameState, itemId: ItemId, used: boolean): EngineResult {
+  if (state.phase !== "playing") {
+    return fail({ code: "wrongPhase", phase: state.phase });
+  }
+  const player = getActive(state);
+  if (player === undefined) {
+    return fail({ code: "noActivePlayer" });
+  }
+  const where: "elektro" | "lombard" = used ? "lombard" : "elektro";
+  if (player.locationId !== where) {
+    return fail({ code: "wrongLocation", here: player.locationId, needed: where });
+  }
+  if (ownedItem(player, itemId) !== undefined) {
+    return fail({ code: "alreadyOwned", item: itemId });
+  }
+  const slots = getHomeDef(player.home.id).slots;
+  if (player.items.length >= slots) {
+    return fail({ code: "noSlot", slots });
+  }
+  const price = used ? usedPrice(itemId) : getItemDef(itemId).price;
+  if (player.stats.money < price) {
+    return fail({ code: "insufficientMoney", needed: price, have: player.stats.money });
+  }
+  const spent = spendTime(state, BUY_ITEM_TIME);
+  if (!spent.ok) {
+    return spent;
+  }
+  const current = getActive(spent.state);
+  if (current === undefined) {
+    return fail({ code: "noActivePlayer" });
+  }
+  return ok(
+    withVictory(
+      replaceActive(spent.state, {
+        ...current,
+        items: [...current.items, { id: itemId, used, broken: false }],
+        stats: {
+          ...current.stats,
+          money: current.stats.money - price,
+          happiness: clampMeter(current.stats.happiness + getItemDef(itemId).happinessOnBuy),
+        },
+      }),
+    ),
+  );
+}
+
+function sellItem(state: GameState, itemId: ItemId): EngineResult {
+  if (state.phase !== "playing") {
+    return fail({ code: "wrongPhase", phase: state.phase });
+  }
+  const player = getActive(state);
+  if (player === undefined) {
+    return fail({ code: "noActivePlayer" });
+  }
+  if (player.locationId !== "lombard") {
+    return fail({ code: "wrongLocation", here: player.locationId, needed: "lombard" });
+  }
+  const item = ownedItem(player, itemId);
+  if (item === undefined) {
+    return fail({ code: "notOwned", item: itemId });
+  }
+  const spent = spendTime(state, SELL_ITEM_TIME);
+  if (!spent.ok) {
+    return spent;
+  }
+  const current = getActive(spent.state);
+  if (current === undefined) {
+    return fail({ code: "noActivePlayer" });
+  }
+  const price = item.broken ? Math.round(sellPrice(itemId) / 2 / 10) * 10 : sellPrice(itemId);
+  return ok(
+    withVictory(
+      replaceActive(spent.state, {
+        ...current,
+        items: current.items.filter((entry) => entry.id !== itemId),
+        stats: { ...current.stats, money: current.stats.money + price },
+      }),
+    ),
+  );
+}
+
+function repairItem(state: GameState, itemId: ItemId): EngineResult {
+  if (state.phase !== "playing") {
+    return fail({ code: "wrongPhase", phase: state.phase });
+  }
+  const player = getActive(state);
+  if (player === undefined) {
+    return fail({ code: "noActivePlayer" });
+  }
+  if (player.locationId !== "elektro") {
+    return fail({ code: "wrongLocation", here: player.locationId, needed: "elektro" });
+  }
+  const item = ownedItem(player, itemId);
+  if (item === undefined) {
+    return fail({ code: "notOwned", item: itemId });
+  }
+  if (!item.broken) {
+    return fail({ code: "notBroken", item: itemId });
+  }
+  const price = repairPrice(itemId);
+  if (player.stats.money < price) {
+    return fail({ code: "insufficientMoney", needed: price, have: player.stats.money });
+  }
+  const spent = spendTime(state, REPAIR_TIME);
+  if (!spent.ok) {
+    return spent;
+  }
+  const current = getActive(spent.state);
+  if (current === undefined) {
+    return fail({ code: "noActivePlayer" });
+  }
+  return ok(
+    replaceActive(spent.state, {
+      ...current,
+      items: current.items.map((entry) => (entry.id === itemId ? { ...entry, broken: false } : entry)),
+      stats: { ...current.stats, money: current.stats.money - price },
+    }),
+  );
+}
+
+/** Kradzież na stancji i awarie sprzętu: losowane co tydzień. */
+function wearItems(state: GameState): GameState {
+  const player = getActive(state);
+  if (player === undefined || player.items.length === 0) {
+    return state;
+  }
+  let seed = state.rngSeed;
+  let items = [...player.items];
+  const effects: WeekEffect[] = [...state.lastWeekEffects];
+  let notice = player.lastNotice;
+
+  if (getHomeDef(player.home.id).theft) {
+    const roll = advanceRng(seed);
+    seed = roll.seed;
+    const chance = items.length >= THEFT_LOADED_ITEMS ? THEFT_CHANCE_LOADED : THEFT_CHANCE;
+    if (roll.value < chance) {
+      const pick = advanceRng(seed);
+      seed = pick.seed;
+      const index = Math.min(items.length - 1, Math.floor(pick.value * items.length));
+      const stolen = items[index];
+      if (stolen !== undefined) {
+        items = items.filter((_, position) => position !== index);
+        effects.push({ kind: "theft", item: stolen.id });
+        notice = "zdzichu";
+      }
+    }
+  }
+
+  items = items.map((item) => {
+    if (item.broken) {
+      return item;
+    }
+    const roll = advanceRng(seed);
+    seed = roll.seed;
+    if (roll.value < (item.used ? BREAK_CHANCE_USED : BREAK_CHANCE_NEW)) {
+      effects.push({ kind: "itemBroke", item: item.id });
+      return { ...item, broken: true };
+    }
+    return item;
+  });
+
+  return {
+    ...replaceActive(state, { ...player, items, lastNotice: notice }),
+    rngSeed: seed,
+    lastWeekEffects: effects,
   };
 }
 
@@ -614,6 +859,7 @@ function applyEventHit(state: GameState): GameState {
 
   const picked = pickEvent(state.rngSeed);
   const def = getEventDef(picked.id);
+  const shielded = picked.id === "pralka" && hasWorking(player, "pralka");
 
   return {
     ...replaceActive(state, {
@@ -621,7 +867,7 @@ function applyEventHit(state: GameState): GameState {
       lastEvent: picked.id,
       stats: {
         ...player.stats,
-        money: player.stats.money + def.money,
+        money: player.stats.money + (shielded ? 0 : def.money),
         happiness: clampMeter(player.stats.happiness + def.happiness),
       },
     }),
@@ -707,6 +953,23 @@ function decayNeeds(state: GameState): GameState {
     job: player.job === null ? null : { ...player.job, weeks: player.job.weeks + 1 },
     reliability: Math.max(0, player.reliability - RELIABILITY_DECAY),
   });
+}
+
+/** Szczęście: spadek co tydzień, plus to, co dają mieszkanie i sprawny sprzęt. */
+function weeklyHappiness(state: GameState): GameState {
+  const player = getActive(state);
+  if (player === undefined) {
+    return state;
+  }
+  const comfort = getHomeDef(player.home.id).happinessWeekly + weeklyItemHappiness(player);
+  const delta = comfort - HAPPINESS_DECAY;
+  const next = replaceActive(state, {
+    ...player,
+    stats: { ...player.stats, happiness: clampMeter(player.stats.happiness + delta) },
+  });
+  return comfort > 0
+    ? { ...next, lastWeekEffects: [...next.lastWeekEffects, { kind: "homeHappiness", amount: comfort }] }
+    : next;
 }
 
 /** Zwolnienie: solidność za nisko albo redukcja w recesji. */
@@ -812,7 +1075,7 @@ function endWeek(state: GameState): EngineResult {
     return ok(settled);
   }
 
-  const decayed = decayNeeds(settled);
+  const decayed = weeklyHappiness(wearItems(decayNeeds(settled)));
   const employed = checkEmployment(decayed);
   const fed = applyEventFood(employed);
   const penalized = applyNeedPenalties(fed);
@@ -865,6 +1128,14 @@ export function dispatch(state: GameState, action: GameAction): EngineResult {
       return askRaise(state);
     case "enroll":
       return enroll(state, action.diploma);
+    case "relocate":
+      return relocate(state, action.home);
+    case "buyItem":
+      return buyItem(state, action.item, action.used);
+    case "sellItem":
+      return sellItem(state, action.item);
+    case "repairItem":
+      return repairItem(state, action.item);
     case "endWeek":
       return endWeek(state);
     default: {

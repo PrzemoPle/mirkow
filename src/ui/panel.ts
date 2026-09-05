@@ -8,7 +8,9 @@ import {
   type Player,
 } from "../game";
 import { t } from "../i18n";
-import { actionIconUrl, artImg, tileArtUrl, workIconUrl } from "./art";
+import { actionIconUrl, artImg, homeTileArtUrl, tileArtUrl, workIconUrl } from "./art";
+import { buildHomeBoard, buildRoomView, type HomeHandlers } from "./home";
+import { buildElektroBoard, buildLombardBoard, type ShopHandlers } from "./shops";
 import { buildCampusBoard, type CampusHandlers } from "./campus";
 import { buildJobsBoard, type JobsBoardHandlers } from "./jobs-board";
 import { getJobDef } from "../game";
@@ -19,7 +21,7 @@ import { formatZl, interpolate } from "./format";
 
 const CONFIRM_FROM = 3;
 
-export type PanelHandlers = JobsBoardHandlers & CampusHandlers & {
+export type PanelHandlers = JobsBoardHandlers & CampusHandlers & HomeHandlers & ShopHandlers & {
   onAct(id: ActionId): void;
   onEndWeek(): void;
 };
@@ -81,12 +83,14 @@ export function buildPanel(handlers: PanelHandlers): Panel {
 
   const place = el("div", "place");
   const art = artImg(tileArtUrl("home"), "place-art");
+  const room = buildRoomView();
+  room.root.hidden = true;
   const copy = el("div", "place-copy");
   const placeName = el("span", "plaque place-name");
   const here = el("span", "plaque plaque-accent place-here");
   here.textContent = t("youAreHere");
   copy.append(placeName, here);
-  place.append(art, copy);
+  place.append(art, room.root, copy);
 
   const acts = el("div", "acts");
   acts.setAttribute("role", "group");
@@ -100,6 +104,13 @@ export function buildPanel(handlers: PanelHandlers): Panel {
   jobs.root.hidden = true;
   const campus = buildCampusBoard({ onEnroll: handlers.onEnroll });
   campus.root.hidden = true;
+  const homeBoard = buildHomeBoard({ onRelocate: handlers.onRelocate });
+  homeBoard.root.hidden = true;
+  const shopHandlers = { onBuy: handlers.onBuy, onSell: handlers.onSell, onRepair: handlers.onRepair };
+  const elektro = buildElektroBoard(shopHandlers);
+  elektro.root.hidden = true;
+  const lombard = buildLombardBoard(shopHandlers);
+  lombard.root.hidden = true;
 
   const endweek = el("div", "endweek");
   const confirm = el("div", "confirm");
@@ -117,7 +128,7 @@ export function buildPanel(handlers: PanelHandlers): Panel {
   endButton.textContent = t("endWeek");
   endweek.append(confirm, endButton);
 
-  root.append(place, acts, jobs.root, campus.root, endweek);
+  root.append(place, acts, jobs.root, campus.root, homeBoard.root, elektro.root, lombard.root, endweek);
 
   let timeLeft = 0;
 
@@ -163,10 +174,16 @@ export function buildPanel(handlers: PanelHandlers): Panel {
       timeLeft = state.timeLeft;
       confirm.hidden = true;
 
-      const src = tileArtUrl(player.locationId);
+      const atHome = player.locationId === "home";
+      const src = atHome ? homeTileArtUrl(player.home.id) : tileArtUrl(player.locationId);
       if (lastPlace !== src) {
         lastPlace = src;
         art.src = src;
+      }
+      art.hidden = atHome;
+      room.root.hidden = !atHome;
+      if (atHome) {
+        room.sync(player);
       }
       placeName.textContent = t(locationName(player.locationId));
 
@@ -182,10 +199,24 @@ export function buildPanel(handlers: PanelHandlers): Panel {
       if (atCampus) {
         campus.sync(scoped, player, humanTurn);
       }
-      acts.hidden = (atPup || atCampus) && ids.length === 0;
+      homeBoard.root.hidden = !atHome;
+      if (atHome) {
+        homeBoard.sync(scoped, player, humanTurn);
+      }
+      const atElektro = player.locationId === "elektro";
+      elektro.root.hidden = !atElektro;
+      if (atElektro) {
+        elektro.sync(scoped, player, humanTurn);
+      }
+      const atLombard = player.locationId === "lombard";
+      lombard.root.hidden = !atLombard;
+      if (atLombard) {
+        lombard.sync(scoped, player, humanTurn);
+      }
+      acts.hidden = (atPup || atCampus || atElektro) && ids.length === 0;
       if (ids.length === 0) {
         const empty = el("p", "acts-empty");
-        empty.textContent = player.locationId === "elektro" ? t("actionSoon") : t("actionEmpty");
+        empty.textContent = t("actionEmpty");
         list.replaceChildren(empty);
       } else {
         const rows = ids.map((id) => {

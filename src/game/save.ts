@@ -2,6 +2,8 @@ import { allAvatarIds } from "./avatars";
 import { locationIds, TIME_MAX } from "./catalog";
 import { eventIds } from "./events";
 import { diplomaIds } from "./diplomas";
+import { homeIds } from "./homes";
+import { itemIds } from "./items";
 import { companyIds, JOB_DEFS } from "./jobs";
 import type {
   CompanyId,
@@ -13,6 +15,7 @@ import type {
   Job,
   JobId,
   NoticeId,
+  OwnedItem,
   Player,
   SafetyNetKind,
   Stats,
@@ -20,10 +23,10 @@ import type {
   WeekEffect,
 } from "./types";
 
-export const SAVE_KEY = "mirkow.save.v3";
+export const SAVE_KEY = "mirkow.save.v4";
 /** Klucze starych zapisów: czyścimy je, żeby nie zalegały. */
-export const LEGACY_SAVE_KEYS = ["mirkow.save.v1", "mirkow.save.v2"] as const;
-export const SAVE_FORMAT = 3;
+export const LEGACY_SAVE_KEYS = ["mirkow.save.v1", "mirkow.save.v2", "mirkow.save.v3"] as const;
+export const SAVE_FORMAT = 4;
 
 export type SaveStore = {
   getItem(key: string): string | null;
@@ -43,7 +46,7 @@ const jobIds = Object.keys(JOB_DEFS) as JobId[];
 const phases = ["setup", "playing", "victory"] as const;
 const controllers = ["human", "bot"] as const;
 const safetyNets = ["ciocia", "mops"] as const;
-const notices = ["zwolnienie", "redukcja", "podwyzka", "awans", "oblanyEgzamin", "dyplom"] as const satisfies readonly NoticeId[];
+const notices = ["zwolnienie", "redukcja", "podwyzka", "awans", "oblanyEgzamin", "dyplom", "zdzichu", "przeprowadzka"] as const satisfies readonly NoticeId[];
 const economyPhases = ["boom", "normal", "recession"] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -153,6 +156,11 @@ function parseEffect(value: unknown): WeekEffect | null {
       return isMember(value.job, jobIds) && (value.reason === "reliability" || value.reason === "reduction")
         ? { kind: "fired", job: value.job, reason: value.reason }
         : null;
+    case "theft":
+    case "itemBroke":
+      return isMember(value.item, itemIds) ? { kind: value.kind, item: value.item } : null;
+    case "homeHappiness":
+      return isFiniteNumber(value.amount) ? { kind: "homeHappiness", amount: value.amount } : null;
     case "exam":
       return isMember(value.diploma, diplomaIds) && typeof value.passed === "boolean"
         ? { kind: "exam", diploma: value.diploma, passed: value.passed }
@@ -211,6 +219,20 @@ function parseStudies(value: unknown): Partial<Record<DiplomaId, StudyProgress>>
   return out;
 }
 
+function parseItems(value: unknown): readonly OwnedItem[] | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const out: OwnedItem[] = [];
+  for (const entry of value) {
+    if (!isRecord(entry) || !isMember(entry.id, itemIds) || typeof entry.used !== "boolean" || typeof entry.broken !== "boolean") {
+      return null;
+    }
+    out.push({ id: entry.id, used: entry.used, broken: entry.broken });
+  }
+  return out;
+}
+
 function parsePlayer(value: unknown): Player | null {
   if (!isRecord(value)) {
     return null;
@@ -238,7 +260,11 @@ function parsePlayer(value: unknown): Player | null {
   if (diplomas === null || studies === null || studying === undefined) {
     return null;
   }
-  if (!isRecord(value.home) || value.home.id !== "stancja" || !isFiniteNumber(value.home.rent)) {
+  if (!isRecord(value.home) || !isMember(value.home.id, homeIds) || !isFiniteNumber(value.home.rent)) {
+    return null;
+  }
+  const items = parseItems(value.items);
+  if (items === null) {
     return null;
   }
   if (
@@ -265,7 +291,8 @@ function parsePlayer(value: unknown): Player | null {
     diplomas,
     studies,
     studying,
-    home: { id: "stancja", rent: value.home.rent },
+    home: { id: value.home.id, rent: value.home.rent },
+    items,
     needs: {
       foodWeeks: value.needs.foodWeeks,
       clothesWeeks: value.needs.clothesWeeks,
@@ -279,7 +306,7 @@ function parsePlayer(value: unknown): Player | null {
 }
 
 export function parseGameState(value: unknown): GameState | null {
-  if (!isRecord(value) || value.version !== 3) {
+  if (!isRecord(value) || value.version !== 4) {
     return null;
   }
   if (!isMember(value.phase, phases)) {
@@ -346,7 +373,7 @@ export function parseGameState(value: unknown): GameState | null {
     return null;
   }
   return {
-    version: 3,
+    version: 4,
     phase: value.phase,
     week: value.week,
     timeLeft: value.timeLeft,

@@ -12,6 +12,8 @@ export const METER_MAX = 100;
 export const STARTING_FOOD_WEEKS = 2;
 export const STARTING_CLOTHES_WEEKS = 3;
 export const STARTING_RELIABILITY = 20;
+/** Szczęście spada o 1 co tydzień: trzeba je podtrzymywać. */
+export const HAPPINESS_DECAY = 1;
 
 export type Stats = {
   money: number;
@@ -45,6 +47,25 @@ export type DiplomaId =
   | "administracja"
   | "inzynieria"
   | "magister";
+
+export type HomeId = "stancja" | "kawalerka" | "apartament";
+
+export type ItemId =
+  | "lodowka"
+  | "pralka"
+  | "kanapa"
+  | "telewizor"
+  | "wieza"
+  | "komputer"
+  | "encyklopedia"
+  | "rower";
+
+export type OwnedItem = {
+  id: ItemId;
+  /** Kupiony w Lombardzie: częściej się psuje. */
+  used: boolean;
+  broken: boolean;
+};
 
 export type StudyProgress = {
   classes: number;
@@ -101,7 +122,15 @@ export type EventId =
   | "spokoj";
 
 /** Karty pokazywane po zdarzeniach z pracy (nie losowane jak eventy). */
-export type NoticeId = "zwolnienie" | "redukcja" | "podwyzka" | "awans" | "oblanyEgzamin" | "dyplom";
+export type NoticeId =
+  | "zwolnienie"
+  | "redukcja"
+  | "podwyzka"
+  | "awans"
+  | "oblanyEgzamin"
+  | "dyplom"
+  | "zdzichu"
+  | "przeprowadzka";
 
 export type WeekEffect =
   | { kind: "rent"; amount: number }
@@ -114,7 +143,10 @@ export type WeekEffect =
   | { kind: "deposit"; amount: number }
   | { kind: "fired"; job: JobId; reason: "reliability" | "reduction" }
   | { kind: "economy"; phase: EconomyPhase; hiringFrozen: CompanyId | null }
-  | { kind: "exam"; diploma: DiplomaId; passed: boolean };
+  | { kind: "exam"; diploma: DiplomaId; passed: boolean }
+  | { kind: "theft"; item: ItemId }
+  | { kind: "itemBroke"; item: ItemId }
+  | { kind: "homeHappiness"; amount: number };
 
 export type Market = {
   food: number;
@@ -149,7 +181,9 @@ export type Player = {
   studies: Partial<Record<DiplomaId, StudyProgress>>;
   /** Dyplom, na który gracz aktualnie chodzi. */
   studying: DiplomaId | null;
-  home: { id: "stancja"; rent: number };
+  /** Umowa: mieszkanie i zamrożony czynsz z dnia podpisania. */
+  home: { id: HomeId; rent: number };
+  items: readonly OwnedItem[];
   needs: { foodWeeks: number; clothesWeeks: number; suitWeeks: number };
   nextTimeLeft: number;
   lastEvent: EventId | null;
@@ -158,7 +192,7 @@ export type Player = {
 };
 
 export type GameState = {
-  version: 3;
+  version: 4;
   phase: Phase;
   week: number;
   timeLeft: number;
@@ -187,4 +221,8 @@ export type GameAction =
   | { type: "apply"; job: JobId }
   | { type: "askRaise" }
   | { type: "enroll"; diploma: DiplomaId }
+  | { type: "relocate"; home: HomeId }
+  | { type: "buyItem"; item: ItemId; used: boolean }
+  | { type: "sellItem"; item: ItemId }
+  | { type: "repairItem"; item: ItemId }
   | { type: "endWeek" };

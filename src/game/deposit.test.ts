@@ -1,7 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { DEPOSIT_COST, DEPOSIT_PAYOUT, DEPOSIT_WEEKS } from "./actions";
 import { firstSeedFor } from "./events";
-import { RENT_MAX } from "./market";
 import { dispatch } from "./reducer";
 import { actionBlock } from "./selectors";
 import { createMatch, startingNeeds } from "./state";
@@ -53,20 +52,6 @@ describe("lokata w Naszej Kasie", () => {
   it("refuses a deposit the player cannot afford", () => {
     const poor = createMatch({ locationId: "bank", stats: { money: 300 } });
     expect(actionBlock(poor, "deposit")?.code).toBe("insufficientMoney");
-  });
-});
-
-describe("czynsz", () => {
-  it("stops rising at the cap", () => {
-    let state = createMatch({
-      week: 4,
-      stats: { money: 100_000 },
-      needs: { foodWeeks: 99, clothesWeeks: 99, suitWeeks: 0 },
-    });
-    for (let round = 0; round < 40; round += 1) {
-      state = unwrap(dispatch({ ...state, week: 4, rngSeed: firstSeedFor("spokoj") }, { type: "endWeek" }));
-    }
-    expect(playerOf(state).home.rent).toBe(RENT_MAX);
   });
 });
 

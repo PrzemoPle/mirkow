@@ -52,6 +52,18 @@ export function errorMessage(error: EngineError): string {
       return t("errorRaiseMaxed");
     case "depositActive":
       return t("errorDepositActive");
+    case "sameHome":
+      return t("errorSameHome");
+    case "homeTooSmall":
+      return interpolate("errorHomeTooSmall", { have: error.have, slots: error.slots });
+    case "noSlot":
+      return interpolate("errorNoSlot", { slots: error.slots });
+    case "alreadyOwned":
+      return t("errorAlreadyOwned");
+    case "notOwned":
+      return t("errorNotOwned");
+    case "notBroken":
+      return t("errorNotBroken");
     default: {
       const exhaustive: never = error;
       return assertNever(exhaustive);

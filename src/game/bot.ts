@@ -5,7 +5,7 @@ import {
   SUIT_COST,
 } from "./actions";
 import { diplomaIds, EXAM_FEE, getDiplomaDef, hasDiploma, prerequisiteMet } from "./diplomas";
-import { travelCost } from "./board";
+import { playerTravelCost } from "./travel";
 import type { LocationId } from "./catalog";
 import { FIRE_MARGIN, getJobDef, jobIds, jobLocation, RELIABILITY_DECAY, type JobDef } from "./jobs";
 import { dispatch } from "./reducer";
@@ -46,7 +46,7 @@ function goDo(state: GameState, locationId: LocationId, then: GameAction, timeCo
   if (player.locationId === locationId) {
     return [then];
   }
-  const travel = travelCost(player.locationId, locationId);
+  const travel = playerTravelCost(player, player.locationId, locationId);
   if (travel === null || travel + timeCost > state.timeLeft) {
     return [];
   }
@@ -290,7 +290,32 @@ export function nextBotAction(state: GameState): GameAction {
     }
   }
 
-  // 10. Szczęście.
+  // 10. Dom i sprzęt: lodówka oszczędza wizyty, telewizor daje szczęście, kawalerka chroni rzeczy.
+  const spare = player.stats.money - buffer * 2;
+  if (!player.items.some((item) => item.id === "lodowka") && spare >= 900) {
+    const fridge = firstLegal(state, goDo(state, "elektro", { type: "buyItem", item: "lodowka", used: false }, 1));
+    if (fridge !== null) {
+      return fridge;
+    }
+  }
+  if (player.home.id === "stancja" && player.items.length >= 2 && player.stats.money >= 700 * 3) {
+    const flat = firstLegal(state, goDo(state, "home", { type: "relocate", home: "kawalerka" }, 2));
+    if (flat !== null) {
+      return flat;
+    }
+  }
+  if (
+    player.stats.happiness < state.goals.happiness &&
+    !player.items.some((item) => item.id === "telewizor") &&
+    spare >= 700
+  ) {
+    const tv = firstLegal(state, goDo(state, "elektro", { type: "buyItem", item: "telewizor", used: false }, 1));
+    if (tv !== null) {
+      return tv;
+    }
+  }
+
+  // 11. Szczęście.
   if (player.stats.happiness < state.goals.happiness) {
     const comfortable = player.stats.money >= player.home.rent * 2 + REST_CAFE_COST;
     const cafe = comfortable ? firstLegal(state, goAct(state, "cafe", "restCafe")) : null;

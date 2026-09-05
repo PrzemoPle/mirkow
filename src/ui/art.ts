@@ -1,6 +1,6 @@
 import { assertNever } from "../game/assert-never";
 import type { LocationId } from "../game/catalog";
-import type { ActionId, AvatarId, DiplomaId, EventId, NoticeId } from "../game/types";
+import type { ActionId, AvatarId, DiplomaId, EventId, HomeId, ItemId, NoticeId } from "../game/types";
 import { el } from "./dom";
 
 /** Placeholder dla bitmap, które jeszcze nie przyszły od ilustratora (brief P3). */
@@ -38,6 +38,84 @@ export function tileArtUrl(id: LocationId): string {
       return assertNever(exhaustive);
     }
   }
+}
+
+/** Kafelek domu zależy od mieszkania z umowy. */
+export function homeTileArtUrl(id: HomeId): string {
+  switch (id) {
+    case "stancja":
+      return "./art/tiles/home.png";
+    case "kawalerka":
+      return "./art/tiles/home-kawalerka.png";
+    case "apartament":
+      return "./art/tiles/home-apartament.png";
+    default: {
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
+export function roomArtUrl(id: HomeId): string {
+  switch (id) {
+    case "stancja":
+      return "./art/rooms/stancja.png";
+    case "kawalerka":
+      return "./art/rooms/kawalerka.png";
+    case "apartament":
+      return "./art/rooms/apartament.png";
+    default: {
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
+export function itemArtUrl(id: ItemId | "garnitur"): string {
+  switch (id) {
+    case "lodowka":
+      return "./art/items/lodowka.png";
+    case "pralka":
+      return "./art/items/pralka.png";
+    case "kanapa":
+      return "./art/items/kanapa.png";
+    case "telewizor":
+      return "./art/items/telewizor.png";
+    case "wieza":
+      return "./art/items/wieza.png";
+    case "komputer":
+      return "./art/items/komputer.png";
+    case "encyklopedia":
+      return "./art/items/encyklopedia.png";
+    case "rower":
+      return "./art/items/rower.png";
+    case "garnitur":
+      return "./art/items/garnitur.png";
+    default: {
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
+export function brokenIconUrl(): string {
+  return "./art/ui/broken.png";
+}
+
+export function moveIconUrl(): string {
+  return "./art/actions/move.png";
+}
+
+export function buyItemIconUrl(): string {
+  return "./art/actions/buy-item.png";
+}
+
+export function sellIconUrl(): string {
+  return "./art/actions/sell.png";
+}
+
+export function repairIconUrl(): string {
+  return "./art/actions/repair.png";
 }
 
 export function parkArtUrl(): string {
@@ -129,6 +207,10 @@ export function noticeArtUrl(id: NoticeId): string {
       return "./art/events/oblany-egzamin.png";
     case "dyplom":
       return "./art/events/dyplom.png";
+    case "zdzichu":
+      return "./art/events/zdzichu.png";
+    case "przeprowadzka":
+      return "./art/events/przeprowadzka.png";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);

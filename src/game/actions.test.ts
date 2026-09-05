@@ -14,7 +14,7 @@ import {
 } from "./actions";
 import { firstSeedFor, KOREK_TIME } from "./events";
 import { getJobDef, RELIABILITY_PER_SHIFT } from "./jobs";
-import { STARTING_HAPPINESS, STARTING_MONEY, STARTING_RENT, type GameState } from "./types";
+import { HAPPINESS_DECAY, STARTING_HAPPINESS, STARTING_MONEY, STARTING_RENT, type GameState } from "./types";
 import type { EngineResult } from "./result";
 import { TIME_MAX } from "./catalog";
 
@@ -135,13 +135,13 @@ describe("shopping and study", () => {
 });
 
 describe("week settlement", () => {
-  it("charges rent every fourth week and raises it", () => {
+  it("charges rent every fourth week at the frozen lease rate", () => {
     const after = unwrap(
       dispatch(createMatch({ week: 4, rngSeed: firstSeedFor("spokoj"), needs: quiet }), { type: "endWeek" }),
     );
     expect(playerOf(after).stats.money).toBe(STARTING_MONEY - STARTING_RENT);
     expect(after.lastWeekEffects).toContainEqual({ kind: "rent", amount: STARTING_RENT });
-    expect(playerOf(after).home.rent).toBe(STARTING_RENT + 50);
+    expect(playerOf(after).home.rent).toBe(STARTING_RENT);
     expect(after.week).toBe(5);
   });
 
@@ -153,7 +153,7 @@ describe("week settlement", () => {
       ),
     );
     expect(after.timeLeft).toBe(TIME_MAX - HUNGER_TIME_PENALTY);
-    expect(playerOf(after).stats.happiness).toBe(STARTING_HAPPINESS - 3);
+    expect(playerOf(after).stats.happiness).toBe(STARTING_HAPPINESS - 3 - HAPPINESS_DECAY);
   });
 
   it("drops happiness when clothes run out", () => {
@@ -163,7 +163,7 @@ describe("week settlement", () => {
         { type: "endWeek" },
       ),
     );
-    expect(playerOf(after).stats.happiness).toBe(STARTING_HAPPINESS - BARE_HAPPINESS_PENALTY);
+    expect(playerOf(after).stats.happiness).toBe(STARTING_HAPPINESS - BARE_HAPPINESS_PENALTY - HAPPINESS_DECAY);
   });
 
   it("stacks the traffic jam on top of hunger", () => {

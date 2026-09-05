@@ -121,8 +121,8 @@ describe("bot Kowalski", () => {
         { id: "telewizor", used: false, broken: false },
         { id: "rower", used: false, broken: false },
       ],
-      botStats: { money: 4000, happiness: 20, education: 60, career: 70 },
-      goals: { money: 5000, happiness: 80, education: 40, career: 40 },
+      botStats: { money: 3100, happiness: 20, education: 60, career: 70 },
+      goals: { money: 3000, happiness: 80, education: 40, career: 40 },
     });
     expect(nextBotAction(rich)).toEqual({ type: "act", id: "restCafe" });
 

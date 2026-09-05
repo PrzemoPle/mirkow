@@ -1179,3 +1179,28 @@
     max-height: 16rem;
   }
 }
+
+/* Indeks WSMiK i dyplomy */
+.diploma-row .act-name {
+  text-transform: none;
+}
+
+.diploma-done {
+  opacity: 0.7;
+}
+
+.diploma-unlocks {
+  width: 100%;
+  color: var(--text-3);
+}
+
+.need-diplomas {
+  gap: 0.2rem;
+  padding: 0.2rem 0.4rem;
+  border-style: dashed;
+}
+
+.need-diplomas img {
+  width: 1.5rem;
+  height: 1.5rem;
+}

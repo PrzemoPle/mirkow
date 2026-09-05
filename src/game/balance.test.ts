@@ -20,12 +20,12 @@ function botVersusBot(goals: Stats, seed: number): GameState {
 }
 
 describe("balans", () => {
-  it("normal preset ends between 30 and 130 weeks for a bot", () => {
+  it("normal preset ends between 30 and 180 weeks for a bot", () => {
     for (const seed of [1, 7, 42, 1234]) {
       const end = botVersusBot(DEFAULT_GOALS, seed);
       expect(end.phase).toBe("victory");
       expect(end.week).toBeGreaterThanOrEqual(30);
-      expect(end.week).toBeLessThanOrEqual(130);
+      expect(end.week).toBeLessThanOrEqual(180);
     }
   });
 

@@ -7,7 +7,8 @@ import {
   type Player,
 } from "../game";
 import { t, type MessageKey } from "../i18n";
-import { artImg, avatarArtUrl, hudIconUrl, stampArtUrl, type HudIconId } from "./art";
+import { artImg, avatarArtUrl, diplomaArtUrl, hudIconUrl, stampArtUrl, type HudIconId } from "./art";
+import { diplomaName } from "./copy";
 import { el } from "./dom";
 import { economyLabel } from "./copy";
 import { formatNumber, formatZl, interpolate, meterPercent } from "./format";
@@ -216,7 +217,9 @@ export function buildNeeds(): NeedsRow {
   const deposit = buildNeed("stat-money", "depositLabel");
   deposit.node.classList.add("need-deposit");
   deposit.node.hidden = true;
-  root.append(food.node, clothes.node, suit.node, deposit.node);
+  const diplomas = el("span", "need need-diplomas");
+  diplomas.hidden = true;
+  root.append(food.node, clothes.node, suit.node, deposit.node, diplomas);
 
   function syncWeeks(need: { node: HTMLElement; value: HTMLElement }, weeks: number): void {
     const low = weeks <= 0;
@@ -232,6 +235,16 @@ export function buildNeeds(): NeedsRow {
       suit.value.textContent = player.needs.suitWeeks > 0 ? interpolate("needWeeks", { n: player.needs.suitWeeks }) : t("needLow");
       suit.node.classList.toggle("need-low", player.needs.suitWeeks <= 0);
       suit.node.classList.toggle("need-muted", player.needs.suitWeeks <= 0 && player.job === null);
+      diplomas.hidden = player.diplomas.length === 0;
+      if (diplomas.dataset.list !== player.diplomas.join(",")) {
+        diplomas.dataset.list = player.diplomas.join(",");
+        diplomas.replaceChildren();
+        for (const id of player.diplomas) {
+          const icon = artImg(diplomaArtUrl(id), "pix", "diploma");
+          icon.title = diplomaName(id);
+          diplomas.append(icon);
+        }
+      }
       if (player.deposit === null) {
         deposit.node.hidden = true;
       } else {

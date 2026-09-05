@@ -17,6 +17,7 @@ import type { EngineError } from "../game/result";
 import type {
   ActionId,
   CompanyId,
+  DiplomaId,
   EconomyPhase,
   EventId,
   GameState,
@@ -38,10 +39,10 @@ function actionLabelKey(id: ActionId): MessageKey {
       return "actWork";
     case "openLokal":
       return "actOpenLokal";
-    case "studyCourse":
-      return "actStudyCourse";
-    case "studyDegree":
-      return "actStudyDegree";
+    case "attendClass":
+      return "actAttendClass";
+    case "takeExam":
+      return "actTakeExam";
     case "buyFood":
       return "actBuyFood";
     case "buyClothes":
@@ -80,10 +81,10 @@ export function actedMessage(id: ActionId, wage: number): string {
       return interpolate("actedWork", { wage });
     case "openLokal":
       return t("actedOpenLokal");
-    case "studyCourse":
-      return t("actedStudyCourse");
-    case "studyDegree":
-      return t("actedStudyDegree");
+    case "attendClass":
+      return t("actedAttendClass");
+    case "takeExam":
+      return t("actedTakeExam");
     case "buyFood":
       return t("actedBuyFood");
     case "buyClothes":
@@ -98,6 +99,29 @@ export function actedMessage(id: ActionId, wage: number): string {
       return t("actedRestGym");
     case "deposit":
       return interpolate("actedDeposit", { n: DEPOSIT_WEEKS });
+    default: {
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
+export function diplomaName(id: DiplomaId): string {
+  switch (id) {
+    case "kurs":
+      return t("diplomaKurs");
+    case "matura":
+      return t("diplomaMatura");
+    case "zarzadzanie":
+      return t("diplomaZarzadzanie");
+    case "ekonomia":
+      return t("diplomaEkonomia");
+    case "administracja":
+      return t("diplomaAdministracja");
+    case "inzynieria":
+      return t("diplomaInzynieria");
+    case "magister":
+      return t("diplomaMagister");
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -186,8 +210,8 @@ export function jobRequirements(def: JobDef): string[] {
   if (def.requiredReliability > 0) {
     out.push(interpolate("jobReqReliability", { n: def.requiredReliability }));
   }
-  if (def.requiredEducation > 0) {
-    out.push(interpolate("jobReqEducation", { n: def.requiredEducation }));
+  for (const diploma of def.requiredDiplomas) {
+    out.push(interpolate("jobReqDiploma", { diploma: diplomaName(diploma) }));
   }
   if (def.requiresSuit) {
     out.push(t("jobReqSuit"));
@@ -249,8 +273,16 @@ export function blockReason(error: EngineError): string {
       return t("blockAlreadyThisJob");
     case "insufficientMoney":
       return interpolate("blockMoney", { n: error.needed - error.have });
-    case "tooLittleEducation":
-      return interpolate("blockEducation", { have: error.have, needed: error.needed });
+    case "missingDiploma":
+      return interpolate("blockMissingDiploma", { diploma: diplomaName(error.diploma) });
+    case "prerequisiteMissing":
+      return interpolate("blockPrerequisite", { diploma: diplomaName(error.diploma) });
+    case "diplomaDone":
+      return t("blockDiplomaDone");
+    case "notEnrolled":
+      return t("blockNotEnrolled");
+    case "classesNotDone":
+      return interpolate("blockClassesNotDone", { have: error.have, needed: error.needed });
     case "tooLittleExperience":
       return interpolate("blockExperience", { have: error.have, needed: error.needed });
     case "tooLittleReliability":
@@ -293,6 +325,10 @@ export function noticeTitle(id: NoticeId): string {
       return t("noticePodwyzka");
     case "awans":
       return t("noticeAwans");
+    case "oblanyEgzamin":
+      return t("noticeOblanyEgzamin");
+    case "dyplom":
+      return t("noticeDyplom");
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -310,6 +346,10 @@ export function noticeEffect(id: NoticeId): string {
       return t("noticePodwyzkaEffect");
     case "awans":
       return t("noticeAwansEffect");
+    case "oblanyEgzamin":
+      return t("noticeOblanyEgzaminEffect");
+    case "dyplom":
+      return t("noticeDyplomEffect");
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -395,6 +435,10 @@ export function effectLine(effect: WeekEffect): string {
       return effect.reason === "reliability"
         ? interpolate("effectFired", { job: jobName(effect.job) })
         : interpolate("effectReduction", { job: jobName(effect.job) });
+    case "exam":
+      return effect.passed
+        ? interpolate("effectExamPassed", { diploma: diplomaName(effect.diploma) })
+        : interpolate("effectExamFailed", { diploma: diplomaName(effect.diploma) });
     case "economy": {
       if (effect.phase === "boom") {
         return t("effectEconomyBoom");

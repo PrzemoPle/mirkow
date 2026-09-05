@@ -2,7 +2,7 @@ import { travelCost } from "./board";
 import { dispatch } from "./reducer";
 import type { EngineError } from "./result";
 import type { LocationId } from "./catalog";
-import type { ActionId, GameState, JobId, Player } from "./types";
+import type { ActionId, DiplomaId, GameState, JobId, Player } from "./types";
 
 export function getActivePlayer(state: GameState): Player | undefined {
   return state.players[state.active];
@@ -49,5 +49,11 @@ export function jobBlock(state: GameState, job: JobId): EngineError | null {
 
 export function raiseBlock(state: GameState): EngineError | null {
   const result = dispatch(state, { type: "askRaise" });
+  return result.ok ? null : result.error;
+}
+
+/** Dry-run zapisu na dyplom (będąc w WSMiK). */
+export function enrollBlock(state: GameState, diploma: DiplomaId): EngineError | null {
+  const result = dispatch(state, { type: "enroll", diploma });
   return result.ok ? null : result.error;
 }

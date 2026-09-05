@@ -53,7 +53,7 @@ describe("bot Kowalski", () => {
       botNeeds: { foodWeeks: 2, clothesWeeks: 2, suitWeeks: 0 },
       botStats: { money: 800, happiness: 20, education: 0, career: 4 },
     });
-    expect(nextBotAction(short)).toEqual({ type: "move", to: "home" });
+    expect(nextBotAction(short)).toEqual({ type: "move", to: "campus" });
   });
 
   it("plays its week and returns control without staying active", () => {
@@ -104,7 +104,7 @@ describe("bot Kowalski", () => {
     expect(trace.steps.at(-1)?.action).toEqual({ type: "endWeek" });
     expect(trace.state).toEqual(playBotUntilIdle(start));
     for (const step of trace.steps) {
-      expect(step.state.version).toBe(2);
+      expect(step.state.version).toBe(3);
     }
   });
 
@@ -140,6 +140,7 @@ describe("bot Kowalski", () => {
       botJob: { id: "kebabKierownik", weeks: 6, raises: 0 },
       botReliability: 60,
       botExperience: 20,
+      botDiplomas: ["kurs"],
       botStats: { money: 5000, happiness: 20, education: 60, career: 30 },
       goals: { money: 9000, happiness: 80, education: 40, career: 80 },
     });

@@ -27,8 +27,8 @@ export type SafetyNetKind = "ciocia" | "mops";
 export type ActionId =
   | "work"
   | "openLokal"
-  | "studyCourse"
-  | "studyDegree"
+  | "attendClass"
+  | "takeExam"
   | "buyFood"
   | "buyClothes"
   | "buySuit"
@@ -36,6 +36,21 @@ export type ActionId =
   | "restCafe"
   | "restGym"
   | "deposit";
+
+export type DiplomaId =
+  | "kurs"
+  | "matura"
+  | "zarzadzanie"
+  | "ekonomia"
+  | "administracja"
+  | "inzynieria"
+  | "magister";
+
+export type StudyProgress = {
+  classes: number;
+  /** Tygodnie, w których gracz był na zajęciach. */
+  log: readonly number[];
+};
 
 export type CompanyId = "kebab" | "shop" | "bank" | "pup" | "depot";
 
@@ -86,7 +101,7 @@ export type EventId =
   | "spokoj";
 
 /** Karty pokazywane po zdarzeniach z pracy (nie losowane jak eventy). */
-export type NoticeId = "zwolnienie" | "redukcja" | "podwyzka" | "awans";
+export type NoticeId = "zwolnienie" | "redukcja" | "podwyzka" | "awans" | "oblanyEgzamin" | "dyplom";
 
 export type WeekEffect =
   | { kind: "rent"; amount: number }
@@ -98,7 +113,8 @@ export type WeekEffect =
   | { kind: "event"; id: EventId }
   | { kind: "deposit"; amount: number }
   | { kind: "fired"; job: JobId; reason: "reliability" | "reduction" }
-  | { kind: "economy"; phase: EconomyPhase; hiringFrozen: CompanyId | null };
+  | { kind: "economy"; phase: EconomyPhase; hiringFrozen: CompanyId | null }
+  | { kind: "exam"; diploma: DiplomaId; passed: boolean };
 
 export type Market = {
   food: number;
@@ -127,6 +143,12 @@ export type Player = {
   experience: number;
   /** Solidność 0–100: rośnie z pracą, spada co tydzień. */
   reliability: number;
+  /** Zdobyte dyplomy; wykształcenie = suma ich punktów. */
+  diplomas: readonly DiplomaId[];
+  /** Postęp zajęć per dyplom. */
+  studies: Partial<Record<DiplomaId, StudyProgress>>;
+  /** Dyplom, na który gracz aktualnie chodzi. */
+  studying: DiplomaId | null;
   home: { id: "stancja"; rent: number };
   needs: { foodWeeks: number; clothesWeeks: number; suitWeeks: number };
   nextTimeLeft: number;
@@ -136,7 +158,7 @@ export type Player = {
 };
 
 export type GameState = {
-  version: 2;
+  version: 3;
   phase: Phase;
   week: number;
   timeLeft: number;
@@ -164,4 +186,5 @@ export type GameAction =
   | { type: "act"; id: ActionId }
   | { type: "apply"; job: JobId }
   | { type: "askRaise" }
+  | { type: "enroll"; diploma: DiplomaId }
   | { type: "endWeek" };

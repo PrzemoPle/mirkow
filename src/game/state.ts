@@ -1,6 +1,7 @@
 import { BOT_NAME, pickBotAvatar } from "./avatars";
 import { TIME_MAX, type LocationId } from "./catalog";
 import { startingEconomy } from "./economy";
+import { educationPoints } from "./diplomas";
 import { startingMarket } from "./market";
 import {
   STARTING_CLOTHES_WEEKS,
@@ -11,6 +12,7 @@ import {
   STARTING_RENT,
   type AvatarId,
   type Controller,
+  type DiplomaId,
   type Economy,
   type GameState,
   type Job,
@@ -49,6 +51,9 @@ export function createPlayer(input: {
   job?: Job | null;
   experience?: number;
   reliability?: number;
+  diplomas?: readonly DiplomaId[];
+  studies?: Player["studies"];
+  studying?: DiplomaId | null;
   needs?: Player["needs"];
   nextTimeLeft?: number;
   lastEvent?: Player["lastEvent"];
@@ -64,6 +69,9 @@ export function createPlayer(input: {
     job: input.job ?? null,
     experience: input.experience ?? 0,
     reliability: input.reliability ?? STARTING_RELIABILITY,
+    diplomas: input.diplomas ?? [],
+    studies: input.studies ?? {},
+    studying: input.studying ?? null,
     home: { id: "stancja", rent: STARTING_RENT },
     needs: input.needs ?? startingNeeds(),
     nextTimeLeft: input.nextTimeLeft ?? TIME_MAX,
@@ -75,7 +83,7 @@ export function createPlayer(input: {
 
 export function createSetup(rngSeed = 1): GameState {
   return {
-    version: 2,
+    version: 3,
     phase: "setup",
     week: 1,
     timeLeft: TIME_MAX,
@@ -105,6 +113,9 @@ export type MatchOverrides = {
   job?: Job | null;
   experience?: number;
   reliability?: number;
+  diplomas?: readonly DiplomaId[];
+  studies?: Player["studies"];
+  studying?: DiplomaId | null;
   needs?: Player["needs"];
   market?: Market;
   economy?: Economy;
@@ -113,6 +124,7 @@ export type MatchOverrides = {
 export function createMatch(overrides: MatchOverrides = {}): GameState {
   const stats: Stats = {
     ...startingStats(),
+    ...(overrides.diplomas !== undefined ? { education: educationPoints(overrides.diplomas) } : {}),
     ...overrides.stats,
   };
 
@@ -127,10 +139,13 @@ export function createMatch(overrides: MatchOverrides = {}): GameState {
     needs: overrides.needs ?? startingNeeds(),
     ...(overrides.experience !== undefined ? { experience: overrides.experience } : {}),
     ...(overrides.reliability !== undefined ? { reliability: overrides.reliability } : {}),
+    ...(overrides.diplomas !== undefined ? { diplomas: overrides.diplomas } : {}),
+    ...(overrides.studies !== undefined ? { studies: overrides.studies } : {}),
+    ...(overrides.studying !== undefined ? { studying: overrides.studying } : {}),
   });
 
   return {
-    version: 2,
+    version: 3,
     phase: overrides.phase ?? "playing",
     week: overrides.week ?? 1,
     timeLeft: overrides.timeLeft ?? TIME_MAX,
@@ -156,6 +171,7 @@ export function createVersusMatch(
     botStats?: Partial<Stats>;
     botExperience?: number;
     botReliability?: number;
+    botDiplomas?: readonly DiplomaId[];
   } = {},
 ): GameState {
   const match = createMatch(overrides);
@@ -170,8 +186,13 @@ export function createVersusMatch(
     name: BOT_NAME,
     avatarId: pickBotAvatar(human.avatarId),
     locationId: overrides.botLocationId ?? "home",
-    stats: { ...startingStats(), ...overrides.botStats },
+    stats: {
+      ...startingStats(),
+      ...(overrides.botDiplomas !== undefined ? { education: educationPoints(overrides.botDiplomas) } : {}),
+      ...overrides.botStats,
+    },
     job: overrides.botJob ?? null,
+    ...(overrides.botDiplomas !== undefined ? { diplomas: overrides.botDiplomas } : {}),
     needs: overrides.botNeeds ?? startingNeeds(),
     ...(overrides.botExperience !== undefined ? { experience: overrides.botExperience } : {}),
     ...(overrides.botReliability !== undefined ? { reliability: overrides.botReliability } : {}),

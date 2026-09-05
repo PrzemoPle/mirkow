@@ -276,8 +276,9 @@ To nie są bugi zapomnienia. Albo decyzja MVP je wycięła, albo silnik ma haczy
 | Koniunktura | losowana co 8 tyg.: boom (płace +15%), normalnie, recesja (płace −15%, jedna firma nie zatrudnia, redukcja 10% gdy solidność < min + 5) | `economy.ts` |
 | Garnitur | Lombard, 1 cz., 350 zł, 6 tyg.; wymagany w banku, PUP, u kierownika sklepu i dyrektorów | `actions.ts` |
 | Własny lokal | dla kierownika zmiany Nocnej Buły, buy-in 1800, staż 16, solidność 40, prestiż 70 | `jobs.ts` |
-| Progi edukacji (zastępują dyplomy do G2) | kurs 10, matura 20, licencjat 40, inżynieria 45, magister 70 | `jobs.ts` |
-| Kurs / studia | 3 cz. 150 zł +6 edu / 5 cz. 400 zł +14 edu | `actions.ts` |
+| Dyplomy (od G2) | 7 dyplomów w `diplomas.ts`: kurs 4 zajęć/10 pkt, matura 6/15, zarządzanie, ekonomia, administracja 8/20 (po maturze), inżynieria 10/25 (po maturze), magister 10/30 (po licencjacie). Zajęcia 3 cz (magister 4), 100–400 zł | `diplomas.ts` |
+| Egzamin | 2 cz, 80 zł, szansa 40% + 10% za każde zajęcia z ostatnich 4 tyg. (max 100%); oblany: −3 szczęścia, powtórka | `diplomas.ts`, `reducer.ts` |
+| Wykształcenie | suma punktów dyplomów (max 100 na pasku) | `diplomas.ts` |
 | Jedzenie / ciuchy | 1 cz., 2 tyg. zapasu / 1 cz., 3 tyg. | `actions.ts` |
 | Głód / nagość | −2 czasu / −5 szczęścia | `actions.ts` |
 | Domyślne progi | 5000 / 80 / 60 / 50 | `state.ts` `DEFAULT_GOALS` |

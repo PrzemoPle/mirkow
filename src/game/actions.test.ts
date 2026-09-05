@@ -7,8 +7,6 @@ import {
   BARE_HAPPINESS_PENALTY,
   FOOD_STOCK_WEEKS,
   HUNGER_TIME_PENALTY,
-  STUDY_COURSE_COST,
-  STUDY_COURSE_EDU,
   SUIT_COST,
   SUIT_STOCK_WEEKS,
   actionsAt,
@@ -55,7 +53,7 @@ describe("actionsAt", () => {
     expect(actionsAt("lombard")).toEqual(["buySuit"]);
     expect(actionsAt("elektro")).toEqual([]);
     expect(actionsAt("kebab")).toEqual(["openLokal"]);
-    expect(actionsAt("campus")).toEqual(["studyCourse", "studyDegree"]);
+    expect(actionsAt("campus")).toEqual(["attendClass", "takeExam"]);
     expect(actionsAt("shop")).toEqual(["buyFood", "buyClothes"]);
 
     const cashier = playerOf(createMatch({ job: { id: "kebabKasjer", weeks: 0, raises: 0 } }));
@@ -114,20 +112,14 @@ describe("work", () => {
 });
 
 describe("shopping and study", () => {
-  it("stocks food at Żuczek and refuses a course without cash", () => {
+  it("stocks food at Żuczek and refuses a class without an enrollment", () => {
     const shop = createMatch({ locationId: "shop", stats: { money: 100 } });
     const fed = unwrap(dispatch(shop, { type: "act", id: "buyFood" }));
     expect(playerOf(fed).needs.foodWeeks).toBe(FOOD_STOCK_WEEKS);
     expect(playerOf(fed).stats.money).toBe(100 - shop.market.food);
 
-    const campus = createMatch({ locationId: "campus", stats: { money: STUDY_COURSE_COST - 1 } });
-    expect(errorOf(dispatch(campus, { type: "act", id: "studyCourse" }))).toBe("insufficientMoney");
-  });
-
-  it("raises education on a weekend course", () => {
     const campus = createMatch({ locationId: "campus" });
-    const learned = unwrap(dispatch(campus, { type: "act", id: "studyCourse" }));
-    expect(playerOf(learned).stats.education).toBe(STUDY_COURSE_EDU);
+    expect(errorOf(dispatch(campus, { type: "act", id: "attendClass" }))).toBe("notEnrolled");
   });
 
   it("sells a second-hand suit at the lombard", () => {

@@ -8,24 +8,19 @@ import {
   RAISE_PERCENT,
   WORK_TIME,
 } from "./jobs";
+import { EXAM_FEE, EXAM_TIME, getDiplomaDef } from "./diplomas";
 import { FOOD_BASE, CLOTHES_BASE } from "./market";
 import { REST_HAPPINESS, REST_TIME_COST, type ActionId, type GameState, type Player } from "./types";
 
 export { FOOD_BASE as BUY_FOOD_COST, CLOTHES_BASE as BUY_CLOTHES_COST } from "./market";
 
-export const STUDY_COURSE_TIME = 3;
-export const STUDY_COURSE_COST = 150;
-export const STUDY_COURSE_EDU = 6;
-export const STUDY_DEGREE_TIME = 5;
-export const STUDY_DEGREE_COST = 400;
-export const STUDY_DEGREE_EDU = 14;
 export const BUY_FOOD_TIME = 1;
-export const FOOD_STOCK_WEEKS = 2;
+export const FOOD_STOCK_WEEKS = 3;
 export const BUY_CLOTHES_TIME = 1;
-export const CLOTHES_STOCK_WEEKS = 3;
+export const CLOTHES_STOCK_WEEKS = 4;
 export const BUY_SUIT_TIME = 1;
 export const SUIT_COST = 350;
-export const SUIT_STOCK_WEEKS = 6;
+export const SUIT_STOCK_WEEKS = 8;
 export const REST_CAFE_TIME = 1;
 export const REST_CAFE_COST = 25;
 export const REST_CAFE_HAPPINESS = 5;
@@ -50,9 +45,10 @@ export type ActionDef = {
   wage: number;
   happiness: number;
   education: number;
-  requiredEducation: number;
   requiredMoney: number;
   isWork: boolean;
+  isClass: boolean;
+  isExam: boolean;
   opensLokal: boolean;
   opensDeposit: boolean;
   foodWeeks: number | null;
@@ -65,9 +61,10 @@ const idle = {
   wage: 0,
   happiness: 0,
   education: 0,
-  requiredEducation: 0,
   requiredMoney: 0,
   isWork: false,
+  isClass: false,
+  isExam: false,
   opensLokal: false,
   opensDeposit: false,
   foodWeeks: null,
@@ -85,8 +82,8 @@ export const ACTION_DEFS: Record<ActionId, ActionDef> = {
     moneyCost: LOKAL_BUYIN,
     opensLokal: true,
   },
-  studyCourse: { ...idle, id: "studyCourse", locationId: "campus", timeCost: STUDY_COURSE_TIME, moneyCost: STUDY_COURSE_COST, education: STUDY_COURSE_EDU },
-  studyDegree: { ...idle, id: "studyDegree", locationId: "campus", timeCost: STUDY_DEGREE_TIME, moneyCost: STUDY_DEGREE_COST, education: STUDY_DEGREE_EDU },
+  attendClass: { ...idle, id: "attendClass", locationId: "campus", timeCost: 3, isClass: true },
+  takeExam: { ...idle, id: "takeExam", locationId: "campus", timeCost: EXAM_TIME, moneyCost: EXAM_FEE, isExam: true },
   buyFood: { ...idle, id: "buyFood", locationId: "shop", timeCost: BUY_FOOD_TIME, moneyCost: FOOD_BASE, foodWeeks: FOOD_STOCK_WEEKS },
   buyClothes: { ...idle, id: "buyClothes", locationId: "shop", timeCost: BUY_CLOTHES_TIME, moneyCost: CLOTHES_BASE, clothesWeeks: CLOTHES_STOCK_WEEKS },
   buySuit: { ...idle, id: "buySuit", locationId: "lombard", timeCost: BUY_SUIT_TIME, moneyCost: SUIT_COST, suitWeeks: SUIT_STOCK_WEEKS },
@@ -125,6 +122,12 @@ function listedForPlayer(def: ActionDef, player: Player): boolean {
   if (def.opensLokal) {
     return player.job?.id === "kebabKierownik";
   }
+  if (def.isClass) {
+    return player.studying !== null;
+  }
+  if (def.isExam) {
+    return player.studying !== null && (player.studies[player.studying]?.classes ?? 0) >= getDiplomaDef(player.studying).classes;
+  }
   return true;
 }
 
@@ -153,6 +156,10 @@ export function resolveAction(state: GameState, id: ActionId): ActionDef {
   }
   if (id === "work" && player !== undefined && player.job !== null) {
     return { ...def, locationId: jobLocation(player.job.id), wage: shiftWage(state, player) };
+  }
+  if (id === "attendClass" && player !== undefined && player.studying !== null) {
+    const diploma = getDiplomaDef(player.studying);
+    return { ...def, moneyCost: diploma.classCost, timeCost: diploma.classTime };
   }
   return def;
 }

@@ -9,6 +9,7 @@ import {
 } from "../game";
 import { t } from "../i18n";
 import { actionIconUrl, artImg, tileArtUrl, workIconUrl } from "./art";
+import { buildCampusBoard, type CampusHandlers } from "./campus";
 import { buildJobsBoard, type JobsBoardHandlers } from "./jobs-board";
 import { getJobDef } from "../game";
 import { locationName } from "./board";
@@ -18,7 +19,7 @@ import { formatZl, interpolate } from "./format";
 
 const CONFIRM_FROM = 3;
 
-export type PanelHandlers = JobsBoardHandlers & {
+export type PanelHandlers = JobsBoardHandlers & CampusHandlers & {
   onAct(id: ActionId): void;
   onEndWeek(): void;
 };
@@ -97,6 +98,8 @@ export function buildPanel(handlers: PanelHandlers): Panel {
   acts.append(actsTitle, list);
   const jobs = buildJobsBoard({ onApply: handlers.onApply, onRaise: handlers.onRaise });
   jobs.root.hidden = true;
+  const campus = buildCampusBoard({ onEnroll: handlers.onEnroll });
+  campus.root.hidden = true;
 
   const endweek = el("div", "endweek");
   const confirm = el("div", "confirm");
@@ -114,7 +117,7 @@ export function buildPanel(handlers: PanelHandlers): Panel {
   endButton.textContent = t("endWeek");
   endweek.append(confirm, endButton);
 
-  root.append(place, acts, jobs.root, endweek);
+  root.append(place, acts, jobs.root, campus.root, endweek);
 
   let timeLeft = 0;
 
@@ -174,7 +177,12 @@ export function buildPanel(handlers: PanelHandlers): Panel {
       if (atPup) {
         jobs.sync(scoped, player, humanTurn);
       }
-      acts.hidden = atPup && ids.length === 0;
+      const atCampus = player.locationId === "campus";
+      campus.root.hidden = !atCampus;
+      if (atCampus) {
+        campus.sync(scoped, player, humanTurn);
+      }
+      acts.hidden = (atPup || atCampus) && ids.length === 0;
       if (ids.length === 0) {
         const empty = el("p", "acts-empty");
         empty.textContent = player.locationId === "elektro" ? t("actionSoon") : t("actionEmpty");

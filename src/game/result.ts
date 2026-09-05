@@ -12,7 +12,11 @@ export type EngineError =
   | { code: "noJob" }
   | { code: "alreadyThisJob" }
   | { code: "insufficientMoney"; needed: number; have: number }
-  | { code: "tooLittleEducation"; needed: number; have: number }
+  | { code: "missingDiploma"; diploma: import("./types").DiplomaId }
+  | { code: "prerequisiteMissing"; diploma: import("./types").DiplomaId }
+  | { code: "diplomaDone"; diploma: import("./types").DiplomaId }
+  | { code: "notEnrolled" }
+  | { code: "classesNotDone"; needed: number; have: number }
   | { code: "tooLittleExperience"; needed: number; have: number }
   | { code: "tooLittleReliability"; needed: number; have: number }
   | { code: "needsSuit" }

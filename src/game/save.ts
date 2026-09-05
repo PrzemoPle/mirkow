@@ -1,10 +1,12 @@
 import { allAvatarIds } from "./avatars";
 import { locationIds, TIME_MAX } from "./catalog";
 import { eventIds } from "./events";
+import { diplomaIds } from "./diplomas";
 import { companyIds, JOB_DEFS } from "./jobs";
 import type {
   CompanyId,
   Deposit,
+  DiplomaId,
   Economy,
   EventId,
   GameState,
@@ -14,13 +16,14 @@ import type {
   Player,
   SafetyNetKind,
   Stats,
+  StudyProgress,
   WeekEffect,
 } from "./types";
 
-export const SAVE_KEY = "mirkow.save.v2";
-/** Klucz starego zapisu (v1): czyścimy go, żeby nie zalegał. */
-export const LEGACY_SAVE_KEY = "mirkow.save.v1";
-export const SAVE_FORMAT = 2;
+export const SAVE_KEY = "mirkow.save.v3";
+/** Klucze starych zapisów: czyścimy je, żeby nie zalegały. */
+export const LEGACY_SAVE_KEYS = ["mirkow.save.v1", "mirkow.save.v2"] as const;
+export const SAVE_FORMAT = 3;
 
 export type SaveStore = {
   getItem(key: string): string | null;
@@ -40,7 +43,7 @@ const jobIds = Object.keys(JOB_DEFS) as JobId[];
 const phases = ["setup", "playing", "victory"] as const;
 const controllers = ["human", "bot"] as const;
 const safetyNets = ["ciocia", "mops"] as const;
-const notices = ["zwolnienie", "redukcja", "podwyzka", "awans"] as const satisfies readonly NoticeId[];
+const notices = ["zwolnienie", "redukcja", "podwyzka", "awans", "oblanyEgzamin", "dyplom"] as const satisfies readonly NoticeId[];
 const economyPhases = ["boom", "normal", "recession"] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -150,6 +153,10 @@ function parseEffect(value: unknown): WeekEffect | null {
       return isMember(value.job, jobIds) && (value.reason === "reliability" || value.reason === "reduction")
         ? { kind: "fired", job: value.job, reason: value.reason }
         : null;
+    case "exam":
+      return isMember(value.diploma, diplomaIds) && typeof value.passed === "boolean"
+        ? { kind: "exam", diploma: value.diploma, passed: value.passed }
+        : null;
     case "economy": {
       const frozen: CompanyId | null = value.hiringFrozen === null ? null : isMember(value.hiringFrozen, companyIds) ? value.hiringFrozen : null;
       return isMember(value.phase, economyPhases)
@@ -173,6 +180,37 @@ function parseEconomy(value: unknown): Economy | null {
     : null;
 }
 
+function parseDiplomas(value: unknown): readonly DiplomaId[] | null {
+  if (!Array.isArray(value)) {
+    return null;
+  }
+  const out: DiplomaId[] = [];
+  for (const entry of value) {
+    if (!isMember(entry, diplomaIds)) {
+      return null;
+    }
+    out.push(entry);
+  }
+  return out;
+}
+
+function parseStudies(value: unknown): Partial<Record<DiplomaId, StudyProgress>> | null {
+  if (!isRecord(value)) {
+    return null;
+  }
+  const out: Partial<Record<DiplomaId, StudyProgress>> = {};
+  for (const [key, entry] of Object.entries(value)) {
+    if (!isMember(key, diplomaIds) || !isRecord(entry) || !isFiniteNumber(entry.classes) || !Array.isArray(entry.log)) {
+      return null;
+    }
+    if (!entry.log.every((week) => isFiniteNumber(week))) {
+      return null;
+    }
+    out[key] = { classes: entry.classes, log: entry.log as number[] };
+  }
+  return out;
+}
+
 function parsePlayer(value: unknown): Player | null {
   if (!isRecord(value)) {
     return null;
@@ -191,7 +229,13 @@ function parsePlayer(value: unknown): Player | null {
   const lastEvent = parseEventId(value.lastEvent);
   const lastNotice = parseNotice(value.lastNotice);
   const deposit = parseDeposit(value.deposit);
+  const diplomas = parseDiplomas(value.diplomas);
+  const studies = parseStudies(value.studies);
+  const studying = value.studying === null ? null : isMember(value.studying, diplomaIds) ? value.studying : undefined;
   if (stats === null || job === undefined || lastEvent === undefined || lastNotice === undefined || deposit === undefined) {
+    return null;
+  }
+  if (diplomas === null || studies === null || studying === undefined) {
     return null;
   }
   if (!isRecord(value.home) || value.home.id !== "stancja" || !isFiniteNumber(value.home.rent)) {
@@ -218,6 +262,9 @@ function parsePlayer(value: unknown): Player | null {
     job,
     experience: value.experience,
     reliability: value.reliability,
+    diplomas,
+    studies,
+    studying,
     home: { id: "stancja", rent: value.home.rent },
     needs: {
       foodWeeks: value.needs.foodWeeks,
@@ -232,7 +279,7 @@ function parsePlayer(value: unknown): Player | null {
 }
 
 export function parseGameState(value: unknown): GameState | null {
-  if (!isRecord(value) || value.version !== 2) {
+  if (!isRecord(value) || value.version !== 3) {
     return null;
   }
   if (!isMember(value.phase, phases)) {
@@ -299,7 +346,7 @@ export function parseGameState(value: unknown): GameState | null {
     return null;
   }
   return {
-    version: 2,
+    version: 3,
     phase: value.phase,
     week: value.week,
     timeLeft: value.timeLeft,
@@ -352,13 +399,16 @@ export function loadSave(store: SaveStore): LoadResult {
     return { status: "corrupt" };
   }
   if (raw === null) {
-    let legacy: string | null = null;
-    try {
-      legacy = store.getItem(LEGACY_SAVE_KEY);
-    } catch {
-      legacy = null;
+    for (const key of LEGACY_SAVE_KEYS) {
+      try {
+        if (store.getItem(key) !== null) {
+          return { status: "outdated" };
+        }
+      } catch {
+        // Brak dostępu: traktujemy jak brak zapisu.
+      }
     }
-    return legacy === null ? { status: "empty" } : { status: "outdated" };
+    return { status: "empty" };
   }
   return parseSave(raw);
 }
@@ -375,7 +425,9 @@ export function writeSave(store: SaveStore, state: GameState): SaveResult {
 export function clearSave(store: SaveStore): SaveResult {
   try {
     store.removeItem(SAVE_KEY);
-    store.removeItem(LEGACY_SAVE_KEY);
+    for (const key of LEGACY_SAVE_KEYS) {
+      store.removeItem(key);
+    }
     return "ok";
   } catch {
     return "failed";

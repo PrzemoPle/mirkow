@@ -13,6 +13,7 @@ import {
   type ActionId,
   type BotStep,
   type EngineError,
+  type DiplomaId,
   type GameState,
   type JobId,
   type LocationId,
@@ -24,7 +25,7 @@ import { t } from "../i18n";
 import { eventArtUrl } from "./art";
 import { buildBoard, locationName } from "./board";
 import { browserStore } from "./browser-store";
-import { actedMessage, actionLabel, companyName, effectLine, eventMessage, jobName, noticeTitle } from "./copy";
+import { actedMessage, actionLabel, companyName, diplomaName, effectLine, eventMessage, jobName, noticeTitle } from "./copy";
 import { el } from "./dom";
 import { errorMessage } from "./errors";
 import { interpolate } from "./format";
@@ -180,6 +181,20 @@ export function renderApp(root: HTMLElement): void {
     checkVictory();
   }
 
+  function enrollIn(diploma: DiplomaId): void {
+    if (!humanTurn() || shell === null) {
+      return;
+    }
+    const result = dispatch(state, { type: "enroll", diploma });
+    if (!result.ok) {
+      lastError = result.error;
+      paint();
+      return;
+    }
+    lastError = null;
+    commit(result.state, interpolate("actedEnroll", { diploma: diplomaName(diploma) }));
+  }
+
   async function askForRaise(): Promise<void> {
     if (!humanTurn() || shell === null) {
       return;
@@ -227,6 +242,12 @@ export function renderApp(root: HTMLElement): void {
     }
     lastError = null;
     commit(result.state, actedMessage(id, resolved.wage));
+    if (id === "takeExam") {
+      void showHumanNotice().then(() => {
+        checkVictory();
+      });
+      return;
+    }
     checkVictory();
   }
 
@@ -253,6 +274,12 @@ export function renderApp(root: HTMLElement): void {
         state = step.state;
         const def = getJobDef(step.action.job);
         const line = interpolate("botApplies", { job: jobName(step.action.job), company: companyName(def.company) });
+        paint(line);
+        shell.journal.add({ week: state.week, who: "bot", text: line });
+        await wait(BOT_ACT_MS);
+      } else if (step.action.type === "enroll") {
+        state = step.state;
+        const line = interpolate("botEnrolls", { diploma: diplomaName(step.action.diploma) });
         paint(line);
         shell.journal.add({ week: state.week, who: "bot", text: line });
         await wait(BOT_ACT_MS);
@@ -375,6 +402,7 @@ export function renderApp(root: HTMLElement): void {
       onRaise: () => {
         void askForRaise();
       },
+      onEnroll: enrollIn,
       onEndWeek: () => {
         void applyEndWeek();
       },

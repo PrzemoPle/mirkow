@@ -1,6 +1,7 @@
 import { assertNever } from "../game/assert-never";
 import type { EngineError } from "../game/result";
 import { t } from "../i18n";
+import { diplomaName } from "./copy";
 import { interpolate } from "./format";
 
 export function errorMessage(error: EngineError): string {
@@ -25,8 +26,16 @@ export function errorMessage(error: EngineError): string {
       return t("errorAlreadyThisJob");
     case "insufficientMoney":
       return interpolate("errorInsufficientMoney", { needed: error.needed, have: error.have });
-    case "tooLittleEducation":
-      return interpolate("errorTooLittleEducation", { needed: error.needed, have: error.have });
+    case "missingDiploma":
+      return interpolate("errorMissingDiploma", { diploma: diplomaName(error.diploma) });
+    case "prerequisiteMissing":
+      return interpolate("errorPrerequisiteMissing", { diploma: diplomaName(error.diploma) });
+    case "diplomaDone":
+      return t("errorDiplomaDone");
+    case "notEnrolled":
+      return t("errorNotEnrolled");
+    case "classesNotDone":
+      return interpolate("errorClassesNotDone", { needed: error.needed, have: error.have });
     case "tooLittleExperience":
       return interpolate("errorTooLittleExperience", { needed: error.needed, have: error.have });
     case "tooLittleReliability":

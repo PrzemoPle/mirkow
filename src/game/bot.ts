@@ -1,18 +1,16 @@
 import {
   RENT_INTERVAL_WEEKS,
   REST_CAFE_COST,
-  STUDY_COURSE_COST,
-  STUDY_COURSE_EDU,
-  STUDY_DEGREE_COST,
   resolveAction,
   SUIT_COST,
 } from "./actions";
+import { diplomaIds, EXAM_FEE, getDiplomaDef, hasDiploma, prerequisiteMet } from "./diplomas";
 import { travelCost } from "./board";
 import type { LocationId } from "./catalog";
 import { FIRE_MARGIN, getJobDef, jobIds, jobLocation, RELIABILITY_DECAY, type JobDef } from "./jobs";
 import { dispatch } from "./reducer";
 import { getActivePlayer } from "./selectors";
-import type { ActionId, GameAction, GameState, Player } from "./types";
+import type { ActionId, DiplomaId, GameAction, GameState, Player } from "./types";
 
 const BOT_STEP_LIMIT = 32;
 
@@ -89,6 +87,57 @@ function bestReachableJob(state: GameState, player: Player): JobDef | null {
   return best;
 }
 
+/** Dyplom, który najbardziej przybliża do celu: brakujący do następnego stanowiska albo najtańszy do progu. */
+function wantedDiploma(player: Player, target: JobDef | null, educationGoal: number): DiplomaId | null {
+  if (player.studying !== null && !hasDiploma(player, player.studying)) {
+    return player.studying;
+  }
+  if (target !== null) {
+    for (const diploma of target.requiredDiplomas) {
+      if (hasDiploma(player, diploma)) {
+        continue;
+      }
+      if (prerequisiteMet(player, diploma)) {
+        return diploma;
+      }
+      const prerequisite = getDiplomaDef(diploma).prerequisiteAny.find((need) => !hasDiploma(player, need));
+      if (prerequisite !== undefined && prerequisiteMet(player, prerequisite)) {
+        return prerequisite;
+      }
+    }
+  }
+  if (player.stats.education < educationGoal) {
+    for (const diploma of diplomaIds) {
+      if (!hasDiploma(player, diploma) && prerequisiteMet(player, diploma)) {
+        return diploma;
+      }
+    }
+  }
+  return null;
+}
+
+/** Czy jedyną przeszkodą w lepszym podaniu jest brak garnituru. */
+function suitBlocksApplication(state: GameState, player: Player): boolean {
+  const currentPrestige = player.job === null ? -1 : getJobDef(player.job.id).prestige;
+  const atPup: GameState = {
+    ...state,
+    players: state.players.map((entry, index) =>
+      index === state.active ? { ...entry, locationId: "pup" as LocationId, needs: { ...entry.needs, suitWeeks: 0 } } : entry,
+    ),
+  };
+  for (const id of jobIds) {
+    const def = getJobDef(id);
+    if (def.hiddenInPup || !def.requiresSuit || def.prestige <= currentPrestige) {
+      continue;
+    }
+    const result = dispatch(atPup, { type: "apply", job: id });
+    if (!result.ok && result.error.code === "needsSuit") {
+      return true;
+    }
+  }
+  return false;
+}
+
 /** Następny cel kariery: najtańsze stanowisko wyżej, do którego brakuje tylko edukacji lub stroju. */
 function nextCareerTarget(player: Player): JobDef | null {
   const currentPrestige = player.job === null ? -1 : getJobDef(player.job.id).prestige;
@@ -99,6 +148,11 @@ function nextCareerTarget(player: Player): JobDef | null {
       continue;
     }
     if (player.experience + 8 < def.requiredExperience) {
+      continue;
+    }
+    // Nie celuj w stanowisko, do którego brakuje dwóch dyplomów naraz.
+    const missing = def.requiredDiplomas.filter((diploma) => !hasDiploma(player, diploma));
+    if (missing.length > 1) {
       continue;
     }
     if (target === null || def.prestige < target.prestige) {
@@ -164,8 +218,8 @@ export function nextBotAction(state: GameState): GameAction {
     }
   }
 
-  // 4. Garnitur, gdy obecna albo następna praca go wymaga.
-  const needsSuit = (job?.requiresSuit ?? false) || (target?.requiresSuit ?? false);
+  // 4. Garnitur, gdy obecna praca go wymaga albo blokuje podanie, które poza tym przeszłoby dziś.
+  const needsSuit = (job?.requiresSuit ?? false) || suitBlocksApplication(state, player);
   if (needsSuit && player.needs.suitWeeks <= 1 && player.stats.money >= SUIT_COST + buffer) {
     const suit = firstLegal(state, goAct(state, "lombard", "buySuit"));
     if (suit !== null) {
@@ -199,20 +253,28 @@ export function nextBotAction(state: GameState): GameAction {
     }
   }
 
-  // 8. Nauka pod cel kariery albo pod próg edukacji.
-  const eduTarget = Math.max(state.goals.education, target?.requiredEducation ?? 0);
-  if (player.stats.education < eduTarget) {
-    const preferDegree =
-      player.stats.education + STUDY_COURSE_EDU < eduTarget &&
-      player.stats.money >= STUDY_DEGREE_COST + buffer;
-    const canCourse = player.stats.money >= STUDY_COURSE_COST + buffer;
-    const degree = preferDegree ? firstLegal(state, goAct(state, "campus", "studyDegree")) : null;
-    if (degree !== null) {
-      return degree;
-    }
-    const course = canCourse ? firstLegal(state, goAct(state, "campus", "studyCourse")) : null;
-    if (course !== null) {
-      return course;
+  // 8. Nauka: dyplom pod cel kariery albo pod próg wykształcenia.
+  const wanted = wantedDiploma(player, target, state.goals.education);
+  if (wanted !== null) {
+    const def = getDiplomaDef(wanted);
+    if (player.studying !== wanted) {
+      const enrollAction = firstLegal(state, goDo(state, "campus", { type: "enroll", diploma: wanted }, 0));
+      if (enrollAction !== null) {
+        return enrollAction;
+      }
+    } else {
+      const done = player.studies[wanted]?.classes ?? 0;
+      if (done >= def.classes && player.stats.money >= EXAM_FEE + buffer) {
+        const exam = firstLegal(state, goAct(state, "campus", "takeExam"));
+        if (exam !== null) {
+          return exam;
+        }
+      } else if (player.stats.money >= def.classCost + buffer) {
+        const lesson = firstLegal(state, goAct(state, "campus", "attendClass"));
+        if (lesson !== null) {
+          return lesson;
+        }
+      }
     }
   }
 

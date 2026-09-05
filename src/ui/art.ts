@@ -1,11 +1,12 @@
 import { assertNever } from "../game/assert-never";
 import type { LocationId } from "../game/catalog";
-import type { ActionId, AvatarId, EventId, NoticeId } from "../game/types";
+import type { ActionId, AvatarId, DiplomaId, EventId, NoticeId } from "../game/types";
 import { el } from "./dom";
 
 /** Placeholder dla bitmap, które jeszcze nie przyszły od ilustratora (brief P3). */
 const MISSING_TILE = "./art/tiles/park.png";
 const MISSING_ICON = "./art/ui/need-job.png";
+const MISSING_DIPLOMA = "./art/ui/stat-education.png";
 const MISSING_CARD = "./art/events/spokoj.png";
 
 export function tileArtUrl(id: LocationId): string {
@@ -124,6 +125,10 @@ export function noticeArtUrl(id: NoticeId): string {
       return "./art/events/podwyzka.png";
     case "awans":
       return "./art/events/awans.png";
+    case "oblanyEgzamin":
+      return "./art/events/oblany-egzamin.png";
+    case "dyplom":
+      return "./art/events/dyplom.png";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -199,10 +204,10 @@ export function actionIconUrl(id: ActionId): string {
       return "./art/actions/work-kebab.png";
     case "openLokal":
       return "./art/actions/open-lokal.png";
-    case "studyCourse":
+    case "attendClass":
       return "./art/actions/study-course.png";
-    case "studyDegree":
-      return "./art/actions/study-degree.png";
+    case "takeExam":
+      return "./art/actions/exam.png";
     case "buyFood":
       return "./art/actions/buy-food.png";
     case "buyClothes":
@@ -244,6 +249,29 @@ export function workIconUrl(company: "kebab" | "shop" | "bank" | "pup" | "depot"
   }
 }
 
+export function diplomaArtUrl(id: DiplomaId): string {
+  switch (id) {
+    case "kurs":
+      return "./art/diplomas/kurs.png";
+    case "matura":
+      return "./art/diplomas/matura.png";
+    case "zarzadzanie":
+      return "./art/diplomas/zarzadzanie.png";
+    case "ekonomia":
+      return "./art/diplomas/ekonomia.png";
+    case "administracja":
+      return "./art/diplomas/administracja.png";
+    case "inzynieria":
+      return "./art/diplomas/inzynieria.png";
+    case "magister":
+      return "./art/diplomas/magister.png";
+    default: {
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
 export function applyIconUrl(): string {
   return "./art/actions/apply.png";
 }
@@ -252,7 +280,7 @@ export function raiseIconUrl(): string {
   return "./art/actions/raise.png";
 }
 
-type ArtKind = "tile" | "icon" | "card" | "none";
+type ArtKind = "tile" | "icon" | "card" | "diploma" | "none";
 
 function fallbackFor(kind: ArtKind): string | null {
   switch (kind) {
@@ -262,6 +290,8 @@ function fallbackFor(kind: ArtKind): string | null {
       return MISSING_ICON;
     case "card":
       return MISSING_CARD;
+    case "diploma":
+      return MISSING_DIPLOMA;
     case "none":
       return null;
   }

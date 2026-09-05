@@ -24,9 +24,9 @@ describe("errorMessage", () => {
     expect(
       errorMessage({ code: "insufficientMoney", needed: 150, have: 20 }),
     ).toBe("Za mało gotówki (trzeba 150 zł, masz 20 zł).");
-    expect(
-      errorMessage({ code: "tooLittleEducation", needed: 18, have: 6 }),
-    ).toBe("Za słabe papiery (trzeba 18, masz 6).");
+    expect(errorMessage({ code: "missingDiploma", diploma: "matura" })).toBe(
+      "Brakuje dyplomu: matura wieczorowa.",
+    );
     expect(
       errorMessage({ code: "tooLittleExperience", needed: 4, have: 1 }),
     ).toBe("Za mały staż (trzeba 4, masz 1).");

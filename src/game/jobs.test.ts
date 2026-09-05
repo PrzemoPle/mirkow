@@ -60,14 +60,14 @@ describe("stanowiska", () => {
     const seasoned = createMatch({ locationId: "pup", experience: 10, reliability: 5 });
     expect(jobBlock(seasoned, "kebabKasjer")?.code).toBe("tooLittleReliability");
     const reliable = createMatch({ locationId: "pup", experience: 20, reliability: 60 });
-    expect(jobBlock(reliable, "kebabKierownik")?.code).toBe("tooLittleEducation");
-    const educated = createMatch({ locationId: "pup", experience: 20, reliability: 60, stats: { education: 30 } });
+    expect(jobBlock(reliable, "kebabKierownik")?.code).toBe("missingDiploma");
+    const educated = createMatch({ locationId: "pup", experience: 20, reliability: 60, diplomas: ["matura"] });
     expect(jobBlock(educated, "bankKasjer")?.code).toBe("needsSuit");
     const suited = createMatch({
       locationId: "pup",
       experience: 20,
       reliability: 60,
-      stats: { education: 30 },
+      diplomas: ["matura"],
       needs: { ...quiet, suitWeeks: 4 },
     });
     expect(jobBlock(suited, "bankKasjer")).toBeNull();
@@ -176,7 +176,8 @@ describe("własny lokal", () => {
       job: { id: "kebabKierownik", weeks: 6, raises: 0 },
       experience: 20,
       reliability: 60,
-      stats: { money: 3000, education: 20 },
+      diplomas: ["kurs"],
+      stats: { money: 3000 },
     });
     const owner = unwrap(dispatch(manager, { type: "act", id: "openLokal" }));
     expect(playerOf(owner).job?.id).toBe("kebabLokal");
@@ -187,7 +188,8 @@ describe("własny lokal", () => {
       job: { id: "kebabKierownik", weeks: 6, raises: 0 },
       experience: 20,
       reliability: 60,
-      stats: { money: 500, education: 20 },
+      diplomas: ["kurs"],
+      stats: { money: 500 },
     });
     expect(errorOf(dispatch(poor, { type: "act", id: "openLokal" }))).toBe("insufficientMoney");
   });

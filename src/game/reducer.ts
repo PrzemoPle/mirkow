@@ -17,6 +17,16 @@ import {
   REDUCTION_MARGIN,
   rollEconomy,
 } from "./economy";
+import {
+  DIPLOMA_HAPPINESS,
+  EXAM_FAIL_HAPPINESS,
+  educationPoints,
+  examChance,
+  FIRST_DIPLOMA_HAPPINESS,
+  getDiplomaDef,
+  hasDiploma,
+  prerequisiteMet,
+} from "./diplomas";
 import { getEventDef, pickEvent } from "./events";
 import {
   FIRE_MARGIN,
@@ -43,6 +53,7 @@ import {
   METER_MAX,
   MOPS_HELP,
   type ActionId,
+  type DiplomaId,
   type GameAction,
   type GameState,
   type JobId,
@@ -207,8 +218,10 @@ function checkJobRequirements(player: Player, jobId: JobId): EngineResult | null
   if (player.reliability < def.requiredReliability) {
     return fail({ code: "tooLittleReliability", needed: def.requiredReliability, have: player.reliability });
   }
-  if (player.stats.education < def.requiredEducation) {
-    return fail({ code: "tooLittleEducation", needed: def.requiredEducation, have: player.stats.education });
+  for (const diploma of def.requiredDiplomas) {
+    if (!hasDiploma(player, diploma)) {
+      return fail({ code: "missingDiploma", diploma });
+    }
   }
   if (def.requiresSuit && player.needs.suitWeeks <= 0) {
     return fail({ code: "needsSuit" });
@@ -250,6 +263,16 @@ function applyAction(state: GameState, def: ActionDef): EngineResult {
   if (def.opensDeposit && player.deposit !== null) {
     return fail({ code: "depositActive" });
   }
+  if ((def.isClass || def.isExam) && player.studying === null) {
+    return fail({ code: "notEnrolled" });
+  }
+  if (def.isExam && player.studying !== null) {
+    const needed = getDiplomaDef(player.studying).classes;
+    const have = player.studies[player.studying]?.classes ?? 0;
+    if (have < needed) {
+      return fail({ code: "classesNotDone", needed, have });
+    }
+  }
   if (player.stats.money < def.moneyCost) {
     return fail({
       code: "insufficientMoney",
@@ -266,6 +289,10 @@ function applyAction(state: GameState, def: ActionDef): EngineResult {
   const current = getActive(spent.state);
   if (current === undefined) {
     return fail({ code: "noActivePlayer" });
+  }
+
+  if (def.isClass || def.isExam) {
+    return ok(withVictory(studyStep(spent.state, current, def)));
   }
 
   const lokal = def.opensLokal ? getJobDef("kebabLokal") : null;
@@ -299,12 +326,96 @@ function applyAction(state: GameState, def: ActionDef): EngineResult {
   );
 }
 
+/** Zajęcia albo egzamin: koszt już sprawdzony, czas już odjęty. */
+function studyStep(state: GameState, player: Player, def: ActionDef): GameState {
+  const diplomaId = player.studying;
+  if (diplomaId === null) {
+    return state;
+  }
+  const progress = player.studies[diplomaId] ?? { classes: 0, log: [] };
+  const paid = player.stats.money - def.moneyCost;
+
+  if (def.isClass) {
+    return replaceActive(state, {
+      ...player,
+      stats: { ...player.stats, money: paid },
+      studies: {
+        ...player.studies,
+        [diplomaId]: { classes: progress.classes + 1, log: [...progress.log, state.week] },
+      },
+    });
+  }
+
+  const roll = advanceRng(state.rngSeed);
+  const passed = roll.value < examChance(player, diplomaId, state.week);
+  const effects: WeekEffect[] = [...state.lastWeekEffects, { kind: "exam", diploma: diplomaId, passed }];
+  if (!passed) {
+    return {
+      ...replaceActive(state, {
+        ...player,
+        stats: {
+          ...player.stats,
+          money: paid,
+          happiness: clampMeter(player.stats.happiness - EXAM_FAIL_HAPPINESS),
+        },
+        lastNotice: "oblanyEgzamin",
+      }),
+      rngSeed: roll.seed,
+      lastWeekEffects: effects,
+    };
+  }
+  const diplomas: DiplomaId[] = [...player.diplomas, diplomaId];
+  const remaining = { ...player.studies };
+  delete remaining[diplomaId];
+  return {
+    ...replaceActive(state, {
+      ...player,
+      stats: {
+        ...player.stats,
+        money: paid,
+        education: clampMeter(educationPoints(diplomas)),
+        happiness: clampMeter(
+          player.stats.happiness + (player.diplomas.length === 0 ? FIRST_DIPLOMA_HAPPINESS : DIPLOMA_HAPPINESS),
+        ),
+      },
+      diplomas,
+      studies: remaining,
+      studying: null,
+      lastNotice: "dyplom",
+    }),
+    rngSeed: roll.seed,
+    lastWeekEffects: effects,
+  };
+}
+
+/** Zapis do indeksu w WSMiK: darmowy i natychmiastowy, postęp poprzedniego kierunku zostaje. */
+function enroll(state: GameState, diplomaId: DiplomaId): EngineResult {
+  if (state.phase !== "playing") {
+    return fail({ code: "wrongPhase", phase: state.phase });
+  }
+  const player = getActive(state);
+  if (player === undefined) {
+    return fail({ code: "noActivePlayer" });
+  }
+  if (player.locationId !== "campus") {
+    return fail({ code: "wrongLocation", here: player.locationId, needed: "campus" });
+  }
+  if (hasDiploma(player, diplomaId)) {
+    return fail({ code: "diplomaDone", diploma: diplomaId });
+  }
+  if (!prerequisiteMet(player, diplomaId)) {
+    const needed = getDiplomaDef(diplomaId).prerequisiteAny[0] ?? diplomaId;
+    return fail({ code: "prerequisiteMissing", diploma: needed });
+  }
+  return ok(replaceActive(state, { ...player, studying: diplomaId }));
+}
+
 function performAct(state: GameState, actionId: ActionId): EngineResult {
   switch (actionId) {
     case "work":
     case "openLokal":
-    case "studyCourse":
-    case "studyDegree":
+    case "attendClass":
+    case "takeExam":
     case "buyFood":
     case "buyClothes":
     case "buySuit":
@@ -752,6 +863,8 @@ export function dispatch(state: GameState, action: GameAction): EngineResult {
       return applyForJob(state, action.job);
     case "askRaise":
       return askRaise(state);
+    case "enroll":
+      return enroll(state, action.diploma);
     case "endWeek":
       return endWeek(state);
     default: {

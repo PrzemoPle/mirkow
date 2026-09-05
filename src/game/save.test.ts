@@ -18,7 +18,7 @@ describe("parseSave", () => {
 
   it("rejects broken JSON and unknown versions", () => {
     expect(parseSave("{")).toEqual({ status: "corrupt" });
-    expect(parseSave(JSON.stringify({ version: 3, state: createMatch() }))).toEqual({
+    expect(parseSave(JSON.stringify({ version: 4, state: createMatch() }))).toEqual({
       status: "corrupt",
     });
     expect(parseSave(JSON.stringify({ version: 1, state: createMatch() }))).toEqual({
@@ -55,7 +55,7 @@ describe("parseSave", () => {
   it("rejects a playing match with no players", () => {
     const broken = { ...createMatch(), players: [] };
     expect(
-      parseSave(JSON.stringify({ version: 2, state: broken })),
+      parseSave(JSON.stringify({ version: 3, state: broken })),
     ).toEqual({ status: "corrupt" });
   });
 });
@@ -64,7 +64,7 @@ describe("writeSave", () => {
   it("clears the slot on request", () => {
     const match = createMatch();
     const store = memoryStore({
-      [SAVE_KEY]: JSON.stringify({ version: 2, state: match }),
+      [SAVE_KEY]: JSON.stringify({ version: 3, state: match }),
     });
     expect(clearSave(store)).toBe("ok");
     expect(loadSave(store)).toEqual({ status: "empty" });

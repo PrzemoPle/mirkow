@@ -1,5 +1,5 @@
 import type { LocationId } from "./catalog";
-import type { CompanyId, JobId } from "./types";
+import type { CompanyId, DiplomaId, JobId } from "./types";
 
 export const WORK_TIME = 3;
 export const RELIABILITY_PER_SHIFT = 4;
@@ -15,12 +15,6 @@ export const HIRE_HAPPINESS = 3;
 export const LOKAL_BUYIN = 1800;
 export const LOKAL_OPEN_TIME = 2;
 
-/** Progi wykształcenia jako zastępstwo dyplomów do czasu G2. */
-export const EDU_KURS = 10;
-export const EDU_MATURA = 20;
-export const EDU_LICENCJAT = 40;
-export const EDU_INZYNIERIA = 45;
-export const EDU_MAGISTER = 70;
 
 export const companyIds = ["kebab", "shop", "bank", "pup", "depot"] as const satisfies readonly CompanyId[];
 
@@ -44,7 +38,7 @@ export type JobDef = {
   prestige: number;
   requiredExperience: number;
   requiredReliability: number;
-  requiredEducation: number;
+  requiredDiplomas: readonly DiplomaId[];
   requiresSuit: boolean;
   /** Stanowisko nie do wzięcia w PUP (własny lokal otwiera się w Nocnej Bule). */
   hiddenInPup: boolean;
@@ -53,7 +47,7 @@ export type JobDef = {
 const base = {
   requiredExperience: 0,
   requiredReliability: 0,
-  requiredEducation: 0,
+  requiredDiplomas: [] as readonly DiplomaId[],
   requiresSuit: false,
   hiddenInPup: false,
 };
@@ -61,20 +55,20 @@ const base = {
 export const JOB_DEFS: Record<JobId, JobDef> = {
   kebabPomoc: { ...base, id: "kebabPomoc", company: "kebab", wage: 220, prestige: 5 },
   kebabKasjer: { ...base, id: "kebabKasjer", company: "kebab", wage: 280, prestige: 12, requiredExperience: 4, requiredReliability: 20 },
-  kebabKierownik: { ...base, id: "kebabKierownik", company: "kebab", wage: 420, prestige: 30, requiredExperience: 12, requiredReliability: 40, requiredEducation: EDU_KURS },
-  kebabLokal: { ...base, id: "kebabLokal", company: "kebab", wage: 620, prestige: 70, requiredExperience: 16, requiredReliability: 40, requiredEducation: EDU_KURS, hiddenInPup: true },
+  kebabKierownik: { ...base, id: "kebabKierownik", company: "kebab", wage: 420, prestige: 30, requiredExperience: 12, requiredReliability: 40, requiredDiplomas: ["kurs"] },
+  kebabLokal: { ...base, id: "kebabLokal", company: "kebab", wage: 620, prestige: 70, requiredExperience: 16, requiredReliability: 40, requiredDiplomas: ["kurs"], hiddenInPup: true },
   shopPolki: { ...base, id: "shopPolki", company: "shop", wage: 240, prestige: 8, requiredReliability: 10 },
   shopKasjer: { ...base, id: "shopKasjer", company: "shop", wage: 300, prestige: 15, requiredExperience: 6, requiredReliability: 25 },
-  shopKierownik: { ...base, id: "shopKierownik", company: "shop", wage: 480, prestige: 40, requiredExperience: 16, requiredReliability: 50, requiredEducation: EDU_LICENCJAT, requiresSuit: true },
-  bankKasjer: { ...base, id: "bankKasjer", company: "bank", wage: 380, prestige: 25, requiredExperience: 8, requiredReliability: 40, requiredEducation: EDU_MATURA, requiresSuit: true },
-  bankDoradca: { ...base, id: "bankDoradca", company: "bank", wage: 560, prestige: 50, requiredExperience: 20, requiredReliability: 55, requiredEducation: EDU_LICENCJAT, requiresSuit: true },
-  bankDyrektor: { ...base, id: "bankDyrektor", company: "bank", wage: 800, prestige: 80, requiredExperience: 36, requiredReliability: 70, requiredEducation: EDU_MAGISTER, requiresSuit: true },
-  pupReferent: { ...base, id: "pupReferent", company: "pup", wage: 340, prestige: 20, requiredExperience: 4, requiredReliability: 35, requiredEducation: EDU_MATURA, requiresSuit: true },
-  pupNaczelnik: { ...base, id: "pupNaczelnik", company: "pup", wage: 620, prestige: 60, requiredExperience: 24, requiredReliability: 60, requiredEducation: EDU_LICENCJAT, requiresSuit: true },
+  shopKierownik: { ...base, id: "shopKierownik", company: "shop", wage: 480, prestige: 40, requiredExperience: 16, requiredReliability: 50, requiredDiplomas: ["zarzadzanie"], requiresSuit: true },
+  bankKasjer: { ...base, id: "bankKasjer", company: "bank", wage: 380, prestige: 25, requiredExperience: 8, requiredReliability: 40, requiredDiplomas: ["matura"], requiresSuit: true },
+  bankDoradca: { ...base, id: "bankDoradca", company: "bank", wage: 560, prestige: 50, requiredExperience: 20, requiredReliability: 55, requiredDiplomas: ["ekonomia"], requiresSuit: true },
+  bankDyrektor: { ...base, id: "bankDyrektor", company: "bank", wage: 800, prestige: 80, requiredExperience: 36, requiredReliability: 70, requiredDiplomas: ["ekonomia", "magister"], requiresSuit: true },
+  pupReferent: { ...base, id: "pupReferent", company: "pup", wage: 340, prestige: 20, requiredExperience: 4, requiredReliability: 35, requiredDiplomas: ["matura"], requiresSuit: true },
+  pupNaczelnik: { ...base, id: "pupNaczelnik", company: "pup", wage: 620, prestige: 60, requiredExperience: 24, requiredReliability: 60, requiredDiplomas: ["administracja"], requiresSuit: true },
   depotMonter: { ...base, id: "depotMonter", company: "depot", wage: 320, prestige: 15, requiredExperience: 2, requiredReliability: 20 },
-  depotBrygadzista: { ...base, id: "depotBrygadzista", company: "depot", wage: 500, prestige: 45, requiredExperience: 14, requiredReliability: 45, requiredEducation: EDU_KURS },
-  depotInzynier: { ...base, id: "depotInzynier", company: "depot", wage: 700, prestige: 65, requiredExperience: 20, requiredReliability: 55, requiredEducation: EDU_INZYNIERIA },
-  depotDyrektor: { ...base, id: "depotDyrektor", company: "depot", wage: 950, prestige: 100, requiredExperience: 40, requiredReliability: 75, requiredEducation: EDU_MAGISTER, requiresSuit: true },
+  depotBrygadzista: { ...base, id: "depotBrygadzista", company: "depot", wage: 500, prestige: 45, requiredExperience: 14, requiredReliability: 45, requiredDiplomas: ["kurs"] },
+  depotInzynier: { ...base, id: "depotInzynier", company: "depot", wage: 700, prestige: 65, requiredExperience: 20, requiredReliability: 55, requiredDiplomas: ["inzynieria"] },
+  depotDyrektor: { ...base, id: "depotDyrektor", company: "depot", wage: 950, prestige: 100, requiredExperience: 40, requiredReliability: 75, requiredDiplomas: ["inzynieria", "magister"], requiresSuit: true },
 };
 
 export const jobIds = Object.keys(JOB_DEFS) as readonly JobId[];

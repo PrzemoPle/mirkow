@@ -8,6 +8,7 @@ export {
   getBotPlayer,
   getHumanPlayer,
   isHumanTurn,
+  enrollBlock,
   jobBlock,
   raiseBlock,
 } from "./selectors";
@@ -48,6 +49,21 @@ export {
 } from "./jobs";
 export type { CompanyDef, JobDef } from "./jobs";
 export { ECONOMY_PERIOD_WEEKS, wageMultiplier, priceMultiplier, startingEconomy } from "./economy";
+export {
+  classesDone,
+  DIPLOMA_DEFS,
+  diplomaIds,
+  educationPoints,
+  EXAM_FEE,
+  EXAM_RECENT_WEEKS,
+  examChance,
+  getDiplomaDef,
+  hasDiploma,
+  isDiplomaId,
+  prerequisiteMet,
+  recentClasses,
+} from "./diplomas";
+export type { DiplomaDef } from "./diplomas";
 export { EVENT_DEFS, eventIds, pickEvent } from "./events";
 export type { EventDef } from "./events";
 export { FOOD_BASE, RENT_HIKE, RENT_MAX, startingMarket } from "./market";
@@ -88,6 +104,7 @@ export type {
   CompanyId,
   Controller,
   Deposit,
+  DiplomaId,
   Economy,
   EconomyPhase,
   EventId,
@@ -101,5 +118,6 @@ export type {
   Player,
   SafetyNetKind,
   Stats,
+  StudyProgress,
   WeekEffect,
 } from "./types";

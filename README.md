@@ -1,5 +1,7 @@
 # Symulator życia
 
+**Gra na żywo:** https://przemople.github.io/mirkow/
+
 Turowa satyra życia w fikcyjnym polskim mieście **Mirków**. Inspiracja: Jones in the Fast Lane / No Time to Relax.
 
 Gracz ma pulę czasu na tydzień, chodzi po mapie i zbiera cztery progi: pieniądze, szczęście, wykształcenie, kariera. Przeciwnik: bot Kowalski.

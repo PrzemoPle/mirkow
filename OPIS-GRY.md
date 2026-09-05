@@ -1,7 +1,8 @@
 # Mirków. Opis gry, budowy i decyzji
 
 **Stan:** 5 września 2026, po etapach E1–E3 (wygląd i balans), G1–G5 (projekt „Głębia”), E4 (WebP, PWA z workbox, Playwright, CI) i krokach 1–4 audytu UX (`docs/audyt-ux-2026-09-05.md`: prowadzenie gracza, przypięty koniec tygodnia, arkusz na telefonie, postacie Mirkowa z kwestiami, karta Kowalskiego z miną).
-**Repozytorium:** https://github.com/PrzemoPle/mirkow (prywatne, gałąź `main`).
+**Repozytorium:** https://github.com/PrzemoPle/mirkow (publiczne na czas testów, gałąź `main`).
+**Gra na żywo:** https://przemople.github.io/mirkow/ (GitHub Pages, deploy automatyczny z `main`; po powrocie repo do prywatnego strona gaśnie).
 **Roboczy tytuł:** Mirków (podtytuł „Symulator życia”). Nazwa docelowa i domena nie są jeszcze ustalone.
 
 Ten dokument jest wejściem dla osoby albo agenta, który dostaje paczkę bez historii rozmów. Pozostałe dokumenty w `docs/` są źródłami decyzji; gdy coś się rozjeżdża, **kod i ten plik wygrywają**.
@@ -232,7 +233,7 @@ Kod ma fallback na brakujące pliki (szary kafelek, ikona zastępcza), więc now
 
 | Temat | Stan |
 |---|---|
-| Publikacja (E4) | zrobione: PNG → WebP (12,5 MB → 4,9 MB, źródła w `art-src/`), `vite-plugin-pwa` z precache workbox, smoke test Playwright (desktop + telefon), CI w GitHub Actions. Otwarte: hosting (GitHub Pages wymaga publicznego repo albo planu Pro; alternatywa Cloudflare Pages), nazwa i domena |
+| Publikacja (E4) | zrobione: PNG → WebP (12,5 MB → 4,9 MB, źródła w `art-src/`), `vite-plugin-pwa` z precache workbox, smoke test Playwright (desktop + telefon), CI w GitHub Actions. Live: `przemople.github.io/mirkow` (repo publiczne na czas testów). Otwarte: nazwa i domena |
 | Nazwa i domena | otwarte; „Mirków” to też realne wsie w Polsce, `mirkow.pl` prawdopodobnie zajęte |
 | Hot-seat 2–4 graczy | silnik ma `players[]`, UI zakłada 1 człowiek + 1 bot |
 | Online, konta, ranking | poza zakresem |

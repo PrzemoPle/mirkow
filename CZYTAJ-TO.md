@@ -269,6 +269,10 @@ To nie są bugi zapomnienia. Albo decyzja MVP je wycięła, albo silnik ma haczy
 | Przedmioty | Elektro-Mir nowe (1% awarii/tydz.), Lombard używane za 60% (3%), skup 50%, naprawa 20%. Lodówka 900 (jedzenie 6 tyg.), pralka 800, kanapa 400, telewizor 700 (+1/tydz.), wieża 600 (+1), komputer 1800 (zajęcia −1 cz, egzamin +10%), encyklopedia 300 (egzamin +10%), rower 500 (trasy ≥2 o 1 krócej) | `items.ts` |
 | Kradzież na stancji | 8% na tydzień, 12% przy ≥3 rzeczach, znika jeden przedmiot | `homes.ts`, `reducer.ts` |
 | Szczęście co tydzień | −1 bazowo, plus komfort mieszkania i sprzętu | `types.ts` |
+| Bank (od G4) | konto (wpłaty po 100, bezpieczne od kieszonkowca), kredyt do 6 płac za zmianę (min 500, kroki 500, 4% za 4 tyg., rata 25% kapitału + odsetki co 4 tyg., dwie zaległe = komornik zabiera przedmiot albo 20% gotówki), akcje MZT (start 50 zł, pakiety po 10, dryf boom +5..15%, recesja −5..15%, normalnie ±8%). Próg pieniędzy liczy majątek: gotówka + konto + lokata + akcje − kredyt | `bank.ts` |
+| Weekend | co tydzień jedna z 22 linijek zależnych od sprzętu i mieszkania (−80..+120 zł, −2..+3 szczęścia) | `weekends.ts` |
+| Zjedz na miejscu | Nocna Buła, 1 cz, 25 zł, +1 tydz. jedzenia, +1 szczęścia | `actions.ts` |
+| Kieszonkowiec | event (waga 1): −10% gotówki, max 300 zł, konto nietknięte | `events.ts`, `bank.ts` |
 | Start zapasów | jedzenie 2 tyg., ubranie 3 tyg. | `types.ts` |
 | Lokata (Nasza Kasa) | 1 cz., 1000 zł, wypłata 1080 zł po 4 tyg., jedna naraz | `actions.ts` |
 | Eventy | 10 kart, losowanie ważone: spokój 2,5, napiwki 1,5, reszta 1 | `events.ts` |

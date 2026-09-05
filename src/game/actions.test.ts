@@ -32,6 +32,12 @@ function errorOf(result: EngineResult): string {
   return result.error.code;
 }
 
+/** Linijka weekendu zmienia kasę i szczęście; testy liczą ją jawnie. */
+function weekendOf(state: GameState): { money: number; happiness: number } {
+  const found = state.lastWeekEffects.find((effect) => effect.kind === "weekend");
+  return found !== undefined && found.kind === "weekend" ? { money: found.money, happiness: found.happiness } : { money: 0, happiness: 0 };
+}
+
 function playerOf(state: GameState) {
   const player = state.players[state.active];
   if (player === undefined) {
@@ -52,12 +58,12 @@ describe("actionsAt", () => {
     expect(actionsAt("pup")).toEqual([]);
     expect(actionsAt("lombard")).toEqual(["buySuit"]);
     expect(actionsAt("elektro")).toEqual([]);
-    expect(actionsAt("kebab")).toEqual(["openLokal"]);
+    expect(actionsAt("kebab")).toEqual(["openLokal", "eatOut"]);
     expect(actionsAt("campus")).toEqual(["attendClass", "takeExam"]);
     expect(actionsAt("shop")).toEqual(["buyFood", "buyClothes"]);
 
     const cashier = playerOf(createMatch({ job: { id: "kebabKasjer", weeks: 0, raises: 0 } }));
-    expect(actionsAt("kebab", cashier)).toEqual(["work"]);
+    expect(actionsAt("kebab", cashier)).toEqual(["work", "eatOut"]);
     expect(actionsAt("shop", cashier)).toEqual(["buyFood", "buyClothes"]);
     const clerk = playerOf(createMatch({ job: { id: "shopKasjer", weeks: 0, raises: 0 } }));
     expect(actionsAt("shop", clerk)).toEqual(["work", "buyFood", "buyClothes"]);
@@ -65,7 +71,7 @@ describe("actionsAt", () => {
 
   it("shows the lokal only to a kebab manager", () => {
     const manager = playerOf(createMatch({ job: { id: "kebabKierownik", weeks: 0, raises: 0 } }));
-    expect(actionsAt("kebab", manager)).toEqual(["work", "openLokal"]);
+    expect(actionsAt("kebab", manager)).toEqual(["work", "openLokal", "eatOut"]);
   });
 
   it("keeps a def for every action id", () => {
@@ -139,7 +145,7 @@ describe("week settlement", () => {
     const after = unwrap(
       dispatch(createMatch({ week: 4, rngSeed: firstSeedFor("spokoj"), needs: quiet }), { type: "endWeek" }),
     );
-    expect(playerOf(after).stats.money).toBe(STARTING_MONEY - STARTING_RENT);
+    expect(playerOf(after).stats.money).toBe(STARTING_MONEY - STARTING_RENT + weekendOf(after).money);
     expect(after.lastWeekEffects).toContainEqual({ kind: "rent", amount: STARTING_RENT });
     expect(playerOf(after).home.rent).toBe(STARTING_RENT);
     expect(after.week).toBe(5);
@@ -153,7 +159,7 @@ describe("week settlement", () => {
       ),
     );
     expect(after.timeLeft).toBe(TIME_MAX - HUNGER_TIME_PENALTY);
-    expect(playerOf(after).stats.happiness).toBe(STARTING_HAPPINESS - 3 - HAPPINESS_DECAY);
+    expect(playerOf(after).stats.happiness).toBe(STARTING_HAPPINESS - 3 - HAPPINESS_DECAY + weekendOf(after).happiness);
   });
 
   it("drops happiness when clothes run out", () => {
@@ -163,7 +169,7 @@ describe("week settlement", () => {
         { type: "endWeek" },
       ),
     );
-    expect(playerOf(after).stats.happiness).toBe(STARTING_HAPPINESS - BARE_HAPPINESS_PENALTY - HAPPINESS_DECAY);
+    expect(playerOf(after).stats.happiness).toBe(STARTING_HAPPINESS - BARE_HAPPINESS_PENALTY - HAPPINESS_DECAY + weekendOf(after).happiness);
   });
 
   it("stacks the traffic jam on top of hunger", () => {

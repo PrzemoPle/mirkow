@@ -4,6 +4,7 @@ import { eventIds } from "./events";
 import { diplomaIds } from "./diplomas";
 import { homeIds } from "./homes";
 import { itemIds } from "./items";
+import { WEEKEND_DEFS } from "./weekends";
 import { companyIds, JOB_DEFS } from "./jobs";
 import type {
   CompanyId,
@@ -14,6 +15,7 @@ import type {
   GameState,
   Job,
   JobId,
+  Loan,
   NoticeId,
   OwnedItem,
   Player,
@@ -23,10 +25,11 @@ import type {
   WeekEffect,
 } from "./types";
 
-export const SAVE_KEY = "mirkow.save.v4";
+export const SAVE_KEY = "mirkow.save.v5";
 /** Klucze starych zapisów: czyścimy je, żeby nie zalegały. */
-export const LEGACY_SAVE_KEYS = ["mirkow.save.v1", "mirkow.save.v2", "mirkow.save.v3"] as const;
-export const SAVE_FORMAT = 4;
+export const LEGACY_SAVE_KEYS = ["mirkow.save.v1", "mirkow.save.v2", "mirkow.save.v3", "mirkow.save.v4"] as const;
+export const SAVE_FORMAT = 5;
+const weekendIds = WEEKEND_DEFS.map((def) => def.id);
 
 export type SaveStore = {
   getItem(key: string): string | null;
@@ -46,7 +49,7 @@ const jobIds = Object.keys(JOB_DEFS) as JobId[];
 const phases = ["setup", "playing", "victory"] as const;
 const controllers = ["human", "bot"] as const;
 const safetyNets = ["ciocia", "mops"] as const;
-const notices = ["zwolnienie", "redukcja", "podwyzka", "awans", "oblanyEgzamin", "dyplom", "zdzichu", "przeprowadzka"] as const satisfies readonly NoticeId[];
+const notices = ["zwolnienie", "redukcja", "podwyzka", "awans", "oblanyEgzamin", "dyplom", "zdzichu", "przeprowadzka", "komornik"] as const satisfies readonly NoticeId[];
 const economyPhases = ["boom", "normal", "recession"] as const;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -161,6 +164,20 @@ function parseEffect(value: unknown): WeekEffect | null {
       return isMember(value.item, itemIds) ? { kind: value.kind, item: value.item } : null;
     case "homeHappiness":
       return isFiniteNumber(value.amount) ? { kind: "homeHappiness", amount: value.amount } : null;
+    case "weekend":
+      return isMember(value.id, weekendIds) && isFiniteNumber(value.money) && isFiniteNumber(value.happiness)
+        ? { kind: "weekend", id: value.id, money: value.money, happiness: value.happiness }
+        : null;
+    case "installment":
+      return isFiniteNumber(value.amount) && typeof value.paid === "boolean"
+        ? { kind: "installment", amount: value.amount, paid: value.paid }
+        : null;
+    case "bailiff":
+      return (value.item === null || isMember(value.item, itemIds)) && isFiniteNumber(value.cash)
+        ? { kind: "bailiff", item: value.item === null ? null : value.item, cash: value.cash }
+        : null;
+    case "pickpocket":
+      return isFiniteNumber(value.amount) ? { kind: "pickpocket", amount: value.amount } : null;
     case "exam":
       return isMember(value.diploma, diplomaIds) && typeof value.passed === "boolean"
         ? { kind: "exam", diploma: value.diploma, passed: value.passed }
@@ -233,6 +250,16 @@ function parseItems(value: unknown): readonly OwnedItem[] | null {
   return out;
 }
 
+function parseLoan(value: unknown): Loan | null | undefined {
+  if (value === null || value === undefined) {
+    return null;
+  }
+  if (!isRecord(value) || !isFiniteNumber(value.principal) || !isFiniteNumber(value.missed)) {
+    return undefined;
+  }
+  return { principal: value.principal, missed: value.missed };
+}
+
 function parsePlayer(value: unknown): Player | null {
   if (!isRecord(value)) {
     return null;
@@ -264,7 +291,8 @@ function parsePlayer(value: unknown): Player | null {
     return null;
   }
   const items = parseItems(value.items);
-  if (items === null) {
+  const loan = parseLoan(value.loan);
+  if (items === null || loan === undefined || !isFiniteNumber(value.account) || !isFiniteNumber(value.shares)) {
     return null;
   }
   if (
@@ -293,6 +321,9 @@ function parsePlayer(value: unknown): Player | null {
     studying,
     home: { id: value.home.id, rent: value.home.rent },
     items,
+    account: value.account,
+    loan,
+    shares: value.shares,
     needs: {
       foodWeeks: value.needs.foodWeeks,
       clothesWeeks: value.needs.clothesWeeks,
@@ -306,7 +337,7 @@ function parsePlayer(value: unknown): Player | null {
 }
 
 export function parseGameState(value: unknown): GameState | null {
-  if (!isRecord(value) || value.version !== 4) {
+  if (!isRecord(value) || value.version !== 5) {
     return null;
   }
   if (!isMember(value.phase, phases)) {
@@ -372,8 +403,11 @@ export function parseGameState(value: unknown): GameState | null {
   if (economy === null) {
     return null;
   }
+  if (!isFiniteNumber(value.stockPrice) || !Array.isArray(value.stockHistory) || !value.stockHistory.every((entry) => isFiniteNumber(entry))) {
+    return null;
+  }
   return {
-    version: 4,
+    version: 5,
     phase: value.phase,
     week: value.week,
     timeLeft: value.timeLeft,
@@ -387,6 +421,8 @@ export function parseGameState(value: unknown): GameState | null {
     lastWeekEffects: effects,
     market: { food: value.market.food, clothes: value.market.clothes },
     economy,
+    stockPrice: value.stockPrice,
+    stockHistory: value.stockHistory as number[],
   };
 }
 

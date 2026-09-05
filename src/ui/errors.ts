@@ -64,6 +64,18 @@ export function errorMessage(error: EngineError): string {
       return t("errorNotOwned");
     case "notBroken":
       return t("errorNotBroken");
+    case "insufficientAccount":
+      return interpolate("errorInsufficientAccount", { needed: error.needed, have: error.have });
+    case "loanActive":
+      return t("errorLoanActive");
+    case "loanTooBig":
+      return interpolate("errorLoanTooBig", { limit: error.limit });
+    case "noLoan":
+      return t("errorNoLoan");
+    case "notEnoughShares":
+      return interpolate("errorNotEnoughShares", { have: error.have });
+    case "badAmount":
+      return t("errorBadAmount");
     default: {
       const exhaustive: never = error;
       return assertNever(exhaustive);

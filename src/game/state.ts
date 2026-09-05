@@ -1,5 +1,6 @@
 import { BOT_NAME, pickBotAvatar } from "./avatars";
 import { TIME_MAX, type LocationId } from "./catalog";
+import { STOCK_START_PRICE } from "./bank";
 import { startingEconomy } from "./economy";
 import { educationPoints } from "./diplomas";
 import { startingMarket } from "./market";
@@ -61,6 +62,9 @@ export function createPlayer(input: {
   deposit?: Player["deposit"];
   home?: Player["home"];
   items?: readonly OwnedItem[];
+  account?: number;
+  loan?: Player["loan"];
+  shares?: number;
 }): Player {
   return {
     id: input.id ?? "p1",
@@ -77,6 +81,9 @@ export function createPlayer(input: {
     studying: input.studying ?? null,
     home: input.home ?? { id: "stancja", rent: STARTING_RENT },
     items: input.items ?? [],
+    account: input.account ?? 0,
+    loan: input.loan ?? null,
+    shares: input.shares ?? 0,
     needs: input.needs ?? startingNeeds(),
     nextTimeLeft: input.nextTimeLeft ?? TIME_MAX,
     lastEvent: input.lastEvent ?? null,
@@ -87,7 +94,7 @@ export function createPlayer(input: {
 
 export function createSetup(rngSeed = 1): GameState {
   return {
-    version: 4,
+    version: 5,
     phase: "setup",
     week: 1,
     timeLeft: TIME_MAX,
@@ -101,6 +108,8 @@ export function createSetup(rngSeed = 1): GameState {
     lastWeekEffects: [],
     market: startingMarket(),
     economy: startingEconomy(),
+    stockPrice: STOCK_START_PRICE,
+    stockHistory: [STOCK_START_PRICE],
   };
 }
 
@@ -123,8 +132,12 @@ export type MatchOverrides = {
   needs?: Player["needs"];
   home?: Player["home"];
   items?: readonly OwnedItem[];
+  account?: number;
+  loan?: Player["loan"];
+  shares?: number;
   market?: Market;
   economy?: Economy;
+  stockPrice?: number;
 };
 
 export function createMatch(overrides: MatchOverrides = {}): GameState {
@@ -150,10 +163,13 @@ export function createMatch(overrides: MatchOverrides = {}): GameState {
     ...(overrides.studying !== undefined ? { studying: overrides.studying } : {}),
     ...(overrides.home !== undefined ? { home: overrides.home } : {}),
     ...(overrides.items !== undefined ? { items: overrides.items } : {}),
+    ...(overrides.account !== undefined ? { account: overrides.account } : {}),
+    ...(overrides.loan !== undefined ? { loan: overrides.loan } : {}),
+    ...(overrides.shares !== undefined ? { shares: overrides.shares } : {}),
   });
 
   return {
-    version: 4,
+    version: 5,
     phase: overrides.phase ?? "playing",
     week: overrides.week ?? 1,
     timeLeft: overrides.timeLeft ?? TIME_MAX,
@@ -167,6 +183,8 @@ export function createMatch(overrides: MatchOverrides = {}): GameState {
     lastWeekEffects: [],
     market: overrides.market ?? startingMarket(),
     economy: overrides.economy ?? startingEconomy(),
+    stockPrice: overrides.stockPrice ?? STOCK_START_PRICE,
+    stockHistory: [overrides.stockPrice ?? STOCK_START_PRICE],
   };
 }
 

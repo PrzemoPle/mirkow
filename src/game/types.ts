@@ -37,7 +37,8 @@ export type ActionId =
   | "restHome"
   | "restCafe"
   | "restGym"
-  | "deposit";
+  | "deposit"
+  | "eatOut";
 
 export type DiplomaId =
   | "kurs"
@@ -119,7 +120,8 @@ export type EventId =
   | "pit"
   | "promocja"
   | "napiwki"
-  | "spokoj";
+  | "spokoj"
+  | "kieszonkowiec";
 
 /** Karty pokazywane po zdarzeniach z pracy (nie losowane jak eventy). */
 export type NoticeId =
@@ -130,7 +132,38 @@ export type NoticeId =
   | "oblanyEgzamin"
   | "dyplom"
   | "zdzichu"
-  | "przeprowadzka";
+  | "przeprowadzka"
+  | "komornik";
+
+export type WeekendId =
+  | "spacerSkwer"
+  | "piwoKowalski"
+  | "rodzinaObiad"
+  | "deszczCalyWeekend"
+  | "kinoNaRogu"
+  | "zakupyImpuls"
+  | "serialMaraton"
+  | "abonament"
+  | "plytaNaWiezy"
+  | "fuchaKomputer"
+  | "granieNoc"
+  | "wycieczkaRower"
+  | "kanapaDrzemka"
+  | "pranieSasiadka"
+  | "lodowkaImpreza"
+  | "encyklopediaQuiz"
+  | "krysiaAwantura"
+  | "krysiaCiasto"
+  | "sasiedziGrill"
+  | "balkonKawa"
+  | "widokSkwer"
+  | "goscieApartament";
+
+export type Loan = {
+  principal: number;
+  /** Zaległe raty; dwie oznaczają komornika. */
+  missed: number;
+};
 
 export type WeekEffect =
   | { kind: "rent"; amount: number }
@@ -146,7 +179,11 @@ export type WeekEffect =
   | { kind: "exam"; diploma: DiplomaId; passed: boolean }
   | { kind: "theft"; item: ItemId }
   | { kind: "itemBroke"; item: ItemId }
-  | { kind: "homeHappiness"; amount: number };
+  | { kind: "homeHappiness"; amount: number }
+  | { kind: "weekend"; id: WeekendId; money: number; happiness: number }
+  | { kind: "installment"; amount: number; paid: boolean }
+  | { kind: "bailiff"; item: ItemId | null; cash: number }
+  | { kind: "pickpocket"; amount: number };
 
 export type Market = {
   food: number;
@@ -184,6 +221,10 @@ export type Player = {
   /** Umowa: mieszkanie i zamrożony czynsz z dnia podpisania. */
   home: { id: HomeId; rent: number };
   items: readonly OwnedItem[];
+  /** Konto w Naszej Kasie: bezpieczne od kieszonkowca. */
+  account: number;
+  loan: Loan | null;
+  shares: number;
   needs: { foodWeeks: number; clothesWeeks: number; suitWeeks: number };
   nextTimeLeft: number;
   lastEvent: EventId | null;
@@ -192,7 +233,7 @@ export type Player = {
 };
 
 export type GameState = {
-  version: 4;
+  version: 5;
   phase: Phase;
   week: number;
   timeLeft: number;
@@ -206,6 +247,9 @@ export type GameState = {
   lastWeekEffects: readonly WeekEffect[];
   market: Market;
   economy: Economy;
+  /** Kurs akcji MZT i ostatnie tygodnie do wykresu. */
+  stockPrice: number;
+  stockHistory: readonly number[];
 };
 
 export type GameAction =
@@ -225,4 +269,7 @@ export type GameAction =
   | { type: "buyItem"; item: ItemId; used: boolean }
   | { type: "sellItem"; item: ItemId }
   | { type: "repairItem"; item: ItemId }
+  | { type: "account"; amount: number }
+  | { type: "loan"; amount: number }
+  | { type: "trade"; shares: number }
   | { type: "endWeek" };

@@ -14,6 +14,7 @@ import {
   type BotStep,
   type EngineError,
   type DiplomaId,
+  type GameAction,
   type GameState,
   type HomeId,
   type ItemId,
@@ -238,6 +239,32 @@ export function renderApp(root: HTMLElement): void {
     checkVictory();
   }
 
+  function bankAction(action: GameAction): void {
+    if (!humanTurn() || shell === null) {
+      return;
+    }
+    const result = dispatch(state, action);
+    if (!result.ok) {
+      lastError = result.error;
+      paint();
+      return;
+    }
+    lastError = null;
+    const after = getHumanPlayer(result.state);
+    const line =
+      action.type === "account"
+        ? interpolate("actedAccount", { n: after?.account ?? 0 })
+        : action.type === "loan"
+          ? action.amount > 0
+            ? interpolate("actedLoanTaken", { n: action.amount })
+            : interpolate("actedLoanRepaid", { n: -action.amount })
+          : action.type === "trade"
+            ? interpolate("actedTrade", { n: action.shares, price: state.stockPrice })
+            : "";
+    commit(result.state, line);
+    checkVictory();
+  }
+
   async function askForRaise(): Promise<void> {
     if (!humanTurn() || shell === null) {
       return;
@@ -338,7 +365,13 @@ export function renderApp(root: HTMLElement): void {
         paint(line);
         shell.journal.add({ week: state.week, who: "bot", text: line });
         await wait(BOT_ACT_MS);
-      } else if (step.action.type === "sellItem" || step.action.type === "repairItem") {
+      } else if (
+        step.action.type === "sellItem" ||
+        step.action.type === "repairItem" ||
+        step.action.type === "account" ||
+        step.action.type === "loan" ||
+        step.action.type === "trade"
+      ) {
         state = step.state;
         paint();
         await wait(BOT_ACT_MS);
@@ -468,6 +501,7 @@ export function renderApp(root: HTMLElement): void {
       onBuy: (item, used) => tradeItem({ type: "buyItem", item, used }),
       onSell: (item) => tradeItem({ type: "sellItem", item }),
       onRepair: (item) => tradeItem({ type: "repairItem", item }),
+      onBank: bankAction,
       onEndWeek: () => {
         void applyEndWeek();
       },

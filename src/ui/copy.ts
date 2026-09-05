@@ -26,6 +26,7 @@ import type {
   Job,
   JobId,
   NoticeId,
+  WeekendId,
   WeekEffect,
 } from "../game/types";
 import { t, type MessageKey } from "../i18n";
@@ -59,6 +60,8 @@ function actionLabelKey(id: ActionId): MessageKey {
       return "actRestGym";
     case "deposit":
       return "actDeposit";
+    case "eatOut":
+      return "actEatOut";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -101,6 +104,8 @@ export function actedMessage(id: ActionId, wage: number): string {
       return t("actedRestGym");
     case "deposit":
       return interpolate("actedDeposit", { n: DEPOSIT_WEEKS });
+    case "eatOut":
+      return t("actedEatOut");
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -189,6 +194,59 @@ export function itemEffect(id: ItemId): string {
       return t("itemEffectEncyklopedia");
     case "rower":
       return t("itemEffectRower");
+    default: {
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
+export function weekendText(id: WeekendId): string {
+  switch (id) {
+    case "spacerSkwer":
+      return t("weekendSpacerSkwer");
+    case "piwoKowalski":
+      return t("weekendPiwoKowalski");
+    case "rodzinaObiad":
+      return t("weekendRodzinaObiad");
+    case "deszczCalyWeekend":
+      return t("weekendDeszczCalyWeekend");
+    case "kinoNaRogu":
+      return t("weekendKinoNaRogu");
+    case "zakupyImpuls":
+      return t("weekendZakupyImpuls");
+    case "serialMaraton":
+      return t("weekendSerialMaraton");
+    case "abonament":
+      return t("weekendAbonament");
+    case "plytaNaWiezy":
+      return t("weekendPlytaNaWiezy");
+    case "fuchaKomputer":
+      return t("weekendFuchaKomputer");
+    case "granieNoc":
+      return t("weekendGranieNoc");
+    case "wycieczkaRower":
+      return t("weekendWycieczkaRower");
+    case "kanapaDrzemka":
+      return t("weekendKanapaDrzemka");
+    case "pranieSasiadka":
+      return t("weekendPranieSasiadka");
+    case "lodowkaImpreza":
+      return t("weekendLodowkaImpreza");
+    case "encyklopediaQuiz":
+      return t("weekendEncyklopediaQuiz");
+    case "krysiaAwantura":
+      return t("weekendKrysiaAwantura");
+    case "krysiaCiasto":
+      return t("weekendKrysiaCiasto");
+    case "sasiedziGrill":
+      return t("weekendSasiedziGrill");
+    case "balkonKawa":
+      return t("weekendBalkonKawa");
+    case "widokSkwer":
+      return t("weekendWidokSkwer");
+    case "goscieApartament":
+      return t("weekendGoscieApartament");
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -380,6 +438,18 @@ export function blockReason(error: EngineError): string {
       return t("blockNotOwned");
     case "notBroken":
       return t("blockNotBroken");
+    case "insufficientAccount":
+      return interpolate("blockInsufficientAccount", { have: error.have });
+    case "loanActive":
+      return t("blockLoanActive");
+    case "loanTooBig":
+      return interpolate("blockLoanTooBig", { limit: error.limit });
+    case "noLoan":
+      return t("blockNoLoan");
+    case "notEnoughShares":
+      return interpolate("blockNotEnoughShares", { have: error.have });
+    case "badAmount":
+      return t("blockBadAmount");
     case "wrongPhase":
     case "alreadyThere":
     case "unknownLocation":
@@ -412,6 +482,8 @@ export function noticeTitle(id: NoticeId): string {
       return t("noticeZdzichu");
     case "przeprowadzka":
       return t("noticePrzeprowadzka");
+    case "komornik":
+      return t("noticeKomornik");
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -437,6 +509,8 @@ export function noticeEffect(id: NoticeId): string {
       return t("noticeZdzichuEffect").replace("{item}", "");
     case "przeprowadzka":
       return t("noticePrzeprowadzkaEffect").replace("{home}, {rent} zł / 4 tyg.", "");
+    case "komornik":
+      return t("noticeKomornikEffect");
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -466,6 +540,8 @@ export function eventTitle(id: EventId): string {
       return t("eventTitleNapiwki");
     case "spokoj":
       return t("eventTitleSpokoj");
+    case "kieszonkowiec":
+      return t("eventTitleKieszonkowiec");
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -495,6 +571,8 @@ export function eventEffect(id: EventId): string {
       return interpolate("eventEffectMoneyPlus", { n: NAPIWKI_MONEY });
     case "spokoj":
       return t("eventEffectNone");
+    case "kieszonkowiec":
+      return t("eventEffectPickpocket");
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -522,6 +600,27 @@ export function effectLine(effect: WeekEffect): string {
       return effect.reason === "reliability"
         ? interpolate("effectFired", { job: jobName(effect.job) })
         : interpolate("effectReduction", { job: jobName(effect.job) });
+    case "weekend": {
+      const text = weekendText(effect.id);
+      const bits = [text];
+      if (effect.money !== 0) {
+        bits.push(`${effect.money > 0 ? "+" : ""}${effect.money} zł.`);
+      }
+      if (effect.happiness !== 0) {
+        bits.push(`${effect.happiness > 0 ? "+" : ""}${effect.happiness} szczęścia.`);
+      }
+      return bits.join(" ");
+    }
+    case "installment":
+      return effect.paid
+        ? interpolate("effectInstallmentPaid", { amount: effect.amount })
+        : interpolate("effectInstallmentMissed", { amount: effect.amount });
+    case "bailiff":
+      return effect.item === null
+        ? interpolate("effectBailiffCash", { cash: effect.cash })
+        : interpolate("effectBailiffItem", { item: itemName(effect.item) });
+    case "pickpocket":
+      return interpolate("effectPickpocket", { amount: effect.amount });
     case "theft":
       return interpolate("effectTheft", { item: itemName(effect.item) });
     case "itemBroke":
@@ -587,6 +686,8 @@ export function eventMessage(id: EventId | null): string {
       return interpolate("eventNapiwki", { amount: NAPIWKI_MONEY });
     case "spokoj":
       return t("eventSpokoj");
+    case "kieszonkowiec":
+      return t("eventKieszonkowiec");
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);

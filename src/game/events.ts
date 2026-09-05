@@ -12,6 +12,7 @@ export const eventIds = [
   "promocja",
   "napiwki",
   "spokoj",
+  "kieszonkowiec",
 ] as const satisfies readonly EventId[];
 
 /** Wagi losowania: spokojny tydzień i napiwki ważą więcej, żeby gra nie karała co turę. */
@@ -26,6 +27,7 @@ export const EVENT_WEIGHTS: Record<EventId, number> = {
   promocja: 1,
   napiwki: 1.5,
   spokoj: 2.5,
+  kieszonkowiec: 1,
 };
 
 export type EventDef = {
@@ -64,6 +66,7 @@ export const EVENT_DEFS: Record<EventId, EventDef> = {
   promocja: { ...idle, id: "promocja", foodWeeks: PROMOCJA_FOOD },
   napiwki: { ...idle, id: "napiwki", money: NAPIWKI_MONEY },
   spokoj: { ...idle, id: "spokoj" },
+  kieszonkowiec: { ...idle, id: "kieszonkowiec" },
 };
 
 export function getEventDef(id: EventId): EventDef {

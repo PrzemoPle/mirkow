@@ -35,6 +35,10 @@ export const DEPOSIT_TIME = 1;
 export const DEPOSIT_COST = 1000;
 export const DEPOSIT_PAYOUT = 1080;
 export const DEPOSIT_WEEKS = 4;
+export const EAT_OUT_TIME = 1;
+export const EAT_OUT_COST = 25;
+export const EAT_OUT_FOOD = 1;
+export const EAT_OUT_HAPPINESS = 1;
 
 export type ActionDef = {
   id: ActionId;
@@ -49,6 +53,7 @@ export type ActionDef = {
   isWork: boolean;
   isClass: boolean;
   isExam: boolean;
+  addsFood: number;
   opensLokal: boolean;
   opensDeposit: boolean;
   foodWeeks: number | null;
@@ -65,6 +70,7 @@ const idle = {
   isWork: false,
   isClass: false,
   isExam: false,
+  addsFood: 0,
   opensLokal: false,
   opensDeposit: false,
   foodWeeks: null,
@@ -91,6 +97,7 @@ export const ACTION_DEFS: Record<ActionId, ActionDef> = {
   restCafe: { ...idle, id: "restCafe", locationId: "cafe", timeCost: REST_CAFE_TIME, moneyCost: REST_CAFE_COST, happiness: REST_CAFE_HAPPINESS },
   restGym: { ...idle, id: "restGym", locationId: "gym", timeCost: REST_GYM_TIME, moneyCost: REST_GYM_COST, happiness: REST_GYM_HAPPINESS },
   deposit: { ...idle, id: "deposit", locationId: "bank", timeCost: DEPOSIT_TIME, moneyCost: DEPOSIT_COST, opensDeposit: true },
+  eatOut: { ...idle, id: "eatOut", locationId: "kebab", timeCost: EAT_OUT_TIME, moneyCost: EAT_OUT_COST, happiness: EAT_OUT_HAPPINESS, addsFood: EAT_OUT_FOOD },
 };
 
 export function isActionId(value: string): value is ActionId {

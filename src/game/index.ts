@@ -8,6 +8,7 @@ export {
   getBotPlayer,
   getHumanPlayer,
   isHumanTurn,
+  actionBlockFor,
   buyItemBlock,
   enrollBlock,
   jobBlock,
@@ -86,6 +87,16 @@ export {
 } from "./items";
 export type { ItemDef, ItemZone } from "./items";
 export { playerTravelCost } from "./travel";
+export {
+  ACCOUNT_STEP,
+  LOAN_STEP,
+  loanInstallment,
+  loanLimit,
+  STOCK_LOT,
+  STOCK_HISTORY,
+  wealth,
+} from "./bank";
+export { getWeekendDef, WEEKEND_DEFS } from "./weekends";
 export { EVENT_DEFS, eventIds, pickEvent } from "./events";
 export type { EventDef } from "./events";
 export { FOOD_BASE, startingMarket } from "./market";
@@ -130,6 +141,7 @@ export type {
   Economy,
   HomeId,
   ItemId,
+  Loan,
   OwnedItem,
   EconomyPhase,
   EventId,
@@ -144,5 +156,6 @@ export type {
   SafetyNetKind,
   Stats,
   StudyProgress,
+  WeekendId,
   WeekEffect,
 } from "./types";

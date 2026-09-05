@@ -11,6 +11,7 @@ import { artImg, avatarArtUrl, diplomaArtUrl, hudIconUrl, stampArtUrl, type HudI
 import { diplomaName } from "./copy";
 import { el } from "./dom";
 import { economyLabel } from "./copy";
+import { wealth } from "../game";
 import { formatNumber, formatZl, interpolate, meterPercent } from "./format";
 
 type MeterField = "money" | "happiness" | "education" | "career";
@@ -72,12 +73,16 @@ export function buildTopBar(): TopBar {
   weekBlock.append(economy);
 
   const wallet = el("div", "wallet");
+  const moneyBlock = el("div", "money-block");
   const money = el("p", "money");
+  const accountLine = el("span", "money-extra");
+  accountLine.hidden = true;
+  moneyBlock.append(money, accountLine);
   const faces = el("div", "faces");
   const human = buildFace("face");
   const bot = buildFace("face face-bot");
   faces.append(human, bot);
-  wallet.append(money, faces);
+  wallet.append(moneyBlock, faces);
 
   root.append(brand, weekBlock, wallet);
 
@@ -122,6 +127,9 @@ export function buildTopBar(): TopBar {
       economy.classList.toggle("economy-recession", phase === "recession");
 
       money.textContent = formatZl(player.stats.money);
+      const extra = player.account + (player.deposit?.amount ?? 0) + player.shares * state.stockPrice - (player.loan?.principal ?? 0);
+      accountLine.hidden = extra === 0;
+      accountLine.textContent = `${t("wealthLabel")} ${formatZl(wealth(player, state.stockPrice))}`;
       if (lastMoney !== null && lastMoney !== player.stats.money) {
         money.classList.add("money-flash");
         window.setTimeout(() => money.classList.remove("money-flash"), 500);
@@ -179,15 +187,16 @@ export function buildStats(): StatsPanel {
         }
         const current = player.stats[meter.field];
         const target = state.goals[meter.field];
-        row.value.textContent = meter.money ? formatZl(current) : String(current);
+        const shown = meter.money ? wealth(player, state.stockPrice) : current;
+        row.value.textContent = meter.money ? formatZl(shown) : String(shown);
         row.goal.textContent = ` / ${meter.money ? formatNumber(target) : String(target)}`;
         row.value.append(row.goal);
-        const filled = Math.round((meterPercent(current, target) / 100) * SEGMENTS);
+        const filled = Math.round((meterPercent(shown, target) / 100) * SEGMENTS);
         row.segs.forEach((seg, index) => seg.classList.toggle("seg-on", index < filled));
-        row.item.classList.toggle("stat-done", current >= target);
+        row.item.classList.toggle("stat-done", shown >= target);
         row.bar.setAttribute("aria-valuemin", "0");
         row.bar.setAttribute("aria-valuemax", String(target));
-        row.bar.setAttribute("aria-valuenow", String(current));
+        row.bar.setAttribute("aria-valuenow", String(shown));
       }
     },
   };

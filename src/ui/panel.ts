@@ -11,6 +11,7 @@ import { t } from "../i18n";
 import { actionIconUrl, artImg, homeTileArtUrl, tileArtUrl, workIconUrl } from "./art";
 import { buildHomeBoard, buildRoomView, type HomeHandlers } from "./home";
 import { buildElektroBoard, buildLombardBoard, type ShopHandlers } from "./shops";
+import { buildBankBoard, type BankHandlers } from "./bank";
 import { buildCampusBoard, type CampusHandlers } from "./campus";
 import { buildJobsBoard, type JobsBoardHandlers } from "./jobs-board";
 import { getJobDef } from "../game";
@@ -21,7 +22,7 @@ import { formatZl, interpolate } from "./format";
 
 const CONFIRM_FROM = 3;
 
-export type PanelHandlers = JobsBoardHandlers & CampusHandlers & HomeHandlers & ShopHandlers & {
+export type PanelHandlers = JobsBoardHandlers & CampusHandlers & HomeHandlers & ShopHandlers & BankHandlers & {
   onAct(id: ActionId): void;
   onEndWeek(): void;
 };
@@ -111,6 +112,8 @@ export function buildPanel(handlers: PanelHandlers): Panel {
   elektro.root.hidden = true;
   const lombard = buildLombardBoard(shopHandlers);
   lombard.root.hidden = true;
+  const bank = buildBankBoard({ onBank: handlers.onBank });
+  bank.root.hidden = true;
 
   const endweek = el("div", "endweek");
   const confirm = el("div", "confirm");
@@ -128,7 +131,7 @@ export function buildPanel(handlers: PanelHandlers): Panel {
   endButton.textContent = t("endWeek");
   endweek.append(confirm, endButton);
 
-  root.append(place, acts, jobs.root, campus.root, homeBoard.root, elektro.root, lombard.root, endweek);
+  root.append(place, acts, jobs.root, campus.root, homeBoard.root, elektro.root, lombard.root, bank.root, endweek);
 
   let timeLeft = 0;
 
@@ -207,6 +210,11 @@ export function buildPanel(handlers: PanelHandlers): Panel {
       elektro.root.hidden = !atElektro;
       if (atElektro) {
         elektro.sync(scoped, player, humanTurn);
+      }
+      const atBank = player.locationId === "bank";
+      bank.root.hidden = !atBank;
+      if (atBank) {
+        bank.sync(scoped, player, humanTurn);
       }
       const atLombard = player.locationId === "lombard";
       lombard.root.hidden = !atLombard;

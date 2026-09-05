@@ -1282,3 +1282,74 @@
     display: none;
   }
 }
+
+/* Bank */
+.money-block {
+  display: grid;
+  justify-items: end;
+}
+
+.money-extra {
+  font-size: 0.72rem;
+  color: var(--text-3);
+  white-space: nowrap;
+}
+
+.money-extra[hidden] {
+  display: none;
+}
+
+.bank-wealth {
+  margin: 0;
+  font-family: var(--display);
+  font-weight: 650;
+  font-size: 0.95rem;
+}
+
+.bank-section {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.5rem 0.6rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  background: var(--table-2);
+}
+
+.bank-body {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.bank-line {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text-2);
+}
+
+.bank-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.bank-btn {
+  padding: 0.35rem 0.6rem;
+  font-size: 0.82rem;
+}
+
+.spark {
+  width: 100%;
+  max-width: 14rem;
+  height: 2.5rem;
+}
+
+.spark-line {
+  fill: none;
+  stroke: var(--accent-2);
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+.spark-dot {
+  fill: var(--paper);
+}

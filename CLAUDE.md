@@ -23,7 +23,7 @@ Turowa gra **Symulator życia** (Mirków). Vite + TypeScript, vanilla DOM, Vites
 - `switch` po uniach: `default` + `assertNever`.
 - Importy na górze pliku.
 - Nowe ID (akcja, event, lokacja): types → def → i18n → UI → test → ewentualnie PNG + `public/sw.js` (podbić `CACHE_NAME`).
-- Zapis: `mirkow.save.v4` (`version: 4`), parser w `save.ts` odrzuca śmieci; stare klucze v1–v3 dają status `outdated`.
+- Zapis: `mirkow.save.v5` (`version: 5`), parser w `save.ts` odrzuca śmieci; stare klucze v1–v4 dają status `outdated`.
 
 ## Tego nie ruszać bez decyzji produktowej
 
@@ -41,6 +41,7 @@ Turowa gra **Symulator życia** (Mirków). Vite + TypeScript, vanilla DOM, Vites
 - `src/ui/campus.ts` indeks w WSMiK (`enrollBlock`, szansa egzaminu)
 - `src/ui/home.ts` pokój z przedmiotami (sprite'y na strefach A/B/C) i umowy mieszkań
 - `src/ui/shops.ts` Elektro-Mir (nowe, naprawa) i Lombard (używane, skup)
+- `src/ui/bank.ts` Nasza Kasa: konto, kredyt, akcje z wykresem
 - `src/ui/hud.ts` pasek górny, bilety czasu, staty, potrzeby
 - `src/ui/overlays.ts` karta eventu, ekran zwycięstwa
 - `src/ui/journal.ts` dziennik tygodnia (stan UI, nie zapis)

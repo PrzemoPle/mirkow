@@ -104,7 +104,7 @@ describe("bot Kowalski", () => {
     expect(trace.steps.at(-1)?.action).toEqual({ type: "endWeek" });
     expect(trace.state).toEqual(playBotUntilIdle(start));
     for (const step of trace.steps) {
-      expect(step.state.version).toBe(4);
+      expect(step.state.version).toBe(5);
     }
   });
 

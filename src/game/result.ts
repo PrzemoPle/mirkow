@@ -30,7 +30,13 @@ export type EngineError =
   | { code: "noSlot"; slots: number }
   | { code: "alreadyOwned"; item: import("./types").ItemId }
   | { code: "notOwned"; item: import("./types").ItemId }
-  | { code: "notBroken"; item: import("./types").ItemId };
+  | { code: "notBroken"; item: import("./types").ItemId }
+  | { code: "insufficientAccount"; needed: number; have: number }
+  | { code: "loanActive" }
+  | { code: "loanTooBig"; limit: number }
+  | { code: "noLoan" }
+  | { code: "notEnoughShares"; have: number }
+  | { code: "badAmount" };
 
 export type EngineResult =
   | { ok: true; state: GameState }

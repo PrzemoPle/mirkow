@@ -1,6 +1,7 @@
 import { TIME_MAX } from "./catalog";
 import {
   resolveAction,
+  shiftWage,
   BARE_HAPPINESS_PENALTY,
   DEPOSIT_PAYOUT,
   DEPOSIT_WEEKS,
@@ -28,6 +29,22 @@ import {
   prerequisiteMet,
 } from "./diplomas";
 import { getEventDef, pickEvent } from "./events";
+import {
+  ACCOUNT_STEP,
+  BAILIFF_CASH_SHARE,
+  BANK_TIME,
+  LOAN_MISSED_LIMIT,
+  LOAN_STEP,
+  loanInstallment,
+  loanLimit,
+  PICKPOCKET_MAX,
+  PICKPOCKET_SHARE,
+  rollStockPrice,
+  STOCK_HISTORY,
+  STOCK_LOT,
+  wealth,
+} from "./bank";
+import { pickWeekend } from "./weekends";
 import {
   FIRE_MARGIN,
   getJobDef,
@@ -106,7 +123,7 @@ function clampMeter(value: number): number {
 
 function hasWon(state: GameState, player: Player): boolean {
   return (
-    player.stats.money >= state.goals.money &&
+    wealth(player, state.stockPrice) >= state.goals.money &&
     player.stats.happiness >= state.goals.happiness &&
     player.stats.education >= state.goals.education &&
     player.stats.career >= state.goals.career
@@ -347,7 +364,7 @@ function applyAction(state: GameState, def: ActionDef): EngineResult {
               ? hasWorking(current, "lodowka")
                 ? FRIDGE_FOOD_WEEKS
                 : def.foodWeeks
-              : current.needs.foodWeeks,
+              : current.needs.foodWeeks + def.addsFood,
           clothesWeeks:
             def.clothesWeeks !== null
               ? hasWorking(current, "pralka")
@@ -463,6 +480,7 @@ function performAct(state: GameState, actionId: ActionId): EngineResult {
     case "restCafe":
     case "restGym":
     case "deposit":
+    case "eatOut":
       return applyAction(state, resolveAction(state, actionId));
     default: {
       const exhaustive: never = actionId;
@@ -860,6 +878,14 @@ function applyEventHit(state: GameState): GameState {
   const picked = pickEvent(state.rngSeed);
   const def = getEventDef(picked.id);
   const shielded = picked.id === "pralka" && hasWorking(player, "pralka");
+  const stolen =
+    picked.id === "kieszonkowiec"
+      ? Math.min(PICKPOCKET_MAX, Math.round((Math.max(0, player.stats.money) * PICKPOCKET_SHARE) / 10) * 10)
+      : 0;
+  const effects: WeekEffect[] = [...state.lastWeekEffects, { kind: "event", id: picked.id }];
+  if (stolen > 0) {
+    effects.push({ kind: "pickpocket", amount: stolen });
+  }
 
   return {
     ...replaceActive(state, {
@@ -867,16 +893,254 @@ function applyEventHit(state: GameState): GameState {
       lastEvent: picked.id,
       stats: {
         ...player.stats,
-        money: player.stats.money + (shielded ? 0 : def.money),
+        money: player.stats.money + (shielded ? 0 : def.money) - stolen,
         happiness: clampMeter(player.stats.happiness + def.happiness),
       },
     }),
     rngSeed: picked.seed,
     lastEvent: picked.id,
+    lastWeekEffects: effects,
+  };
+}
+
+/** Konto: dodatnia kwota to wpłata, ujemna to wypłata. */
+function moveAccount(state: GameState, amount: number): EngineResult {
+  if (state.phase !== "playing") {
+    return fail({ code: "wrongPhase", phase: state.phase });
+  }
+  const player = getActive(state);
+  if (player === undefined) {
+    return fail({ code: "noActivePlayer" });
+  }
+  if (player.locationId !== "bank") {
+    return fail({ code: "wrongLocation", here: player.locationId, needed: "bank" });
+  }
+  if (!Number.isInteger(amount) || amount === 0 || amount % ACCOUNT_STEP !== 0) {
+    return fail({ code: "badAmount" });
+  }
+  if (amount > 0 && player.stats.money < amount) {
+    return fail({ code: "insufficientMoney", needed: amount, have: player.stats.money });
+  }
+  if (amount < 0 && player.account < -amount) {
+    return fail({ code: "insufficientAccount", needed: -amount, have: player.account });
+  }
+  const spent = spendTime(state, BANK_TIME);
+  if (!spent.ok) {
+    return spent;
+  }
+  const current = getActive(spent.state);
+  if (current === undefined) {
+    return fail({ code: "noActivePlayer" });
+  }
+  return ok(
+    replaceActive(spent.state, {
+      ...current,
+      account: current.account + amount,
+      stats: { ...current.stats, money: current.stats.money - amount },
+    }),
+  );
+}
+
+/** Kredyt: dodatnia kwota to zaciągnięcie (jeden naraz), ujemna to spłata. */
+function moveLoan(state: GameState, amount: number): EngineResult {
+  if (state.phase !== "playing") {
+    return fail({ code: "wrongPhase", phase: state.phase });
+  }
+  const player = getActive(state);
+  if (player === undefined) {
+    return fail({ code: "noActivePlayer" });
+  }
+  if (player.locationId !== "bank") {
+    return fail({ code: "wrongLocation", here: player.locationId, needed: "bank" });
+  }
+  if (!Number.isInteger(amount) || amount === 0 || amount % LOAN_STEP !== 0) {
+    return fail({ code: "badAmount" });
+  }
+  if (amount > 0) {
+    if (player.loan !== null) {
+      return fail({ code: "loanActive" });
+    }
+    const limit = loanLimit(shiftWage(state, player));
+    if (amount > limit) {
+      return fail({ code: "loanTooBig", limit });
+    }
+  } else {
+    if (player.loan === null) {
+      return fail({ code: "noLoan" });
+    }
+    const repay = Math.min(-amount, player.loan.principal);
+    if (player.stats.money < repay) {
+      return fail({ code: "insufficientMoney", needed: repay, have: player.stats.money });
+    }
+  }
+  const spent = spendTime(state, BANK_TIME);
+  if (!spent.ok) {
+    return spent;
+  }
+  const current = getActive(spent.state);
+  if (current === undefined) {
+    return fail({ code: "noActivePlayer" });
+  }
+  if (amount > 0) {
+    return ok(
+      replaceActive(spent.state, {
+        ...current,
+        loan: { principal: amount, missed: 0 },
+        stats: { ...current.stats, money: current.stats.money + amount },
+      }),
+    );
+  }
+  const principal = current.loan?.principal ?? 0;
+  const repay = Math.min(-amount, principal);
+  const remaining = principal - repay;
+  return ok(
+    replaceActive(spent.state, {
+      ...current,
+      loan: remaining > 0 ? { principal: remaining, missed: current.loan?.missed ?? 0 } : null,
+      stats: { ...current.stats, money: current.stats.money - repay },
+    }),
+  );
+}
+
+/** Akcje MZT: dodatnia liczba to kupno, ujemna sprzedaż; pakiety po 10. */
+function tradeShares(state: GameState, shares: number): EngineResult {
+  if (state.phase !== "playing") {
+    return fail({ code: "wrongPhase", phase: state.phase });
+  }
+  const player = getActive(state);
+  if (player === undefined) {
+    return fail({ code: "noActivePlayer" });
+  }
+  if (player.locationId !== "bank") {
+    return fail({ code: "wrongLocation", here: player.locationId, needed: "bank" });
+  }
+  if (!Number.isInteger(shares) || shares === 0 || shares % STOCK_LOT !== 0) {
+    return fail({ code: "badAmount" });
+  }
+  const cost = shares * state.stockPrice;
+  if (shares > 0 && player.stats.money < cost) {
+    return fail({ code: "insufficientMoney", needed: cost, have: player.stats.money });
+  }
+  if (shares < 0 && player.shares < -shares) {
+    return fail({ code: "notEnoughShares", have: player.shares });
+  }
+  const spent = spendTime(state, BANK_TIME);
+  if (!spent.ok) {
+    return spent;
+  }
+  const current = getActive(spent.state);
+  if (current === undefined) {
+    return fail({ code: "noActivePlayer" });
+  }
+  return ok(
+    withVictory(
+      replaceActive(spent.state, {
+        ...current,
+        shares: current.shares + shares,
+        stats: { ...current.stats, money: current.stats.money - cost },
+      }),
+    ),
+  );
+}
+
+/** Rata kredytu co 4 tygodnie: z gotówki, potem z konta; dwie zaległe to komornik. */
+function collectInstallment(state: GameState): GameState {
+  if (state.week % RENT_INTERVAL_WEEKS !== 0) {
+    return state;
+  }
+  const player = getActive(state);
+  if (player === undefined || player.loan === null) {
+    return state;
+  }
+  const due = loanInstallment(player.loan);
+  const available = player.stats.money + player.account;
+  const effects: WeekEffect[] = [...state.lastWeekEffects];
+  if (available >= due) {
+    const fromCash = Math.min(due, Math.max(0, player.stats.money));
+    const fromAccount = due - fromCash;
+    const interest = Math.round(player.loan.principal * 0.04);
+    const principal = Math.max(0, player.loan.principal - (due - interest));
+    effects.push({ kind: "installment", amount: due, paid: true });
+    return {
+      ...replaceActive(state, {
+        ...player,
+        stats: { ...player.stats, money: player.stats.money - fromCash },
+        account: player.account - fromAccount,
+        loan: principal > 0 ? { principal, missed: 0 } : null,
+      }),
+      lastWeekEffects: effects,
+    };
+  }
+  const missed = player.loan.missed + 1;
+  effects.push({ kind: "installment", amount: due, paid: false });
+  if (missed < LOAN_MISSED_LIMIT) {
+    return {
+      ...replaceActive(state, { ...player, loan: { ...player.loan, missed } }),
+      lastWeekEffects: effects,
+    };
+  }
+  const roll = advanceRng(state.rngSeed);
+  if (player.items.length > 0) {
+    const index = Math.min(player.items.length - 1, Math.floor(roll.value * player.items.length));
+    const taken = player.items[index];
+    effects.push({ kind: "bailiff", item: taken?.id ?? null, cash: 0 });
+    return {
+      ...replaceActive(state, {
+        ...player,
+        items: player.items.filter((_, position) => position !== index),
+        loan: { ...player.loan, missed: 0 },
+        lastNotice: "komornik",
+      }),
+      rngSeed: roll.seed,
+      lastWeekEffects: effects,
+    };
+  }
+  const cash = Math.round((Math.max(0, player.stats.money) * BAILIFF_CASH_SHARE) / 10) * 10;
+  effects.push({ kind: "bailiff", item: null, cash });
+  return {
+    ...replaceActive(state, {
+      ...player,
+      stats: { ...player.stats, money: player.stats.money - cash },
+      loan: { ...player.loan, missed: 0 },
+      lastNotice: "komornik",
+    }),
+    rngSeed: roll.seed,
+    lastWeekEffects: effects,
+  };
+}
+
+/** Weekend: jedna linijka zależna od tego, co gracz ma. */
+function applyWeekend(state: GameState): GameState {
+  const player = getActive(state);
+  if (player === undefined) {
+    return state;
+  }
+  const picked = pickWeekend(player, state.rngSeed);
+  const def = picked.def;
+  return {
+    ...replaceActive(state, {
+      ...player,
+      stats: {
+        ...player.stats,
+        money: player.stats.money + def.money,
+        happiness: clampMeter(player.stats.happiness + def.happiness),
+      },
+    }),
+    rngSeed: picked.seed,
     lastWeekEffects: [
       ...state.lastWeekEffects,
-      { kind: "event", id: picked.id },
+      { kind: "weekend", id: def.id, money: def.money, happiness: def.happiness },
     ],
+  };
+}
+
+function rollStock(state: GameState): GameState {
+  const rolled = rollStockPrice(state.stockPrice, state.economy.phase, state.rngSeed);
+  return {
+    ...state,
+    stockPrice: rolled.price,
+    stockHistory: [...state.stockHistory, rolled.price].slice(-STOCK_HISTORY),
+    rngSeed: rolled.seed,
   };
 }
 
@@ -1067,7 +1331,7 @@ function endWeek(state: GameState): EngineResult {
     lastEvent: null,
     lastWeekEffects: [],
   };
-  const rented = payDeposit(chargeRent(cleared));
+  const rented = payDeposit(collectInstallment(chargeRent(cleared)));
   const evented = applyEventHit(rented);
   const supported = withSafetyNetEffect(evented);
   const settled = withVictory(supported);
@@ -1075,7 +1339,7 @@ function endWeek(state: GameState): EngineResult {
     return ok(settled);
   }
 
-  const decayed = weeklyHappiness(wearItems(decayNeeds(settled)));
+  const decayed = applyWeekend(weeklyHappiness(wearItems(decayNeeds(settled))));
   const employed = checkEmployment(decayed);
   const fed = applyEventFood(employed);
   const penalized = applyNeedPenalties(fed);
@@ -1107,7 +1371,7 @@ function endWeek(state: GameState): EngineResult {
   }
 
   const economy = rollEconomyIfDue(handed);
-  const priced = rollMarket(economy);
+  const priced = rollStock(rollMarket(economy));
   return ok({
     ...priced,
     week: priced.week + 1,
@@ -1136,6 +1400,12 @@ export function dispatch(state: GameState, action: GameAction): EngineResult {
       return sellItem(state, action.item);
     case "repairItem":
       return repairItem(state, action.item);
+    case "account":
+      return moveAccount(state, action.amount);
+    case "loan":
+      return moveLoan(state, action.amount);
+    case "trade":
+      return tradeShares(state, action.shares);
     case "endWeek":
       return endWeek(state);
     default: {

@@ -24,6 +24,11 @@ function unwrap(result: EngineResult): GameState {
   return result.state;
 }
 
+function weekendMoney(state: GameState): number {
+  const found = state.lastWeekEffects.find((effect) => effect.kind === "weekend");
+  return found !== undefined && found.kind === "weekend" ? found.money : 0;
+}
+
 function playerOf(state: GameState) {
   const player = state.players[state.active];
   if (player === undefined) {
@@ -37,8 +42,8 @@ function seedFor(id: EventId): number {
 }
 
 describe("events", () => {
-  it("covers ten cards and picks the same one for a seed", () => {
-    expect(eventIds).toHaveLength(10);
+  it("covers eleven cards and picks the same one for a seed", () => {
+    expect(eventIds).toHaveLength(11);
     const first = pickEvent(9);
     const second = pickEvent(9);
     expect(first.id).toBe(second.id);
@@ -94,7 +99,7 @@ describe("events", () => {
       ),
     );
     expect(after.lastEvent).toBe("lotto");
-    expect(playerOf(after).stats.money).toBe(STARTING_MONEY + LOTTO_MONEY);
+    expect(playerOf(after).stats.money).toBe(STARTING_MONEY + LOTTO_MONEY + weekendMoney(after));
   });
 
   it("stocks a Żuczek promo after needs decay", () => {

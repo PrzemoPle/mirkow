@@ -98,6 +98,18 @@ export function itemArtUrl(id: ItemId | "garnitur"): string {
   }
 }
 
+export function accountIconUrl(): string {
+  return "./art/actions/account.png";
+}
+
+export function loanIconUrl(): string {
+  return "./art/actions/loan.png";
+}
+
+export function stocksIconUrl(): string {
+  return "./art/actions/stocks.png";
+}
+
 export function brokenIconUrl(): string {
   return "./art/ui/broken.png";
 }
@@ -186,6 +198,8 @@ export function eventArtUrl(id: EventId): string {
       return "./art/events/napiwki.png";
     case "spokoj":
       return "./art/events/spokoj.png";
+    case "kieszonkowiec":
+      return "./art/events/kieszonkowiec.png";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -211,6 +225,8 @@ export function noticeArtUrl(id: NoticeId): string {
       return "./art/events/zdzichu.png";
     case "przeprowadzka":
       return "./art/events/przeprowadzka.png";
+    case "komornik":
+      return "./art/events/komornik.png";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -303,7 +319,9 @@ export function actionIconUrl(id: ActionId): string {
     case "restGym":
       return "./art/actions/rest-gym.png";
     case "deposit":
-      return "./art/ui/stat-money.png";
+      return "./art/actions/account.png";
+    case "eatOut":
+      return "./art/actions/eat.png";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);

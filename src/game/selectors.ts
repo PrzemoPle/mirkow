@@ -2,7 +2,7 @@ import { playerTravelCost } from "./travel";
 import { dispatch } from "./reducer";
 import type { EngineError } from "./result";
 import type { LocationId } from "./catalog";
-import type { ActionId, DiplomaId, GameState, HomeId, ItemId, JobId, Player } from "./types";
+import type { ActionId, DiplomaId, GameAction, GameState, HomeId, ItemId, JobId, Player } from "./types";
 
 export function getActivePlayer(state: GameState): Player | undefined {
   return state.players[state.active];
@@ -75,5 +75,11 @@ export function sellItemBlock(state: GameState, item: ItemId): EngineError | nul
 
 export function repairItemBlock(state: GameState, item: ItemId): EngineError | null {
   const result = dispatch(state, { type: "repairItem", item });
+  return result.ok ? null : result.error;
+}
+
+/** Dry-run dowolnej akcji (konto, kredyt, akcje). */
+export function actionBlockFor(state: GameState, action: GameAction): EngineError | null {
+  const result = dispatch(state, action);
   return result.ok ? null : result.error;
 }

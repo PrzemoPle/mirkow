@@ -23,6 +23,12 @@ function errorOf(result: EngineResult): string {
   return result.error.code;
 }
 
+/** Linijka weekendu zmienia kasę i szczęście; testy liczą ją jawnie. */
+function weekendOf(state: GameState): { money: number; happiness: number } {
+  const found = state.lastWeekEffects.find((effect) => effect.kind === "weekend");
+  return found !== undefined && found.kind === "weekend" ? { money: found.money, happiness: found.happiness } : { money: 0, happiness: 0 };
+}
+
 function playerOf(state: GameState) {
   const player = state.players[state.active];
   if (player === undefined) {
@@ -81,9 +87,9 @@ describe("mieszkania", () => {
       items: [{ id: "telewizor", used: false, broken: false }],
     });
     const after = unwrap(dispatch(flat, { type: "endWeek" }));
-    expect(playerOf(after).stats.money).toBe(3000 - 1100);
+    expect(playerOf(after).stats.money).toBe(3000 - 1100 + weekendOf(after).money);
     expect(after.lastWeekEffects).toContainEqual({ kind: "homeHappiness", amount: 4 });
-    expect(playerOf(after).stats.happiness).toBe(20 + 4 - 1);
+    expect(playerOf(after).stats.happiness).toBe(20 + 4 - 1 + weekendOf(after).happiness);
     expect(playerOf(after).home.rent).toBe(1100);
   });
 });

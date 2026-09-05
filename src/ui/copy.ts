@@ -16,7 +16,7 @@ import { FIRE_MARGIN, getJobDef, jobLocation, RELIABILITY_DECAY, RELIABILITY_PER
 import { classesDone, examChance, getDiplomaDef } from "../game/diplomas";
 import { wealth } from "../game/bank";
 import { getHomeDef } from "../game/homes";
-import type { NpcId, RivalMood } from "./art";
+import type { NpcId, RivalMood, WeekendArtId } from "./art";
 import type { LocationId } from "../game/catalog";
 import type { EngineError } from "../game/result";
 import type {
@@ -986,6 +986,44 @@ export function rivalCard(id: NoticeId): { mood: RivalMood; text: string } | nul
       return { mood: "angry", text: t("rivalCardKomornik") };
     case "przeprowadzka":
       return null;
+    default: {
+      const exhaustive: never = id;
+      return assertNever(exhaustive);
+    }
+  }
+}
+
+/** Kategoria winiety dla linijki weekendu. */
+export function weekendArt(id: WeekendId): WeekendArtId {
+  switch (id) {
+    case "spacerSkwer":
+    case "balkonKawa":
+    case "widokSkwer":
+    case "kanapaDrzemka":
+      return "spokoj";
+    case "piwoKowalski":
+    case "lodowkaImpreza":
+    case "goscieApartament":
+    case "sasiedziGrill":
+      return "impreza";
+    case "deszczCalyWeekend":
+    case "krysiaAwantura":
+      return "deszcz";
+    case "wycieczkaRower":
+    case "kinoNaRogu":
+      return "wycieczka";
+    case "serialMaraton":
+    case "plytaNaWiezy":
+    case "granieNoc":
+    case "encyklopediaQuiz":
+    case "krysiaCiasto":
+      return "dom";
+    case "fuchaKomputer":
+    case "pranieSasiadka":
+    case "abonament":
+    case "zakupyImpuls":
+    case "rodzinaObiad":
+      return "kasa";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);

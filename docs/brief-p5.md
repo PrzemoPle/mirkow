@@ -1,5 +1,7 @@
 # Brief P5: trener od nowa, rekwizyty, winiety weekendów, karta instrukcji
 
+> **Dostarczone 5 września 2026 (P5b):** paczki P5-A i P5-B w komplecie, wpięte. Uwagi: `uwagi-p5b.md`. P5-C nadal opcjonalne.
+
 Data: 5 września 2026. Uzupełnia `brief-p4.md`, `uwagi-p4.md` i `uwagi-p4b.md`. Zamyka wszystkie otwarte pozycje grafik przed publikacją.
 
 ## Styl lock (bez zmian)

@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { ACTION_DEFS } from "../game/actions";
 import { createMatch } from "../game/state";
-import { actionCaption, actedMessage, eventMessage, jobLabel, npcLine, placeDescription, rivalCard, weekGoal, weekStatus } from "./copy";
+import { WEEKEND_DEFS } from "../game/weekends";
+import { actionCaption, actedMessage, eventMessage, jobLabel, npcLine, placeDescription, rivalCard, weekendArt, weekGoal, weekStatus } from "./copy";
 
 describe("copy", () => {
   it("puts time and wage on action captions", () => {
@@ -72,5 +73,11 @@ describe("copy", () => {
     expect(rivalCard("awans")?.mood).toBe("happy");
     expect(rivalCard("zwolnienie")?.mood).toBe("angry");
     expect(rivalCard("przeprowadzka")).toBeNull();
+  });
+
+  it("maps every weekend line to one of six vignettes", () => {
+    const seen = new Set(WEEKEND_DEFS.map((def) => weekendArt(def.id)));
+    expect(seen).toEqual(new Set(["spokoj", "impreza", "deszcz", "wycieczka", "dom", "kasa"]));
+    expect(weekendArt("piwoKowalski")).toBe("impreza");
   });
 });

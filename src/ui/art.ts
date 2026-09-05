@@ -176,6 +176,17 @@ export type NpcId =
   | "barista"
   | "trener";
 
+export type WeekendArtId = "spokoj" | "impreza" | "deszcz" | "wycieczka" | "dom" | "kasa";
+
+/** Winieta na pasku weekendu karty eventu: sześć obrazków na 22 linijki. */
+export function weekendArtUrl(id: WeekendArtId): string {
+  return `./art/weekends/${id}.png`;
+}
+
+export function instructionArtUrl(): string {
+  return "./art/brand/instrukcja.png";
+}
+
 export function npcArtUrl(id: NpcId): string {
   return `./art/npc/${id}.png`;
 }

@@ -29,7 +29,7 @@ import { eventArtUrl } from "./art";
 import { buildBoard, locationName } from "./board";
 import { browserStore } from "./browser-store";
 import type { SaveStore } from "../game/save";
-import { actedMessage, actionLabel, companyName, diplomaName, effectLine, eventMessage, homeName, itemName, jobName, noticeTitle, placeDescription, rivalCard, weekGoal } from "./copy";
+import { actedMessage, actionLabel, companyName, diplomaName, effectLine, eventMessage, homeName, itemName, jobName, noticeTitle, placeDescription, rivalCard, weekendArt, weekGoal } from "./copy";
 import { sellPrice } from "../game";
 import { el } from "./dom";
 import { errorMessage } from "./errors";
@@ -69,9 +69,9 @@ function humanEffects(effects: readonly WeekEffect[]): string[] {
   return effects.filter((effect) => effect.kind !== "event").map(effectLine);
 }
 
-function weekendLine(effects: readonly WeekEffect[]): string | undefined {
+function weekendFoot(effects: readonly WeekEffect[]): { text: string; art: ReturnType<typeof weekendArt> } | undefined {
   const weekend = effects.find((effect) => effect.kind === "weekend");
-  return weekend === undefined ? undefined : effectLine(weekend);
+  return weekend === undefined || weekend.kind !== "weekend" ? undefined : { text: effectLine(weekend), art: weekendArt(weekend.id) };
 }
 
 function isMobile(): boolean {
@@ -509,7 +509,7 @@ export function renderApp(root: HTMLElement): void {
         text: eventMessage(human.lastEvent),
         art: eventArtUrl(human.lastEvent),
       });
-      await showEventCard(human.lastEvent, "you", weekendLine(state.lastWeekEffects));
+      await showEventCard(human.lastEvent, "you", weekendFoot(state.lastWeekEffects));
     }
     if (human?.lastNotice !== null && human?.lastNotice !== undefined) {
       await showNoticeCard(human.lastNotice, "you");

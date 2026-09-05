@@ -1,6 +1,6 @@
 import { avatarColor, type AvatarId, type EventId, type GameState, type NoticeId, type Player } from "../game";
 import { t } from "../i18n";
-import { artImg, eventArtUrl, noticeArtUrl, rivalMoodUrl, stampArtUrl, stampWinUrl, type RivalMood } from "./art";
+import { artImg, eventArtUrl, instructionArtUrl, noticeArtUrl, rivalMoodUrl, stampArtUrl, stampWinUrl, weekendArtUrl, type RivalMood, type WeekendArtId } from "./art";
 import { eventEffect, eventTitle, noticeEffect, noticeTitle } from "./copy";
 import { el } from "./dom";
 import { formatZl, interpolate } from "./format";
@@ -24,12 +24,12 @@ type CardInput = {
   who: string;
   title: string;
   effect: string;
-  /** Linijka weekendu pod efektem eventu. */
-  foot?: string;
+  /** Linijka weekendu pod efektem eventu, z winietą. */
+  foot?: { text: string; art: WeekendArtId };
 };
 
 /** Pokazuje kartę eventu w pełnym kadrze i czeka na zamknięcie (klik albo czas). */
-export function showEventCard(id: EventId, who: "you" | "bot", foot?: string): Promise<void> {
+export function showEventCard(id: EventId, who: "you" | "bot", foot?: { text: string; art: WeekendArtId }): Promise<void> {
   return showCard({
     art: eventArtUrl(id),
     who: who === "you" ? t("eventYours") : t("eventBots"),
@@ -65,10 +65,13 @@ function showCard(input: CardInput): Promise<void> {
     close.textContent = t("eventClose");
     band.append(whoLine, title, effect);
     if (input.foot !== undefined) {
-      const foot = el("p", "card-foot");
+      const foot = el("div", "card-foot");
+      foot.append(artImg(weekendArtUrl(input.foot.art), "card-foot-art"));
+      const copy = el("p", "card-foot-copy");
       const label = el("span", "card-foot-label");
       label.textContent = t("weekendLabel");
-      foot.append(label, document.createTextNode(` ${input.foot}`));
+      copy.append(label, document.createTextNode(` ${input.foot.text}`));
+      foot.append(copy);
       band.append(foot);
     }
     band.append(close);
@@ -164,6 +167,7 @@ export function showVictory(input: VictoryInput): void {
 export function showHowToCard(): Promise<void> {
   return new Promise((resolve) => {
     const panel = el("div", "howto");
+    panel.append(artImg(instructionArtUrl(), "howto-art"));
     const head = el("div", "howto-head");
     head.append(artImg(stampArtUrl(), "howto-stamp"));
     const title = el("h2", "howto-title");

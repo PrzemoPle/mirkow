@@ -17,7 +17,7 @@
 /* Pasek górny */
 .top {
   display: grid;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: auto 1fr auto auto;
   align-items: center;
   gap: 0.6rem 1rem;
 }
@@ -118,46 +118,116 @@
   justify-self: end;
 }
 
-.audio-toggles {
-  display: flex;
-  gap: 0.25rem;
+/* Grupa „Dźwięk” w pasku górnym: wybór utworu i efekty */
+.audio {
+  display: grid;
+  grid-template-columns: auto auto;
+  grid-template-areas:
+    "caption caption"
+    "music sfx";
+  gap: 0.2rem 0.3rem;
+  justify-items: start;
 }
 
-.audio-toggle {
+.audio-caption {
+  grid-area: caption;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-3);
+}
+
+.audio-field {
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  min-height: 2.5rem;
-  padding: 0.3rem 0.55rem;
+  min-height: 2.25rem;
+  padding: 0.25rem 0.5rem;
   border: 1px solid var(--line);
   border-radius: var(--r);
-  background: none;
+  background: var(--table-2);
   color: var(--text-2);
+  font-family: var(--body);
   font-size: 0.78rem;
   font-weight: 600;
+  cursor: pointer;
 }
 
-.audio-toggle::before {
-  content: "";
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 50%;
-  background: var(--ok);
-  box-shadow: 0 0 0 2px rgb(143 168 111 / 0.25);
+.audio-music {
+  grid-area: music;
+}
+
+.audio-sfx {
+  grid-area: sfx;
+}
+
+.audio-field:hover {
+  border-color: var(--line-2);
+  color: var(--text);
 }
 
 .audio-off {
   color: var(--text-3);
 }
 
-.audio-off::before {
-  background: var(--line-2);
-  box-shadow: none;
+.audio-off .audio-glyph {
+  opacity: 0.45;
+  text-decoration: line-through;
 }
 
-.audio-toggle:hover {
-  border-color: var(--line-2);
+.audio-select {
+  max-width: 11rem;
+  padding: 0.1rem 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+}
+
+.audio-select option {
+  background: var(--table-2);
   color: var(--text);
+}
+
+.audio-glyph {
+  display: inline-grid;
+  place-items: center;
+  width: 1.1rem;
+  height: 1.1rem;
+  color: var(--accent-2);
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.audio-glyph-music::before {
+  content: "\266A";
+  font-family: var(--body);
+}
+
+.audio-glyph-sfx {
+  position: relative;
+}
+
+.audio-glyph-sfx::before {
+  content: "";
+  width: 0.7rem;
+  height: 0.7rem;
+  background: currentColor;
+  clip-path: polygon(0 32%, 32% 32%, 68% 5%, 68% 95%, 32% 68%, 0 68%);
+}
+
+.audio-glyph-sfx::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 22%;
+  width: 0.3rem;
+  height: 56%;
+  border: 1.5px solid currentColor;
+  border-left: 0;
+  border-radius: 0 50% 50% 0;
 }
 
 .money {
@@ -1046,13 +1116,25 @@
     grid-column: 2;
   }
 
-  .audio-toggle span {
+  .audio {
+    grid-row: 3;
+    grid-column: 1 / -1;
+    grid-template-columns: auto auto;
+    grid-template-areas: "music sfx";
+    justify-content: end;
+    gap: 0.3rem;
+  }
+
+  .audio-caption {
     display: none;
   }
 
-  .audio-toggle {
-    min-width: 2.5rem;
-    justify-content: center;
+  .audio-select {
+    max-width: 8rem;
+  }
+
+  .audio-text {
+    display: none;
   }
 
   .week-block {

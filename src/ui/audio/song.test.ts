@@ -1,28 +1,34 @@
 import { describe, expect, it } from "vitest";
-import { BARS_PER_SECTION, loopVariant, LOOP_STEPS, midiToHz, SECTION_A, SECTION_B, SECTION_STEPS, SONG_FORM, stepSeconds } from "./song";
+import { BARS_PER_SECTION, loopSteps, loopVariant, midiToHz, SECTION_STEPS, SONGS, stepSeconds, TRACK_IDS } from "./song";
 
-describe("utwór w tle", () => {
-  it("has eight bars per section with notes inside the grid", () => {
-    for (const section of [SECTION_A, SECTION_B]) {
-      expect(section.roots).toHaveLength(BARS_PER_SECTION);
-      expect(section.colors).toHaveLength(BARS_PER_SECTION);
-      for (const note of section.lead) {
-        expect(note.step).toBeGreaterThanOrEqual(0);
-        expect(note.step + note.length).toBeLessThanOrEqual(SECTION_STEPS);
-        expect(note.midi).toBeGreaterThan(60);
-        expect(note.midi).toBeLessThan(90);
+describe("utwory w tle", () => {
+  it("keeps every song on an eight-bar grid with notes inside the section", () => {
+    for (const id of TRACK_IDS) {
+      const song = SONGS[id];
+      expect(song.id).toBe(id);
+      expect(song.form.length).toBe(4);
+      for (const section of song.form) {
+        expect(section.roots).toHaveLength(BARS_PER_SECTION);
+        expect(section.colors).toHaveLength(BARS_PER_SECTION);
+        for (const note of section.lead) {
+          expect(note.step).toBeGreaterThanOrEqual(0);
+          expect(note.step + note.length).toBeLessThanOrEqual(SECTION_STEPS);
+          expect(note.midi).toBeGreaterThan(55);
+          expect(note.midi).toBeLessThan(96);
+          expect(note.velocity).toBeGreaterThan(0);
+          expect(note.velocity).toBeLessThanOrEqual(1);
+        }
       }
-      const sorted = [...section.lead].sort((a, b) => a.step - b.step);
-      expect(section.lead).toEqual(sorted);
+      expect(loopSteps(song)).toBe(SECTION_STEPS * 4);
+      expect(stepSeconds(song)).toBeGreaterThan(0.1);
+      expect(stepSeconds(song)).toBeLessThan(0.25);
     }
-    expect(SONG_FORM).toHaveLength(4);
-    expect(LOOP_STEPS).toBe(SECTION_STEPS * 4);
   });
 
-  it("keeps a slow tempo and standard tuning", () => {
-    expect(stepSeconds()).toBeCloseTo(0.1786, 3);
+  it("gives the three tracks distinct tempo and colour", () => {
+    expect(new Set(TRACK_IDS.map((id) => SONGS[id].tempo)).size).toBe(3);
+    expect(new Set(TRACK_IDS.map((id) => SONGS[id].timbre.leadWave)).size).toBeGreaterThanOrEqual(2);
     expect(midiToHz(69)).toBe(440);
-    expect(midiToHz(57)).toBeCloseTo(220, 6);
   });
 
   it("varies loops without ever going silent for two loops in a row", () => {

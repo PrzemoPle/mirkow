@@ -6,7 +6,11 @@ Data: 5 września 2026. Decyzja produktowa: gra ma muzykę w tle i efekty. Do te
 
 Muzyka i efekty są syntetyzowane na żywo przez Web Audio (`src/ui/audio/`). Zero megabajtów do pobrania, nic do precache, brak problemów z licencją. Brzmienie jest celowo w duchu gier DOS z lat 90.: kwadraty, trójkąt, prosty pad, pogłos.
 
-- `song.ts`: utwór jako dane. D-moll, 84 BPM, szesnastki, dwie sekcje po 8 taktów w formie AABB. Melodia, podstawy akordów i kolory (tercja, septyma) na takt. Warianty pętli: co drugie przejście melodia oktawę niżej i ciszej, co czwarte tylko bas i pad. Czysta logika, z testem.
+- `song.ts`: trzy utwory jako dane, każdy z własnym tempem i barwą (`Timbre`: fala i filtr leadu, pad, bas, ilość pogłosu):
+  - **Wieczór w Mirkowie**: D-moll, 84 BPM, spokojnie, lekko melancholijnie (domyślny),
+  - **Poranna zmiana**: G miksolidyjskie, 100 BPM, arpeggia ósemkowe jak z OPL3, rześko,
+  - **Nocna Buła**: a-moll, 70 BPM, rzadka melodia na trójkącie, dużo pogłosu.
+  Forma AABB, dwie sekcje po 8 taktów, szesnastki. Warianty pętli: co drugie przejście melodia oktawę niżej i ciszej, co czwarte tylko bas i pad. Czysta logika, z testem.
 - `engine.ts`: kontekst audio, pogłos (splot z wygenerowanym szumem), scheduler z wyprzedzeniem 120 ms, instrumenty i efekty.
   - lead: dwa kwadraty rozstrojone o ±7 centów przez filtr dolnoprzepustowy z opadającą częstotliwością,
   - bas: trójkąt z krótką obwiednią, podstawa na 1 i 3, kwinta na 4,
@@ -14,7 +18,7 @@ Muzyka i efekty są syntetyzowane na żywo przez Web Audio (`src/ui/audio/`). Ze
   - perkusja: cichy szum wysokoprzepustowy na 2 i 4,
   - efekty: dzwonek tramwaju (ruch), pieczątka (podanie, umowa, podwyżka), stuk (akcja), monety (płatna zmiana, bank, sklepy), papier (karta eventu), brzęczyk (błąd), trzy nuty w dół (koniec tygodnia), fanfara i lament (wygrana, przegrana), klik (przełączniki, karta Kowalskiego).
 - Start po pierwszym geście gracza (klik „Wejdź do Mirkowa”, „Kontynuuj” albo dowolny klik w grze), zgodnie z polityką autoplay przeglądarek.
-- Dwa przełączniki w pasku górnym: Muzyka i Dźwięki, stan w `localStorage` pod `mirkow.audio.v1`. Na telefonie tylko kropki z `aria-label`.
+- Grupa „Dźwięk” w pasku górnym: lista utworów (albo „Muzyka wyłączona”) i przycisk „Efekty”, stan w `localStorage` pod `mirkow.audio.v2` (`{music, track, sfx}`). Głośność muzyki 0.2, efektów 0.5 (`MUSIC_GAIN`, `SFX_GAIN` w `engine.ts`). Ikony do zamówienia: `brief-p6.md`.
 
 ## Gdyby miały wejść prawdziwe nagrania
 

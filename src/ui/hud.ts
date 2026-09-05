@@ -13,7 +13,7 @@ import { el } from "./dom";
 import { economyLabel } from "./copy";
 import { wealth } from "../game";
 import { formatNumber, formatZl, interpolate, meterPercent } from "./format";
-import { getAudioPrefs, onAudioPrefs, setAudioPrefs, sfx, type AudioPrefs } from "./audio";
+import { getAudioPrefs, onAudioPrefs, setAudioPrefs, sfx, TRACK_IDS, type AudioPrefs, type TrackId } from "./audio";
 
 type MeterField = "money" | "happiness" | "education" | "career";
 
@@ -74,7 +74,6 @@ export function buildTopBar(): TopBar {
   weekBlock.append(economy);
 
   const wallet = el("div", "wallet");
-  wallet.append(buildAudioToggles());
   const moneyBlock = el("div", "money-block");
   const money = el("p", "money");
   const accountLine = el("span", "money-extra");
@@ -86,7 +85,7 @@ export function buildTopBar(): TopBar {
   faces.append(human, bot);
   wallet.append(moneyBlock, faces);
 
-  root.append(brand, weekBlock, wallet);
+  root.append(brand, weekBlock, buildAudioToggles(), wallet);
 
   let lastMoney: number | null = null;
 
@@ -324,33 +323,77 @@ export function buildRivalRow(): RivalRow {
   };
 }
 
-function audioToggle(kind: keyof AudioPrefs, label: string): HTMLButtonElement {
-  const button = el("button", `audio-toggle audio-${kind}`);
-  button.type = "button";
-  button.setAttribute("aria-label", label);
-  const text = el("span");
-  text.textContent = label;
-  button.append(text);
+function trackName(id: TrackId): string {
+  switch (id) {
+    case "wieczor":
+      return t("trackWieczor");
+    case "poranek":
+      return t("trackPoranek");
+    case "noc":
+      return t("trackNoc");
+    default: {
+      const exhaustive: never = id;
+      return exhaustive;
+    }
+  }
+}
+
+/** Grupa „Dźwięk”: wybór utworu (albo cisza) i przełącznik efektów. Stan w localStorage. */
+export function buildAudioToggles(): HTMLElement {
+  const root = el("div", "audio");
+  root.setAttribute("role", "group");
+  root.setAttribute("aria-label", t("audioGroup"));
+  const caption = el("span", "audio-caption");
+  caption.textContent = t("audioGroup");
+
+  const musicLabel = el("label", "audio-field audio-music");
+  const musicIcon = el("span", "audio-glyph audio-glyph-music");
+  musicIcon.setAttribute("aria-hidden", "true");
+  const select = el("select", "audio-select");
+  select.setAttribute("aria-label", t("audioMusic"));
+  const off = el("option");
+  off.value = "off";
+  off.textContent = t("audioMusicOff");
+  select.append(off);
+  for (const id of TRACK_IDS) {
+    const option = el("option");
+    option.value = id;
+    option.textContent = trackName(id);
+    select.append(option);
+  }
+  musicLabel.append(musicIcon, select);
+
+  const sfxButton = el("button", "audio-field audio-sfx");
+  sfxButton.type = "button";
+  const sfxIcon = el("span", "audio-glyph audio-glyph-sfx");
+  sfxIcon.setAttribute("aria-hidden", "true");
+  const sfxText = el("span", "audio-text");
+  sfxText.textContent = t("audioSfx");
+  sfxButton.append(sfxIcon, sfxText);
+
   const sync = (prefs: AudioPrefs): void => {
-    const on = prefs[kind];
-    button.setAttribute("aria-pressed", on ? "true" : "false");
-    button.classList.toggle("audio-off", !on);
-    button.title = `${label}: ${on ? t("audioOn") : t("audioOff")}`;
+    select.value = prefs.music ? prefs.track : "off";
+    musicLabel.classList.toggle("audio-off", !prefs.music);
+    sfxButton.setAttribute("aria-pressed", prefs.sfx ? "true" : "false");
+    sfxButton.classList.toggle("audio-off", !prefs.sfx);
+    sfxButton.title = `${t("audioSfx")}: ${prefs.sfx ? t("audioOn") : t("audioOff")}`;
   };
   sync(getAudioPrefs());
   onAudioPrefs(sync);
-  button.addEventListener("click", () => {
+
+  select.addEventListener("change", () => {
     const prefs = getAudioPrefs();
-    setAudioPrefs({ ...prefs, [kind]: !prefs[kind] });
+    const value = select.value;
+    const track = (TRACK_IDS as readonly string[]).includes(value) ? (value as TrackId) : prefs.track;
+    setAudioPrefs({ ...prefs, music: value !== "off", track });
     sfx("ui");
   });
-  return button;
-}
+  sfxButton.addEventListener("click", () => {
+    const prefs = getAudioPrefs();
+    setAudioPrefs({ ...prefs, sfx: !prefs.sfx });
+    sfx("ui");
+  });
 
-/** Dwa przełączniki: muzyka i dźwięki. Stan trzymany w localStorage. */
-export function buildAudioToggles(): HTMLElement {
-  const root = el("div", "audio-toggles");
-  root.setAttribute("role", "group");
-  root.append(audioToggle("music", t("audioMusic")), audioToggle("sfx", t("audioSfx")));
+  root.append(caption, musicLabel, sfxButton);
   return root;
 }

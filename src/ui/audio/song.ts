@@ -1,13 +1,14 @@
 /**
- * „Wieczór w Mirkowie”: utwór w tle, zapisany jako dane, bez plików audio.
- * D-moll (dorycko z b6 w sekcji B), 84 BPM, szesnastki. Struktura AABB, 8 taktów na sekcję.
- * Silnik (engine.ts) gra to na dwóch rozstrojonych kwadratach, trójkątnym basie i padzie z pogłosem.
+ * Utwory w tle zapisane jako dane, bez plików audio. Silnik (engine.ts) gra je na syntezie Web Audio.
+ * Każdy utwór: tempo, forma z sekcji po 8 taktów (szesnastki) i barwa instrumentów.
  */
 
-export const TEMPO_BPM = 84;
 export const STEPS_PER_BAR = 16;
 export const BARS_PER_SECTION = 8;
 export const SECTION_STEPS = STEPS_PER_BAR * BARS_PER_SECTION;
+
+export type TrackId = "wieczor" | "poranek" | "noc";
+export const TRACK_IDS: readonly TrackId[] = ["wieczor", "poranek", "noc"];
 
 /** Nuta: krok w sekcji, wysokość MIDI, długość w krokach, głośność 0..1. */
 export type Note = { step: number; midi: number; length: number; velocity: number };
@@ -20,6 +21,47 @@ export type Section = {
   lead: readonly Note[];
 };
 
+export type Timbre = {
+  leadWave: OscillatorType;
+  /** Rozstrojenie dwóch oscylatorów leadu w centach. */
+  leadDetune: number;
+  /** Filtr leadu: start i koniec nuty (Hz). */
+  leadCutoff: readonly [number, number];
+  leadGain: number;
+  padWave: OscillatorType;
+  padGain: number;
+  padCutoff: readonly [number, number];
+  bassWave: OscillatorType;
+  bassGain: number;
+  reverbSend: number;
+  tickGain: number;
+};
+
+export type Song = {
+  id: TrackId;
+  tempo: number;
+  form: readonly Section[];
+  timbre: Timbre;
+};
+
+const n = (step: number, midi: number, length: number, velocity = 0.8): Note => ({ step, midi, length, velocity });
+
+/** Arpeggio na takt: kolejne interwały nad podstawą, po `stepLen` kroków, cicho. */
+function arp(bar: number, root: number, intervals: readonly number[], stepLen: number, velocity = 0.45): Note[] {
+  const out: Note[] = [];
+  for (let step = 0; step < STEPS_PER_BAR; step += stepLen) {
+    const interval = intervals[(step / stepLen) % intervals.length] ?? 0;
+    out.push(n(bar * STEPS_PER_BAR + step, root + interval, stepLen, velocity));
+  }
+  return out;
+}
+
+const MINOR7: readonly [number, number] = [3, 10];
+const DOM7: readonly [number, number] = [4, 10];
+const MAJ7: readonly [number, number] = [4, 11];
+
+/* ---------- 1. Wieczór w Mirkowie: D-moll, 84 BPM, spokojnie, lekko melancholijnie ---------- */
+
 const D2 = 38;
 const F2 = 41;
 const G2 = 43;
@@ -27,66 +69,36 @@ const A2 = 45;
 const Bb2 = 46;
 const C3 = 48;
 
-const n = (step: number, midi: number, length: number, velocity = 0.8): Note => ({ step, midi, length, velocity });
-
-/** Sekcja A: spokojna, obiegowa. Melodia w pentatonice d-moll z przejściami. */
-export const SECTION_A: Section = {
+const WIECZOR_A: Section = {
   roots: [D2, F2, C3, G2, D2, F2, A2, G2],
-  colors: [
-    [3, 10],
-    [4, 11],
-    [4, 10],
-    [3, 10],
-    [3, 10],
-    [4, 11],
-    [3, 10],
-    [4, 10],
-  ],
+  colors: [MINOR7, MAJ7, DOM7, MINOR7, MINOR7, MAJ7, MINOR7, DOM7],
   lead: [
-    // takt 1
     n(0, 74, 6),
     n(8, 72, 4, 0.7),
     n(12, 69, 4, 0.7),
-    // takt 2
     n(16, 72, 8),
     n(28, 74, 4, 0.6),
-    // takt 3
     n(32, 76, 6),
     n(40, 74, 4, 0.7),
     n(44, 72, 4, 0.7),
-    // takt 4
     n(48, 69, 10),
     n(60, 67, 4, 0.6),
-    // takt 5
     n(64, 74, 6),
     n(72, 77, 4, 0.75),
     n(76, 76, 4, 0.7),
-    // takt 6
     n(80, 72, 8),
     n(92, 74, 4, 0.6),
-    // takt 7
     n(96, 76, 4),
     n(100, 79, 4, 0.8),
     n(104, 77, 4, 0.7),
     n(108, 76, 4, 0.7),
-    // takt 8: wyciszenie na dominantę
     n(112, 74, 12),
   ],
 };
 
-/** Sekcja B: wyżej i bardziej melancholijnie, z b6 (B♭). */
-export const SECTION_B: Section = {
+const WIECZOR_B: Section = {
   roots: [Bb2, F2, C3, G2, Bb2, F2, C3, D2],
-  colors: [
-    [4, 11],
-    [4, 11],
-    [4, 10],
-    [3, 10],
-    [4, 11],
-    [4, 11],
-    [4, 10],
-    [3, 10],
-  ],
+  colors: [MAJ7, MAJ7, DOM7, MINOR7, MAJ7, MAJ7, DOM7, MINOR7],
   lead: [
     n(0, 77, 8),
     n(10, 76, 2, 0.6),
@@ -108,12 +120,162 @@ export const SECTION_B: Section = {
   ],
 };
 
-/** Kolejność sekcji w jednej pętli: AABB. */
-export const SONG_FORM: readonly Section[] = [SECTION_A, SECTION_A, SECTION_B, SECTION_B];
-export const LOOP_STEPS = SECTION_STEPS * SONG_FORM.length;
+export const WIECZOR: Song = {
+  id: "wieczor",
+  tempo: 84,
+  form: [WIECZOR_A, WIECZOR_A, WIECZOR_B, WIECZOR_B],
+  timbre: {
+    leadWave: "square",
+    leadDetune: 7,
+    leadCutoff: [2400, 900],
+    leadGain: 0.16,
+    padWave: "sawtooth",
+    padGain: 0.045,
+    padCutoff: [800, 1400],
+    bassWave: "triangle",
+    bassGain: 0.32,
+    reverbSend: 0.35,
+    tickGain: 0.05,
+  },
+};
 
-export function stepSeconds(): number {
-  return 60 / TEMPO_BPM / 4;
+/* ---------- 2. Poranna zmiana: G miksolidyjskie, 100 BPM, arpeggia jak z OPL3, rześko ---------- */
+
+const E2 = 40;
+const D3 = 50;
+
+const PORANEK_A: Section = {
+  roots: [G2, G2, C3, C3, F2, F2, D3, D3],
+  colors: [DOM7, DOM7, MAJ7, MAJ7, MAJ7, MAJ7, MINOR7, MINOR7],
+  lead: [
+    ...arp(0, G2, [24, 28, 31, 28], 2),
+    ...arp(1, G2, [24, 31, 34, 31], 2),
+    ...arp(2, C3, [24, 28, 31, 28], 2),
+    ...arp(3, C3, [24, 31, 35, 31], 2),
+    ...arp(4, F2, [24, 28, 31, 28], 2),
+    ...arp(5, F2, [24, 31, 35, 31], 2),
+    ...arp(6, D3, [12, 15, 19, 15], 2),
+    ...arp(7, D3, [12, 19, 22, 19], 2),
+    n(0, 79, 8, 0.7),
+    n(16, 83, 6, 0.7),
+    n(32, 84, 8, 0.7),
+    n(48, 79, 6, 0.6),
+    n(64, 81, 8, 0.7),
+    n(80, 77, 6, 0.6),
+    n(96, 74, 8, 0.7),
+    n(112, 76, 12, 0.6),
+  ],
+};
+
+const PORANEK_B: Section = {
+  roots: [E2, E2, C3, C3, G2, G2, D3, D3],
+  colors: [MINOR7, MINOR7, MAJ7, MAJ7, DOM7, DOM7, MINOR7, MINOR7],
+  lead: [
+    ...arp(0, E2, [24, 27, 31, 27], 2),
+    ...arp(1, E2, [24, 31, 34, 31], 2),
+    ...arp(2, C3, [24, 28, 31, 28], 2),
+    ...arp(3, C3, [24, 31, 35, 31], 2),
+    ...arp(4, G2, [24, 28, 31, 28], 2),
+    ...arp(5, G2, [24, 31, 34, 31], 2),
+    ...arp(6, D3, [12, 15, 19, 15], 2),
+    ...arp(7, D3, [12, 17, 19, 17], 2),
+    n(0, 83, 8, 0.7),
+    n(16, 79, 6, 0.6),
+    n(32, 84, 8, 0.7),
+    n(48, 83, 6, 0.6),
+    n(64, 79, 8, 0.7),
+    n(80, 81, 6, 0.6),
+    n(96, 86, 8, 0.7),
+    n(112, 83, 12, 0.6),
+  ],
+};
+
+export const PORANEK: Song = {
+  id: "poranek",
+  tempo: 100,
+  form: [PORANEK_A, PORANEK_A, PORANEK_B, PORANEK_B],
+  timbre: {
+    leadWave: "square",
+    leadDetune: 4,
+    leadCutoff: [3200, 1400],
+    leadGain: 0.11,
+    padWave: "triangle",
+    padGain: 0.07,
+    padCutoff: [1200, 1800],
+    bassWave: "square",
+    bassGain: 0.18,
+    reverbSend: 0.22,
+    tickGain: 0.07,
+  },
+};
+
+/* ---------- 3. Nocna Buła: a-moll, 70 BPM, rzadka melodia na trójkącie, dużo pogłosu ---------- */
+
+const A1 = 33;
+
+const NOC_A: Section = {
+  roots: [A2, F2, C3, G2, A2, F2, E2, E2],
+  colors: [MINOR7, MAJ7, MAJ7, DOM7, MINOR7, MAJ7, DOM7, DOM7],
+  lead: [
+    n(0, 81, 12, 0.9),
+    n(16, 79, 10, 0.8),
+    n(32, 76, 12, 0.85),
+    n(52, 74, 4, 0.6),
+    n(56, 76, 6, 0.6),
+    n(64, 81, 8, 0.9),
+    n(76, 84, 4, 0.7),
+    n(80, 83, 12, 0.8),
+    n(96, 79, 8, 0.8),
+    n(108, 80, 4, 0.7),
+    n(112, 81, 14, 0.85),
+  ],
+};
+
+const NOC_B: Section = {
+  roots: [D2, A2, D2, E2, F2, G2, A1, A2],
+  colors: [MINOR7, MINOR7, MINOR7, DOM7, MAJ7, DOM7, MINOR7, MINOR7],
+  lead: [
+    n(0, 77, 12, 0.85),
+    n(16, 76, 12, 0.8),
+    n(32, 74, 8, 0.8),
+    n(44, 77, 4, 0.6),
+    n(48, 80, 14, 0.85),
+    n(64, 81, 8, 0.85),
+    n(76, 79, 4, 0.6),
+    n(80, 77, 12, 0.8),
+    n(96, 76, 8, 0.75),
+    n(108, 72, 4, 0.6),
+    n(112, 69, 16, 0.85),
+  ],
+};
+
+export const NOC: Song = {
+  id: "noc",
+  tempo: 70,
+  form: [NOC_A, NOC_A, NOC_B, NOC_B],
+  timbre: {
+    leadWave: "triangle",
+    leadDetune: 9,
+    leadCutoff: [1800, 700],
+    leadGain: 0.3,
+    padWave: "sawtooth",
+    padGain: 0.04,
+    padCutoff: [600, 1000],
+    bassWave: "triangle",
+    bassGain: 0.36,
+    reverbSend: 0.55,
+    tickGain: 0.03,
+  },
+};
+
+export const SONGS: Record<TrackId, Song> = { wieczor: WIECZOR, poranek: PORANEK, noc: NOC };
+
+export function loopSteps(song: Song): number {
+  return SECTION_STEPS * song.form.length;
+}
+
+export function stepSeconds(song: Song): number {
+  return 60 / song.tempo / 4;
 }
 
 export function midiToHz(midi: number): number {

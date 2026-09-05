@@ -3,25 +3,28 @@
  * i trójkątnym basie, efekty syntetyzowane na miejscu. Wszystko rusza po pierwszym geście gracza.
  */
 import {
-  LOOP_STEPS,
+  loopSteps,
   loopVariant,
   midiToHz,
   SECTION_STEPS,
-  SONG_FORM,
+  SONGS,
   STEPS_PER_BAR,
   stepSeconds,
+  TRACK_IDS,
   type LoopVariant,
   type Section,
+  type Song,
+  type TrackId,
 } from "./song";
 
-export type AudioPrefs = { music: boolean; sfx: boolean };
+export type AudioPrefs = { music: boolean; track: TrackId; sfx: boolean };
 
-const PREFS_KEY = "mirkow.audio.v1";
-const MUSIC_GAIN = 0.3;
+const PREFS_KEY = "mirkow.audio.v2";
+const MUSIC_GAIN = 0.2;
 const SFX_GAIN = 0.5;
 const LOOKAHEAD_S = 0.12;
 const TICK_MS = 30;
-const DETUNE_CENTS = 7;
+const DEFAULT_PREFS: AudioPrefs = { music: true, track: "wieczor", sfx: true };
 
 export type SfxId = "move" | "act" | "coin" | "card" | "error" | "endWeek" | "stamp" | "victory" | "defeat" | "ui";
 
@@ -35,26 +38,36 @@ type Ctx = {
 };
 
 let ctx: Ctx | null = null;
-let prefs: AudioPrefs = { music: true, sfx: true };
+let prefs: AudioPrefs = DEFAULT_PREFS;
 let timer: number | null = null;
 let songStart = 0;
 let nextStep = 0;
+let playing: Song | null = null;
 let listeners: ((next: AudioPrefs) => void)[] = [];
+
+function isTrackId(value: unknown): value is TrackId {
+  return typeof value === "string" && (TRACK_IDS as readonly string[]).includes(value);
+}
 
 function readPrefs(): AudioPrefs {
   try {
     const raw = window.localStorage.getItem(PREFS_KEY);
     if (raw === null) {
-      return { music: true, sfx: true };
+      return DEFAULT_PREFS;
     }
     const parsed: unknown = JSON.parse(raw);
     if (typeof parsed === "object" && parsed !== null && "music" in parsed && "sfx" in parsed) {
-      return { music: Boolean((parsed as { music: unknown }).music), sfx: Boolean((parsed as { sfx: unknown }).sfx) };
+      const record = parsed as { music: unknown; sfx: unknown; track?: unknown };
+      return {
+        music: Boolean(record.music),
+        sfx: Boolean(record.sfx),
+        track: isTrackId(record.track) ? record.track : DEFAULT_PREFS.track,
+      };
     }
   } catch {
     /* brak zapisu: domyślnie włączone */
   }
-  return { music: true, sfx: true };
+  return DEFAULT_PREFS;
 }
 
 function writePrefs(next: AudioPrefs): void {
@@ -110,22 +123,24 @@ function ensureContext(): Ctx | null {
 
 /* ---------- muzyka ---------- */
 
-function playLead(c: Ctx, at: number, midi: number, lengthS: number, velocity: number): void {
+function playLead(c: Ctx, song: Song, at: number, midi: number, lengthS: number, velocity: number): void {
+  const { timbre } = song;
   const filter = c.context.createBiquadFilter();
   filter.type = "lowpass";
-  filter.frequency.setValueAtTime(2400, at);
-  filter.frequency.exponentialRampToValueAtTime(900, at + lengthS);
+  filter.frequency.setValueAtTime(timbre.leadCutoff[0], at);
+  filter.frequency.exponentialRampToValueAtTime(timbre.leadCutoff[1], at + lengthS);
   const env = c.context.createGain();
+  const peak = timbre.leadGain * velocity;
   env.gain.setValueAtTime(0, at);
-  env.gain.linearRampToValueAtTime(0.16 * velocity, at + 0.02);
-  env.gain.setValueAtTime(0.16 * velocity, at + Math.max(0.03, lengthS - 0.08));
+  env.gain.linearRampToValueAtTime(peak, at + 0.02);
+  env.gain.setValueAtTime(peak, at + Math.max(0.03, lengthS - 0.08));
   env.gain.linearRampToValueAtTime(0, at + lengthS);
   filter.connect(env);
   env.connect(c.music);
   env.connect(c.reverbSend);
-  for (const cents of [-DETUNE_CENTS, DETUNE_CENTS]) {
+  for (const cents of [-timbre.leadDetune, timbre.leadDetune]) {
     const osc = c.context.createOscillator();
-    osc.type = "square";
+    osc.type = timbre.leadWave;
     osc.frequency.value = midiToHz(midi);
     osc.detune.value = cents;
     osc.connect(filter);
@@ -134,13 +149,13 @@ function playLead(c: Ctx, at: number, midi: number, lengthS: number, velocity: n
   }
 }
 
-function playBass(c: Ctx, at: number, midi: number, lengthS: number, velocity: number): void {
+function playBass(c: Ctx, song: Song, at: number, midi: number, lengthS: number, velocity: number): void {
   const osc = c.context.createOscillator();
-  osc.type = "triangle";
+  osc.type = song.timbre.bassWave;
   osc.frequency.value = midiToHz(midi);
   const env = c.context.createGain();
   env.gain.setValueAtTime(0, at);
-  env.gain.linearRampToValueAtTime(0.32 * velocity, at + 0.015);
+  env.gain.linearRampToValueAtTime(song.timbre.bassGain * velocity, at + 0.015);
   env.gain.exponentialRampToValueAtTime(0.001, at + lengthS);
   osc.connect(env);
   env.connect(c.music);
@@ -148,15 +163,16 @@ function playBass(c: Ctx, at: number, midi: number, lengthS: number, velocity: n
   osc.stop(at + lengthS + 0.02);
 }
 
-function playPad(c: Ctx, at: number, midis: readonly number[], lengthS: number, open: boolean): void {
+function playPad(c: Ctx, song: Song, at: number, midis: readonly number[], lengthS: number, open: boolean): void {
+  const { timbre } = song;
   const filter = c.context.createBiquadFilter();
   filter.type = "lowpass";
-  filter.frequency.value = open ? 1400 : 800;
+  filter.frequency.value = open ? timbre.padCutoff[1] : timbre.padCutoff[0];
   filter.Q.value = 1.4;
   const env = c.context.createGain();
   env.gain.setValueAtTime(0, at);
-  env.gain.linearRampToValueAtTime(0.045, at + lengthS * 0.35);
-  env.gain.setValueAtTime(0.045, at + lengthS * 0.7);
+  env.gain.linearRampToValueAtTime(timbre.padGain, at + lengthS * 0.35);
+  env.gain.setValueAtTime(timbre.padGain, at + lengthS * 0.7);
   env.gain.linearRampToValueAtTime(0, at + lengthS);
   filter.connect(env);
   env.connect(c.music);
@@ -164,7 +180,7 @@ function playPad(c: Ctx, at: number, midis: readonly number[], lengthS: number, 
   for (const midi of midis) {
     for (const cents of [-5, 6]) {
       const osc = c.context.createOscillator();
-      osc.type = "sawtooth";
+      osc.type = timbre.padWave;
       osc.frequency.value = midiToHz(midi);
       osc.detune.value = cents;
       osc.connect(filter);
@@ -194,11 +210,12 @@ function playTick(c: Ctx, at: number, gain: number): void {
   source.start(at);
 }
 
-function scheduleStep(c: Ctx, step: number, at: number): void {
-  const loopIndex = Math.floor(step / LOOP_STEPS);
-  const inLoop = step % LOOP_STEPS;
+function scheduleStep(c: Ctx, song: Song, step: number, at: number): void {
+  const total = loopSteps(song);
+  const loopIndex = Math.floor(step / total);
+  const inLoop = step % total;
   const sectionIndex = Math.floor(inLoop / SECTION_STEPS);
-  const section: Section | undefined = SONG_FORM[sectionIndex];
+  const section: Section | undefined = song.form[sectionIndex];
   if (section === undefined) {
     return;
   }
@@ -206,27 +223,27 @@ function scheduleStep(c: Ctx, step: number, at: number): void {
   const bar = Math.floor(inSection / STEPS_PER_BAR);
   const inBar = inSection % STEPS_PER_BAR;
   const variant: LoopVariant = loopVariant(loopIndex);
-  const stepS = stepSeconds();
+  const stepS = stepSeconds(song);
   const root = section.roots[bar];
   const color = section.colors[bar];
   if (root === undefined || color === undefined) {
     return;
   }
   if (inBar === 0) {
-    playBass(c, at, root, stepS * 7, 1);
-    playPad(c, at, [root + 12, root + 12 + color[0], root + 12 + color[1]], stepS * STEPS_PER_BAR, variant.padOpen);
+    playBass(c, song, at, root, stepS * 7, 1);
+    playPad(c, song, at, [root + 12, root + 12 + color[0], root + 12 + color[1]], stepS * STEPS_PER_BAR, variant.padOpen);
   } else if (inBar === 8) {
-    playBass(c, at, root, stepS * 5, 0.8);
+    playBass(c, song, at, root, stepS * 5, 0.8);
   } else if (inBar === 12) {
-    playBass(c, at, root + 7, stepS * 3, 0.55);
+    playBass(c, song, at, root + 7, stepS * 3, 0.55);
   }
   if (inBar === 4 || inBar === 12) {
-    playTick(c, at, inBar === 4 ? 0.05 : 0.035);
+    playTick(c, at, inBar === 4 ? song.timbre.tickGain : song.timbre.tickGain * 0.7);
   }
   if (variant.leadGain > 0) {
     for (const note of section.lead) {
       if (note.step === inSection) {
-        playLead(c, at, note.midi + variant.leadOctave, note.length * stepS, note.velocity * variant.leadGain);
+        playLead(c, song, at, note.midi + variant.leadOctave, note.length * stepS, note.velocity * variant.leadGain);
       }
     }
   }
@@ -234,21 +251,29 @@ function scheduleStep(c: Ctx, step: number, at: number): void {
 
 function tick(): void {
   const c = ctx;
-  if (c === null) {
+  const song = playing;
+  if (c === null || song === null) {
     return;
   }
-  const stepS = stepSeconds();
+  const stepS = stepSeconds(song);
   while (songStart + nextStep * stepS < c.context.currentTime + LOOKAHEAD_S) {
-    scheduleStep(c, nextStep, songStart + nextStep * stepS);
+    scheduleStep(c, song, nextStep, songStart + nextStep * stepS);
     nextStep += 1;
   }
 }
 
-function startMusic(): void {
+function startMusic(track: TrackId): void {
   const c = ensureContext();
-  if (c === null || timer !== null) {
+  if (c === null) {
     return;
   }
+  if (timer !== null && playing?.id === track) {
+    return;
+  }
+  stopMusic();
+  const song = SONGS[track];
+  playing = song;
+  c.reverbSend.gain.value = song.timbre.reverbSend;
   songStart = c.context.currentTime + 0.05;
   nextStep = 0;
   timer = window.setInterval(tick, TICK_MS);
@@ -260,6 +285,7 @@ function stopMusic(): void {
     window.clearInterval(timer);
     timer = null;
   }
+  playing = null;
 }
 
 /* ---------- efekty ---------- */
@@ -366,7 +392,7 @@ export function unlockAudio(): void {
     void c.context.resume();
   }
   if (prefs.music) {
-    startMusic();
+    startMusic(prefs.track);
   }
 }
 
@@ -382,23 +408,39 @@ export function getAudioPrefs(): AudioPrefs {
 }
 
 export function setAudioPrefs(next: AudioPrefs): void {
+  const previous = prefs;
   prefs = next;
   writePrefs(next);
   const c = ctx;
   if (c !== null) {
     const now = c.context.currentTime;
-    c.music.gain.cancelScheduledValues(now);
-    c.music.gain.linearRampToValueAtTime(next.music ? MUSIC_GAIN : 0, now + 0.3);
     c.sfx.gain.value = next.sfx ? SFX_GAIN : 0;
-    if (next.music && timer === null) {
-      startMusic();
-    }
-    if (!next.music) {
+    const trackChanged = next.music && previous.track !== next.track && timer !== null;
+    if (trackChanged) {
+      // Krótkie ściszenie, zmiana utworu, powrót głośności: bez trzasku.
+      c.music.gain.cancelScheduledValues(now);
+      c.music.gain.linearRampToValueAtTime(0, now + 0.25);
       window.setTimeout(() => {
-        if (!prefs.music) {
-          stopMusic();
+        if (prefs.music && prefs.track === next.track) {
+          startMusic(next.track);
+          const later = c.context.currentTime;
+          c.music.gain.cancelScheduledValues(later);
+          c.music.gain.linearRampToValueAtTime(MUSIC_GAIN, later + 0.4);
         }
-      }, 400);
+      }, 300);
+    } else {
+      c.music.gain.cancelScheduledValues(now);
+      c.music.gain.linearRampToValueAtTime(next.music ? MUSIC_GAIN : 0, now + 0.3);
+      if (next.music && timer === null) {
+        startMusic(next.track);
+      }
+      if (!next.music) {
+        window.setTimeout(() => {
+          if (!prefs.music) {
+            stopMusic();
+          }
+        }, 400);
+      }
     }
   }
   for (const listener of listeners) {

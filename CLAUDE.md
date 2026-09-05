@@ -48,4 +48,4 @@ Turowa gra **Symulator życia** (Mirków). Vite + TypeScript, vanilla DOM, Vites
 - `src/ui/setup.ts` ekran startu z presetami długości partii
 - `src/styles/*.css` tokeny (jeden ciemny motyw, zablokowany), base, game, overlays, setup
 
-Kierunek wizualny: „Wieczór w Mirkowie”, patrz `docs/przeglad-2026-09-05.md`. Briefy grafik: `docs/brief-p2.md`, `brief-p3.md`, `brief-p4.md`. Audyt UX i status napraw: `docs/audyt-ux-2026-09-05.md`.
+Kierunek wizualny: „Wieczór w Mirkowie”, patrz `docs/przeglad-2026-09-05.md`. Briefy grafik: `docs/brief-p2.md`, `brief-p3.md`, `brief-p4.md`, `brief-p5.md`. Audyt UX i status napraw: `docs/audyt-ux-2026-09-05.md`.

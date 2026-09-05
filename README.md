@@ -4,7 +4,9 @@ Turowa satyra życia w fikcyjnym polskim mieście **Mirków**. Inspiracja: Jones
 
 Gracz ma pulę czasu na tydzień, chodzi po mapie i zbiera cztery progi: pieniądze, szczęście, wykształcenie, kariera. Przeciwnik: bot Kowalski.
 
-**Handoff (stan, budowa, czego brakuje z założeń):** [CZYTAJ-TO.md](CZYTAJ-TO.md)
+**Pełny opis gry, budowy i decyzji:** [OPIS-GRY.md](OPIS-GRY.md)
+
+**Starszy handoff z tabelą liczb:** [CZYTAJ-TO.md](CZYTAJ-TO.md)
 
 ## Uruchomienie
 

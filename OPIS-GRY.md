@@ -253,6 +253,7 @@ Kod ma fallback na brakujące pliki (szary kafelek, ikona zastępcza), więc now
 | `CLAUDE.md` | reguły kodu dla agenta AI |
 | `docs/przeglad-2026-09-05.md` | diagnoza „dlaczego wyglądało jak formularz” i plan E1–E4 |
 | `docs/projekt-glebia.md` | model rozgrywki na wzór Jonesa, etapy G1–G5, źródła |
+| `docs/audyt-ux-2026-09-05.md` | audyt UX/UI po G5 z kolejnością napraw i briefem P4 (postacie Mirkowa) |
 | `docs/zalozenia.md`, `docs/decyzje.md` | pierwotna intencja i cięcia MVP (część historyczna) |
 | `docs/grafika.md`, `docs/brief-*.md` | paleta, wymiary i zakazy dla bitmap |
 | `docs/warianty-grafiki/` | archiwum prób stylu, nie wchodzi do builda |

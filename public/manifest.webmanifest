@@ -1,0 +1,25 @@
+{
+  "name": "Symulator życia",
+  "short_name": "Mirków",
+  "description": "Turowa gra: tydzień w Mirkowie. Cztery progi, jedna pula czasu.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#E8DCC8",
+  "theme_color": "#E8DCC8",
+  "lang": "pl",
+  "icons": [
+    {
+      "src": "./icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "./icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}

@@ -1,7 +1,9 @@
 name: Deploy to GitHub Pages
 
-# Uruchamiany ręcznie, dopóki GitHub Pages nie jest włączone dla repo (prywatne repo wymaga planu Pro albo upublicznienia).
+# Deploy z main na GitHub Pages (repo publiczne na czas testów; po powrocie do prywatnego Pages gaśnie).
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
 
 permissions:

@@ -7,22 +7,22 @@ Turowa gra **Symulator życia** (Mirków). Vite + TypeScript, vanilla DOM, Vites
 - TypeScript strict (`noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`)
 - Vite `base: './'` (GitHub Pages)
 - UI: DOM, bez React/Vue
-- Testy: `npm test` → `src/**/*.test.ts`
-- Dev: `npm run dev` / build: `npm run build`
+- Testy: `npm test` → `src/**/*.test.ts`; smoke e2e: `npm run build && npm run test:e2e` (Playwright, `e2e/`)
+- Dev: `npm run dev` / build: `npm run build`; CI: `.github/workflows/ci.yml` (test, build, Playwright), deploy na Pages: `deploy.yml` (ręcznie)
 
 ## Granice
 
 - Silnik (`src/game/`) nie importuje DOM.
 - Mutacja stanu tylko przez `dispatch` → `EngineResult`.
 - Copy gracza wyłącznie w `src/i18n/pl.ts` (bez em dash, analogi marek).
-- Bitmapy: nazwy w `src/ui/art.ts` = pliki w `public/art/`. Zero tekstu i logotypów na PNG.
+- Bitmapy: źródła PNG w `art-src/art/`, gra serwuje WebP z `public/art/` (`npm run art:webp`, wymaga Pythona z Pillow). Nazwy w `src/ui/art.ts` = pliki `.webp`. Zero tekstu i logotypów na bitmapach.
 - Nie dodawać Lottie, GIF, walk cycle, @2x, dźwięku, ani nowych lokacji „przy okazji”.
 
 ## Wzorce
 
 - `switch` po uniach: `default` + `assertNever`.
 - Importy na górze pliku.
-- Nowe ID (akcja, event, lokacja): types → def → i18n → UI → test → ewentualnie PNG + `public/sw.js` (podbić `CACHE_NAME`).
+- Nowe ID (akcja, event, lokacja): types → def → i18n → UI → test → ewentualnie PNG do `art-src/` + `npm run art:webp`. Service worker generuje `vite-plugin-pwa` (precache z hashami, bez ręcznego bumpowania).
 - Zapis: `mirkow.save.v5` (`version: 5`), parser w `save.ts` odrzuca śmieci; stare klucze v1–v4 dają status `outdated`.
 
 ## Tego nie ruszać bez decyzji produktowej

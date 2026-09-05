@@ -4,35 +4,35 @@ import type { ActionId, AvatarId, DiplomaId, EventId, HomeId, ItemId, NoticeId }
 import { el } from "./dom";
 
 /** Placeholder dla bitmap, które jeszcze nie przyszły od ilustratora (brief P3). */
-const MISSING_TILE = "./art/tiles/park.png";
-const MISSING_ICON = "./art/ui/need-job.png";
-const MISSING_DIPLOMA = "./art/ui/stat-education.png";
-const MISSING_CARD = "./art/events/spokoj.png";
+const MISSING_TILE = "./art/tiles/park.webp";
+const MISSING_ICON = "./art/ui/need-job.webp";
+const MISSING_DIPLOMA = "./art/ui/stat-education.webp";
+const MISSING_CARD = "./art/events/spokoj.webp";
 
 export function tileArtUrl(id: LocationId): string {
   switch (id) {
     case "pup":
-      return "./art/tiles/pup.png";
+      return "./art/tiles/pup.webp";
     case "campus":
-      return "./art/tiles/campus.png";
+      return "./art/tiles/campus.webp";
     case "bank":
-      return "./art/tiles/bank.png";
+      return "./art/tiles/bank.webp";
     case "zajezdnia":
-      return "./art/tiles/zajezdnia.png";
+      return "./art/tiles/zajezdnia.webp";
     case "cafe":
-      return "./art/tiles/cafe.png";
+      return "./art/tiles/cafe.webp";
     case "elektro":
-      return "./art/tiles/elektro.png";
+      return "./art/tiles/elektro.webp";
     case "gym":
-      return "./art/tiles/gym.png";
+      return "./art/tiles/gym.webp";
     case "home":
-      return "./art/tiles/home.png";
+      return "./art/tiles/home.webp";
     case "shop":
-      return "./art/tiles/shop.png";
+      return "./art/tiles/shop.webp";
     case "lombard":
-      return "./art/tiles/lombard.png";
+      return "./art/tiles/lombard.webp";
     case "kebab":
-      return "./art/tiles/kebab.png";
+      return "./art/tiles/kebab.webp";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -44,11 +44,11 @@ export function tileArtUrl(id: LocationId): string {
 export function homeTileArtUrl(id: HomeId): string {
   switch (id) {
     case "stancja":
-      return "./art/tiles/home.png";
+      return "./art/tiles/home.webp";
     case "kawalerka":
-      return "./art/tiles/home-kawalerka.png";
+      return "./art/tiles/home-kawalerka.webp";
     case "apartament":
-      return "./art/tiles/home-apartament.png";
+      return "./art/tiles/home-apartament.webp";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -59,11 +59,11 @@ export function homeTileArtUrl(id: HomeId): string {
 export function roomArtUrl(id: HomeId): string {
   switch (id) {
     case "stancja":
-      return "./art/rooms/stancja.png";
+      return "./art/rooms/stancja.webp";
     case "kawalerka":
-      return "./art/rooms/kawalerka.png";
+      return "./art/rooms/kawalerka.webp";
     case "apartament":
-      return "./art/rooms/apartament.png";
+      return "./art/rooms/apartament.webp";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -74,23 +74,23 @@ export function roomArtUrl(id: HomeId): string {
 export function itemArtUrl(id: ItemId | "garnitur"): string {
   switch (id) {
     case "lodowka":
-      return "./art/items/lodowka.png";
+      return "./art/items/lodowka.webp";
     case "pralka":
-      return "./art/items/pralka.png";
+      return "./art/items/pralka.webp";
     case "kanapa":
-      return "./art/items/kanapa.png";
+      return "./art/items/kanapa.webp";
     case "telewizor":
-      return "./art/items/telewizor.png";
+      return "./art/items/telewizor.webp";
     case "wieza":
-      return "./art/items/wieza.png";
+      return "./art/items/wieza.webp";
     case "komputer":
-      return "./art/items/komputer.png";
+      return "./art/items/komputer.webp";
     case "encyklopedia":
-      return "./art/items/encyklopedia.png";
+      return "./art/items/encyklopedia.webp";
     case "rower":
-      return "./art/items/rower.png";
+      return "./art/items/rower.webp";
     case "garnitur":
-      return "./art/items/garnitur.png";
+      return "./art/items/garnitur.webp";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -99,53 +99,53 @@ export function itemArtUrl(id: ItemId | "garnitur"): string {
 }
 
 export function accountIconUrl(): string {
-  return "./art/actions/account.png";
+  return "./art/actions/account.webp";
 }
 
 export function loanIconUrl(): string {
-  return "./art/actions/loan.png";
+  return "./art/actions/loan.webp";
 }
 
 export function stocksIconUrl(): string {
-  return "./art/actions/stocks.png";
+  return "./art/actions/stocks.webp";
 }
 
 export function brokenIconUrl(): string {
-  return "./art/ui/broken.png";
+  return "./art/ui/broken.webp";
 }
 
 export function moveIconUrl(): string {
-  return "./art/actions/move.png";
+  return "./art/actions/move.webp";
 }
 
 export function buyItemIconUrl(): string {
-  return "./art/actions/buy-item.png";
+  return "./art/actions/buy-item.webp";
 }
 
 export function sellIconUrl(): string {
-  return "./art/actions/sell.png";
+  return "./art/actions/sell.webp";
 }
 
 export function repairIconUrl(): string {
-  return "./art/actions/repair.png";
+  return "./art/actions/repair.webp";
 }
 
 export function parkArtUrl(): string {
-  return "./art/tiles/park.png";
+  return "./art/tiles/park.webp";
 }
 
 export function avatarArtUrl(id: AvatarId): string {
   switch (id) {
     case "ola":
-      return "./art/avatars/ola.png";
+      return "./art/avatars/ola.webp";
     case "bartek":
-      return "./art/avatars/bartek.png";
+      return "./art/avatars/bartek.webp";
     case "nati":
-      return "./art/avatars/nati.png";
+      return "./art/avatars/nati.webp";
     case "marek":
-      return "./art/avatars/marek.png";
+      return "./art/avatars/marek.webp";
     case "kowalski":
-      return "./art/avatars/kowalski.png";
+      return "./art/avatars/kowalski.webp";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -160,7 +160,7 @@ export function rivalMoodUrl(id: AvatarId, mood: RivalMood): string {
   if (id !== "kowalski" || mood === "neutral") {
     return avatarArtUrl(id);
   }
-  return mood === "happy" ? "./art/avatars/kowalski-zadowolony.png" : "./art/avatars/kowalski-wkurzony.png";
+  return mood === "happy" ? "./art/avatars/kowalski-zadowolony.webp" : "./art/avatars/kowalski-wkurzony.webp";
 }
 
 export type NpcId =
@@ -180,29 +180,29 @@ export type WeekendArtId = "spokoj" | "impreza" | "deszcz" | "wycieczka" | "dom"
 
 /** Winieta na pasku weekendu karty eventu: sześć obrazków na 22 linijki. */
 export function weekendArtUrl(id: WeekendArtId): string {
-  return `./art/weekends/${id}.png`;
+  return `./art/weekends/${id}.webp`;
 }
 
 export function instructionArtUrl(): string {
-  return "./art/brand/instrukcja.png";
+  return "./art/brand/instrukcja.webp";
 }
 
 export function npcArtUrl(id: NpcId): string {
-  return `./art/npc/${id}.png`;
+  return `./art/npc/${id}.webp`;
 }
 
 export function pawnArtUrl(id: AvatarId): string {
   switch (id) {
     case "ola":
-      return "./art/pawns/ola.png";
+      return "./art/pawns/ola.webp";
     case "bartek":
-      return "./art/pawns/bartek.png";
+      return "./art/pawns/bartek.webp";
     case "nati":
-      return "./art/pawns/nati.png";
+      return "./art/pawns/nati.webp";
     case "marek":
-      return "./art/pawns/marek.png";
+      return "./art/pawns/marek.webp";
     case "kowalski":
-      return "./art/pawns/kowalski.png";
+      return "./art/pawns/kowalski.webp";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -211,33 +211,33 @@ export function pawnArtUrl(id: AvatarId): string {
 }
 
 export function stampArtUrl(): string {
-  return "./art/brand/stamp.png";
+  return "./art/brand/stamp.webp";
 }
 
 export function eventArtUrl(id: EventId): string {
   switch (id) {
     case "korek":
-      return "./art/events/korek.png";
+      return "./art/events/korek.webp";
     case "lotto":
-      return "./art/events/lotto.png";
+      return "./art/events/lotto.webp";
     case "pralka":
-      return "./art/events/pralka.png";
+      return "./art/events/pralka.webp";
     case "tesciowa":
-      return "./art/events/tesciowa.png";
+      return "./art/events/tesciowa.webp";
     case "aukcje":
-      return "./art/events/aukcje.png";
+      return "./art/events/aukcje.webp";
     case "kontrola":
-      return "./art/events/kontrola.png";
+      return "./art/events/kontrola.webp";
     case "pit":
-      return "./art/events/pit.png";
+      return "./art/events/pit.webp";
     case "promocja":
-      return "./art/events/promocja.png";
+      return "./art/events/promocja.webp";
     case "napiwki":
-      return "./art/events/napiwki.png";
+      return "./art/events/napiwki.webp";
     case "spokoj":
-      return "./art/events/spokoj.png";
+      return "./art/events/spokoj.webp";
     case "kieszonkowiec":
-      return "./art/events/kieszonkowiec.png";
+      return "./art/events/kieszonkowiec.webp";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -248,23 +248,23 @@ export function eventArtUrl(id: EventId): string {
 export function noticeArtUrl(id: NoticeId): string {
   switch (id) {
     case "zwolnienie":
-      return "./art/events/zwolnienie.png";
+      return "./art/events/zwolnienie.webp";
     case "redukcja":
-      return "./art/events/redukcja.png";
+      return "./art/events/redukcja.webp";
     case "podwyzka":
-      return "./art/events/podwyzka.png";
+      return "./art/events/podwyzka.webp";
     case "awans":
-      return "./art/events/awans.png";
+      return "./art/events/awans.webp";
     case "oblanyEgzamin":
-      return "./art/events/oblany-egzamin.png";
+      return "./art/events/oblany-egzamin.webp";
     case "dyplom":
-      return "./art/events/dyplom.png";
+      return "./art/events/dyplom.webp";
     case "zdzichu":
-      return "./art/events/zdzichu.png";
+      return "./art/events/zdzichu.webp";
     case "przeprowadzka":
-      return "./art/events/przeprowadzka.png";
+      return "./art/events/przeprowadzka.webp";
     case "komornik":
-      return "./art/events/komornik.png";
+      return "./art/events/komornik.webp";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -292,29 +292,29 @@ export type HudIconId = (typeof hudIconIds)[number];
 export function hudIconUrl(id: HudIconId): string {
   switch (id) {
     case "stat-money":
-      return "./art/ui/stat-money.png";
+      return "./art/ui/stat-money.webp";
     case "stat-happiness":
-      return "./art/ui/stat-happiness.png";
+      return "./art/ui/stat-happiness.webp";
     case "stat-education":
-      return "./art/ui/stat-education.png";
+      return "./art/ui/stat-education.webp";
     case "stat-career":
-      return "./art/ui/stat-career.png";
+      return "./art/ui/stat-career.webp";
     case "need-food":
-      return "./art/ui/need-food.png";
+      return "./art/ui/need-food.webp";
     case "need-clothes":
-      return "./art/ui/need-clothes.png";
+      return "./art/ui/need-clothes.webp";
     case "need-job":
-      return "./art/ui/need-job.png";
+      return "./art/ui/need-job.webp";
     case "time":
-      return "./art/ui/time.png";
+      return "./art/ui/time.webp";
     case "reliability":
-      return "./art/ui/reliability.png";
+      return "./art/ui/reliability.webp";
     case "experience":
-      return "./art/ui/experience.png";
+      return "./art/ui/experience.webp";
     case "boom":
-      return "./art/ui/boom.png";
+      return "./art/ui/boom.webp";
     case "recession":
-      return "./art/ui/recession.png";
+      return "./art/ui/recession.webp";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -323,43 +323,43 @@ export function hudIconUrl(id: HudIconId): string {
 }
 
 export function boardMatUrl(): string {
-  return "./art/ui/board-mat-dark.png";
+  return "./art/ui/board-mat-dark.webp";
 }
 
 export function panoramaUrl(): string {
-  return "./art/brand/panorama.png";
+  return "./art/brand/panorama.webp";
 }
 
 export function stampWinUrl(): string {
-  return "./art/brand/stamp-win.png";
+  return "./art/brand/stamp-win.webp";
 }
 
 export function actionIconUrl(id: ActionId): string {
   switch (id) {
     case "work":
-      return "./art/actions/work-kebab.png";
+      return "./art/actions/work-kebab.webp";
     case "openLokal":
-      return "./art/actions/open-lokal.png";
+      return "./art/actions/open-lokal.webp";
     case "attendClass":
-      return "./art/actions/study-course.png";
+      return "./art/actions/study-course.webp";
     case "takeExam":
-      return "./art/actions/exam.png";
+      return "./art/actions/exam.webp";
     case "buyFood":
-      return "./art/actions/buy-food.png";
+      return "./art/actions/buy-food.webp";
     case "buyClothes":
-      return "./art/actions/buy-clothes.png";
+      return "./art/actions/buy-clothes.webp";
     case "buySuit":
-      return "./art/actions/suit.png";
+      return "./art/actions/suit.webp";
     case "restHome":
-      return "./art/actions/rest-home.png";
+      return "./art/actions/rest-home.webp";
     case "restCafe":
-      return "./art/actions/rest-cafe.png";
+      return "./art/actions/rest-cafe.webp";
     case "restGym":
-      return "./art/actions/rest-gym.png";
+      return "./art/actions/rest-gym.webp";
     case "deposit":
-      return "./art/actions/deposit.png";
+      return "./art/actions/deposit.webp";
     case "eatOut":
-      return "./art/actions/eat.png";
+      return "./art/actions/eat.webp";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -371,15 +371,15 @@ export function actionIconUrl(id: ActionId): string {
 export function workIconUrl(company: "kebab" | "shop" | "bank" | "pup" | "depot"): string {
   switch (company) {
     case "kebab":
-      return "./art/actions/work-kebab.png";
+      return "./art/actions/work-kebab.webp";
     case "shop":
-      return "./art/actions/work-shop.png";
+      return "./art/actions/work-shop.webp";
     case "bank":
-      return "./art/actions/work-bank.png";
+      return "./art/actions/work-bank.webp";
     case "pup":
-      return "./art/actions/work-pup.png";
+      return "./art/actions/work-pup.webp";
     case "depot":
-      return "./art/actions/work-depot.png";
+      return "./art/actions/work-depot.webp";
     default: {
       const exhaustive: never = company;
       return assertNever(exhaustive);
@@ -390,19 +390,19 @@ export function workIconUrl(company: "kebab" | "shop" | "bank" | "pup" | "depot"
 export function diplomaArtUrl(id: DiplomaId): string {
   switch (id) {
     case "kurs":
-      return "./art/diplomas/kurs.png";
+      return "./art/diplomas/kurs.webp";
     case "matura":
-      return "./art/diplomas/matura.png";
+      return "./art/diplomas/matura.webp";
     case "zarzadzanie":
-      return "./art/diplomas/zarzadzanie.png";
+      return "./art/diplomas/zarzadzanie.webp";
     case "ekonomia":
-      return "./art/diplomas/ekonomia.png";
+      return "./art/diplomas/ekonomia.webp";
     case "administracja":
-      return "./art/diplomas/administracja.png";
+      return "./art/diplomas/administracja.webp";
     case "inzynieria":
-      return "./art/diplomas/inzynieria.png";
+      return "./art/diplomas/inzynieria.webp";
     case "magister":
-      return "./art/diplomas/magister.png";
+      return "./art/diplomas/magister.webp";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);
@@ -411,11 +411,11 @@ export function diplomaArtUrl(id: DiplomaId): string {
 }
 
 export function applyIconUrl(): string {
-  return "./art/actions/apply.png";
+  return "./art/actions/apply.webp";
 }
 
 export function raiseIconUrl(): string {
-  return "./art/actions/raise.png";
+  return "./art/actions/raise.webp";
 }
 
 type ArtKind = "tile" | "icon" | "card" | "diploma" | "none";

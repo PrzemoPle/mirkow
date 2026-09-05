@@ -6,7 +6,7 @@ import "./styles/base.css";
 import "./styles/game.css";
 import "./styles/overlays.css";
 import "./styles/setup.css";
-import { registerServiceWorker } from "./pwa";
+import { registerSW } from "virtual:pwa-register";
 import { renderApp } from "./ui/app";
 
 const app = document.getElementById("app");
@@ -16,4 +16,6 @@ if (app === null) {
 }
 
 renderApp(app);
-registerServiceWorker();
+if (import.meta.env.PROD) {
+  registerSW({ immediate: true });
+}

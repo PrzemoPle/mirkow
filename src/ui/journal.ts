@@ -36,7 +36,7 @@ export function buildJournal(): Journal {
   title.textContent = t("journalTitle");
   const list = el("ol", "journal-list");
   list.setAttribute("aria-live", "polite");
-  const empty = el("li", "entry");
+  const empty = el("li", "entry entry-empty");
   empty.textContent = t("journalEmpty");
   list.append(empty);
   root.append(title, list);

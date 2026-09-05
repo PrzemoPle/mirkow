@@ -37,3 +37,8 @@ export function interpolate(
 export function needTone(weeks: number): "needOk" | "needLow" {
   return weeks > 0 ? "needOk" : "needLow";
 }
+
+/** Pierwsza litera wielka, reszta bez zmian: nazwy stanowisk w danych są z małej. */
+export function firstUpper(text: string): string {
+  return text.charAt(0).toLocaleUpperCase("pl-PL") + text.slice(1);
+}

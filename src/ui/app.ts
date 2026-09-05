@@ -564,7 +564,10 @@ export function renderApp(root: HTMLElement): void {
     }
     if (!isHumanTurn(state) && state.phase === "playing") {
       void runBotTurn();
+      return;
     }
+    // Wznowienie w trakcie tury: zaległa karta z pracy człowieka, potem gra.
+    void showHumanNotice();
   }
 
   function mountSetup(): void {

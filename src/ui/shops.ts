@@ -102,7 +102,7 @@ function attach(list: HTMLElement, handlers: ShopHandlers): void {
 /** Elektro-Mir: nowe sprzęty i naprawa zepsutych. */
 export function buildElektroBoard(handlers: ShopHandlers): ShopBoard {
   const root = el("div", "jobs shop-board");
-  const title = el("p", "acts-title");
+  const title = el("h3", "acts-title");
   title.textContent = t("elektroTitle");
   const hint = el("p", "jobs-hint");
   hint.textContent = t("elektroHint");
@@ -145,7 +145,7 @@ export function buildElektroBoard(handlers: ShopHandlers): ShopBoard {
 /** Lombard: używane sprzęty i skup własnych. */
 export function buildLombardBoard(handlers: ShopHandlers): ShopBoard {
   const root = el("div", "jobs shop-board");
-  const title = el("p", "acts-title");
+  const title = el("h3", "acts-title");
   title.textContent = t("lombardTitle");
   const hint = el("p", "jobs-hint");
   hint.textContent = t("lombardHint");

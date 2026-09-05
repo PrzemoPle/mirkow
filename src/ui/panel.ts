@@ -96,7 +96,7 @@ export function buildPanel(handlers: PanelHandlers): Panel {
   const acts = el("div", "acts");
   acts.setAttribute("role", "group");
   acts.setAttribute("aria-label", t("actionsLabel"));
-  const actsTitle = el("p", "acts-title");
+  const actsTitle = el("h3", "acts-title");
   actsTitle.textContent = t("placeActions");
   const list = el("div", "acts-list");
   list.className = "acts";

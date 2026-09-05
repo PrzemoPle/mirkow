@@ -6,6 +6,7 @@
   place-items: center;
   padding: 1rem;
   background: rgb(10 8 6 / 0.72);
+  overscroll-behavior: contain;
   animation: fade-in 200ms var(--ease);
 }
 

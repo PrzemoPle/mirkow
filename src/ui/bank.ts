@@ -88,7 +88,7 @@ function section(icon: string, title: string): { root: HTMLElement; body: HTMLEl
 /** Nasza Kasa: konto, kredyt i akcje MZT z wykresem. */
 export function buildBankBoard(handlers: BankHandlers): BankBoard {
   const root = el("div", "jobs bank-board");
-  const title = el("p", "acts-title");
+  const title = el("h3", "acts-title");
   title.textContent = t("bankTitle");
   const hint = el("p", "jobs-hint");
   hint.textContent = t("bankHint");

@@ -95,7 +95,7 @@ export function buildRoomView(): RoomView {
 /** Lista trzech mieszkań z powodem blokady i stawką z dnia. */
 export function buildHomeBoard(handlers: HomeHandlers): HomeBoard {
   const root = el("div", "jobs home-board");
-  const title = el("p", "acts-title");
+  const title = el("h3", "acts-title");
   title.textContent = t("homeTitle");
   const hint = el("p", "jobs-hint");
   hint.textContent = t("homeHint");

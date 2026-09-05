@@ -4,9 +4,9 @@ import { artImg, avatarArtUrl, eventArtUrl, noticeArtUrl, stampWinUrl } from "./
 import { eventEffect, eventTitle, noticeEffect, noticeTitle } from "./copy";
 import { el } from "./dom";
 import { formatZl, interpolate } from "./format";
-import { wait } from "./motion";
+import { prefersReducedMotion, wait } from "./motion";
 
-const EVENT_AUTO_CLOSE_MS = 3200;
+const EVENT_AUTO_CLOSE_MS = 5200;
 
 function mountOverlay(content: HTMLElement, label: string): HTMLElement {
   const overlay = el("div", "overlay");
@@ -81,7 +81,9 @@ function showCard(input: CardInput): Promise<void> {
     document.addEventListener("keydown", onKey);
     overlay.addEventListener("click", finish);
     close.focus();
-    void wait(EVENT_AUTO_CLOSE_MS).then(finish);
+    if (!prefersReducedMotion()) {
+      void wait(EVENT_AUTO_CLOSE_MS).then(finish);
+    }
   });
 }
 

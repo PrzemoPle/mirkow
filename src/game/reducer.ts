@@ -575,12 +575,14 @@ function askRaise(state: GameState): EngineResult {
     return fail({ code: "noActivePlayer" });
   }
   return ok(
-    replaceActive(spent.state, {
-      ...current,
-      job: { ...current.job, raises: current.job.raises + 1 },
-      stats: { ...current.stats, happiness: clampMeter(current.stats.happiness + HIRE_HAPPINESS) },
-      lastNotice: "podwyzka",
-    }),
+    withVictory(
+      replaceActive(spent.state, {
+        ...current,
+        job: { ...current.job, raises: current.job.raises + 1 },
+        stats: { ...current.stats, happiness: clampMeter(current.stats.happiness + HIRE_HAPPINESS) },
+        lastNotice: "podwyzka",
+      }),
+    ),
   );
 }
 
@@ -638,12 +640,14 @@ function relocate(state: GameState, homeId: HomeId): EngineResult {
     return fail({ code: "noActivePlayer" });
   }
   return ok(
-    replaceActive(spent.state, {
-      ...current,
-      home: { id: homeId, rent },
-      stats: { ...current.stats, money: current.stats.money - deposit },
-      lastNotice: homeId === current.home.id ? current.lastNotice : "przeprowadzka",
-    }),
+    withVictory(
+      replaceActive(spent.state, {
+        ...current,
+        home: { id: homeId, rent },
+        stats: { ...current.stats, money: current.stats.money - deposit },
+        lastNotice: homeId === current.home.id ? current.lastNotice : "przeprowadzka",
+      }),
+    ),
   );
 }
 
@@ -759,11 +763,13 @@ function repairItem(state: GameState, itemId: ItemId): EngineResult {
     return fail({ code: "noActivePlayer" });
   }
   return ok(
-    replaceActive(spent.state, {
-      ...current,
-      items: current.items.map((entry) => (entry.id === itemId ? { ...entry, broken: false } : entry)),
-      stats: { ...current.stats, money: current.stats.money - price },
-    }),
+    withVictory(
+      replaceActive(spent.state, {
+        ...current,
+        items: current.items.map((entry) => (entry.id === itemId ? { ...entry, broken: false } : entry)),
+        stats: { ...current.stats, money: current.stats.money - price },
+      }),
+    ),
   );
 }
 

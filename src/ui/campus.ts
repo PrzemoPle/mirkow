@@ -38,7 +38,7 @@ function unlocks(diploma: DiplomaId): string {
 /** Indeks w WSMiK: siedem dyplomów z postępem, szansą zdania i tym, co otwierają. */
 export function buildCampusBoard(handlers: CampusHandlers): CampusBoard {
   const root = el("div", "jobs campus");
-  const title = el("p", "acts-title");
+  const title = el("h3", "acts-title");
   title.textContent = t("campusTitle");
   const hint = el("p", "jobs-hint");
   hint.textContent = t("campusHint");

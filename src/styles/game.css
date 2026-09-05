@@ -589,6 +589,10 @@
   opacity: 0.6;
 }
 
+.act[hidden] {
+  display: none;
+}
+
 .act-icon {
   grid-area: icon;
   width: 2rem;
@@ -727,6 +731,11 @@
 .entry-new {
   background: var(--table-2);
   color: var(--text);
+}
+
+.entry-empty {
+  display: block;
+  color: var(--text-3);
 }
 
 .entry-week {
@@ -980,7 +989,6 @@
   font-family: var(--display);
   font-weight: 700;
   font-size: 1.05rem;
-  text-transform: capitalize;
 }
 
 .work-company {
@@ -989,7 +997,6 @@
 }
 
 .work-none .work-job {
-  text-transform: none;
   color: var(--text-2);
 }
 
@@ -1160,10 +1167,6 @@
   color: var(--accent-ink);
 }
 
-.job-row .act-name {
-  text-transform: capitalize;
-}
-
 .job-tag {
   font-size: 0.65rem;
   vertical-align: middle;
@@ -1181,10 +1184,6 @@
 }
 
 /* Indeks WSMiK i dyplomy */
-.diploma-row .act-name {
-  text-transform: none;
-}
-
 .diploma-done {
   opacity: 0.7;
 }
@@ -1255,8 +1254,11 @@
 
 .room-caption {
   position: absolute;
-  left: 10px;
+  right: 10px;
   bottom: 10px;
+  max-width: 55%;
+  overflow: hidden;
+  text-overflow: ellipsis;
   font-size: 0.8rem;
 }
 
@@ -1264,11 +1266,6 @@
   width: 2.4rem;
   height: 2.4rem;
   object-fit: contain;
-}
-
-.item-row .act-name,
-.home-board .act-name {
-  text-transform: none;
 }
 
 @media (max-width: 1023px) {

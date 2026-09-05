@@ -11,7 +11,7 @@ import { t } from "../i18n";
 import { artImg, hudIconUrl, workIconUrl } from "./art";
 import { companyName, jobName } from "./copy";
 import { el } from "./dom";
-import { interpolate } from "./format";
+import { firstUpper, interpolate } from "./format";
 
 export type WorkCard = {
   root: HTMLElement;
@@ -84,7 +84,7 @@ export function buildWorkCard(): WorkCard {
       }
       const def = getJobDef(job.id);
       root.classList.remove("work-none");
-      jobLine.textContent = jobName(job.id);
+      jobLine.textContent = firstUpper(jobName(job.id));
       companyLine.textContent = companyName(def.company);
       wage.textContent = interpolate("workWage", { n: shiftWage(state, player) });
       const src = workIconUrl(def.company);

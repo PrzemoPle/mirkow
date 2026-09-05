@@ -397,8 +397,19 @@ function fallbackFor(kind: ArtKind): string | null {
   }
 }
 
+const ART_SIZES: Record<Exclude<ArtKind, "none">, { width: number; height: number }> = {
+  tile: { width: 512, height: 384 },
+  icon: { width: 64, height: 64 },
+  card: { width: 768, height: 1024 },
+  diploma: { width: 128, height: 128 },
+};
+
 export function artImg(src: string, className: string, kind: ArtKind = "none"): HTMLImageElement {
   const img = el("img", className);
+  if (kind !== "none") {
+    img.width = ART_SIZES[kind].width;
+    img.height = ART_SIZES[kind].height;
+  }
   img.src = src;
   img.alt = "";
   img.draggable = false;

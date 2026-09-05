@@ -11,6 +11,7 @@ import {
   type GameState,
 } from "./types";
 import { EVENT_DEFS, firstSeedFor } from "./events";
+import { getJobDef, RAISE_TENURE_BONUS } from "./jobs";
 import type { EngineResult } from "./result";
 import type { LocationId } from "./catalog";
 import { TIME_MAX } from "./catalog";
@@ -211,6 +212,35 @@ describe("victory", () => {
     );
     expect(after.phase).toBe("victory");
     expect(playerOf(after).stats.happiness).toBe(8 + REST_HAPPINESS);
+  });
+
+  it("flags victory after a raise, a lease and a repair too", () => {
+    const def = getJobDef("kebabKasjer");
+    const raised = unwrap(
+      dispatch(
+        createMatch({
+          locationId: "pup",
+          job: { id: "kebabKasjer", weeks: RAISE_TENURE_BONUS, raises: 0 },
+          reliability: def.requiredReliability + 20,
+          goals: { money: 10, happiness: 30, education: 0, career: def.prestige },
+          stats: { money: 800, happiness: 28, education: 0, career: def.prestige },
+        }),
+        { type: "askRaise" },
+      ),
+    );
+    expect(raised.phase).toBe("victory");
+    const repaired = unwrap(
+      dispatch(
+        createMatch({
+          locationId: "elektro",
+          items: [{ id: "rower", used: false, broken: true }],
+          goals: { money: 500, happiness: 10, education: 0, career: 0 },
+          stats: { money: 800, happiness: 10, education: 0, career: 0 },
+        }),
+        { type: "repairItem", item: "rower" },
+      ),
+    );
+    expect(repaired.phase).toBe("victory");
   });
 
   it("rejects further moves after victory", () => {

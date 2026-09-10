@@ -55,9 +55,13 @@
   letter-spacing: -0.03em;
 }
 
+.setup-title-block {
+  display: grid;
+}
+
 .setup-kicker {
-  display: block;
-  margin-top: 0.4rem;
+  margin: 0.4rem 0 0;
+  letter-spacing: 0;
   font-family: var(--body);
   font-size: 0.95rem;
   font-weight: 600;

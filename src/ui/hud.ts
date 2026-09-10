@@ -51,12 +51,13 @@ export function buildTopBar(): TopBar {
 
   const brand = el("div", "brand");
   brand.append(artImg(stampArtUrl(), "brand-stamp"));
+  const text = el("div", "brand-text");
   const name = el("h1", "brand-name");
   name.textContent = t("gameName");
-  const kicker = el("span", "brand-kicker");
+  const kicker = el("p", "brand-kicker");
   kicker.textContent = t("appTitle");
-  name.append(kicker);
-  brand.append(name);
+  text.append(name, kicker);
+  brand.append(text);
 
   const weekBlock = el("div", "week-block");
   const week = el("p", "week");

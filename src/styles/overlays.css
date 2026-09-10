@@ -1,3 +1,11 @@
+/* Jasne podłoża: pierścień focusu w ciemnym akcencie (5,7:1 na papierze). */
+.card,
+.howto,
+.victory,
+.rival-card {
+  --focus: #8c3a14;
+}
+
 .overlay {
   position: fixed;
   inset: 0;
@@ -79,7 +87,7 @@
   font-family: var(--display);
   font-size: 1.05rem;
   font-weight: 650;
-  color: var(--accent);
+  color: var(--accent-paper);
   font-variant-numeric: tabular-nums;
 }
 
@@ -117,7 +125,7 @@
 
 .card-foot-label {
   margin-right: 0.3em;
-  font-size: 0.66rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -178,10 +186,10 @@
   right: -1.4rem;
   bottom: -0.6rem;
   padding: 0.25em 0.6em;
-  border: 3px double var(--accent);
+  border: 3px double var(--accent-paper);
   border-radius: 3px;
   background: rgb(241 230 210 / 0.92);
-  color: var(--accent);
+  color: var(--accent-paper);
   font-family: var(--display);
   font-weight: 750;
   font-size: 1.05rem;
@@ -329,7 +337,7 @@
 .howto-list li::marker {
   font-family: var(--display);
   font-weight: 750;
-  color: var(--accent);
+  color: var(--accent-paper);
 }
 
 .howto .btn-primary {

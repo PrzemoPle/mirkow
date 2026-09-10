@@ -71,3 +71,24 @@ test("keeps the save and resumes", async ({ page }) => {
   await page.getByRole("button", { name: /Kontynuuj tydzień 1/ }).click();
   await expect(page.locator(".place-name")).toHaveText("Na Rogu");
 });
+
+test("keeps keyboard focus inside the rules card and restores it after", async ({ page }) => {
+  await page.goto("./");
+  await page.evaluate(() => localStorage.clear());
+  await page.reload();
+  const start = page.getByRole("button", { name: "Wejdź do Mirkowa" });
+  await start.click();
+  const go = page.getByRole("button", { name: "Wiem, gram" });
+  await expect(go).toBeFocused();
+  for (let index = 0; index < 6; index += 1) {
+    await page.keyboard.press("Tab");
+    const inside = await page.evaluate(() => document.activeElement?.closest(".overlay") !== null);
+    expect(inside, `Tab ${index + 1} left the dialog`).toBe(true);
+  }
+  await expect(page.locator("#app")).toHaveAttribute("inert", "");
+  await page.keyboard.press("Escape");
+  await expect(page.locator(".overlay")).toHaveCount(0);
+  await expect(page.locator("#app")).not.toHaveAttribute("inert", "");
+  const heading = await page.locator("h1").first().evaluate((node) => node.textContent);
+  expect(heading).toBe("Mirków");
+});

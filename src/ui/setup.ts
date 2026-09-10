@@ -82,12 +82,13 @@ export function buildSetup(handlers: SetupHandlers): HTMLElement {
   head.style.setProperty("--panorama", `url("${panoramaUrl()}")`);
   const headCopy = el("div", "setup-head-copy");
   headCopy.append(artImg(stampArtUrl(), "setup-stamp"));
+  const titleBlock = el("div", "setup-title-block");
   const title = el("h1", "setup-title");
   title.textContent = t("gameName");
-  const kicker = el("span", "setup-kicker");
+  const kicker = el("p", "setup-kicker");
   kicker.textContent = t("appTitle");
-  title.append(kicker);
-  headCopy.append(title);
+  titleBlock.append(title, kicker);
+  headCopy.append(titleBlock);
   const rule = el("p", "setup-rule");
   rule.textContent = t("setupRule");
   headCopy.append(rule);

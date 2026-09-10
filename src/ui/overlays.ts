@@ -10,14 +10,78 @@ import { sfx } from "./audio";
 const EVENT_AUTO_CLOSE_MS = 5200;
 const RIVAL_AUTO_CLOSE_MS = 2600;
 
-function mountOverlay(content: HTMLElement, label: string): HTMLElement {
+type Overlay = {
+  node: HTMLElement;
+  /** Zdejmuje overlay, odblokowuje tło i oddaje focus tam, skąd przyszedł. */
+  close(): void;
+};
+
+/**
+ * Modal z prawdziwą pułapką focusu: reszta strony dostaje `inert`, więc Tab, klik
+ * i czytnik ekranu nie sięgają pod przyciemnienie. Escape zamyka; Enter działa
+ * natywnie na przycisku, który ma focus.
+ */
+function mountOverlay(content: HTMLElement, label: string, onEscape?: () => void): Overlay {
   const overlay = el("div", "overlay");
   overlay.setAttribute("role", "dialog");
   overlay.setAttribute("aria-modal", "true");
   overlay.setAttribute("aria-label", label);
   overlay.append(content);
+  const previous = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+  const blocked = [...document.body.children].filter((child): child is HTMLElement => child instanceof HTMLElement && !child.inert);
+  for (const child of blocked) {
+    child.inert = true;
+  }
   document.body.append(overlay);
-  return overlay;
+  const focusables = (): HTMLElement[] =>
+    [...overlay.querySelectorAll<HTMLElement>("button, [href], input, select, textarea, [tabindex]:not([tabindex='-1'])")].filter(
+      (node) => !node.hasAttribute("disabled"),
+    );
+  const onKey = (event: KeyboardEvent): void => {
+    if (event.key === "Escape" && onEscape !== undefined) {
+      event.preventDefault();
+      onEscape();
+      return;
+    }
+    if (event.key !== "Tab") {
+      return;
+    }
+    // Zawijanie Tab w oknie: przy jednym przycisku przeglądarka wypuściłaby focus na body.
+    const items = focusables();
+    const first = items[0];
+    const last = items[items.length - 1];
+    if (first === undefined || last === undefined) {
+      event.preventDefault();
+      return;
+    }
+    const active = document.activeElement;
+    if (event.shiftKey && (active === first || !overlay.contains(active))) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && (active === last || !overlay.contains(active))) {
+      event.preventDefault();
+      first.focus();
+    }
+  };
+  document.addEventListener("keydown", onKey);
+  let closed = false;
+  return {
+    node: overlay,
+    close() {
+      if (closed) {
+        return;
+      }
+      closed = true;
+      document.removeEventListener("keydown", onKey);
+      overlay.remove();
+      for (const child of blocked) {
+        child.inert = false;
+      }
+      if (previous !== null && previous.isConnected) {
+        previous.focus({ preventScroll: true });
+      }
+    },
+  };
 }
 
 type CardInput = {
@@ -78,28 +142,32 @@ function showCard(input: CardInput): Promise<void> {
     band.append(close);
     card.append(band);
 
-    const overlay = mountOverlay(card, input.title);
-    sfx("card");
     let done = false;
     const finish = (): void => {
       if (done) {
         return;
       }
       done = true;
-      overlay.remove();
-      document.removeEventListener("keydown", onKey);
+      overlay.close();
       resolve();
     };
-    const onKey = (event: KeyboardEvent): void => {
-      if (event.key === "Escape" || event.key === "Enter") {
-        finish();
-      }
-    };
-    document.addEventListener("keydown", onKey);
-    overlay.addEventListener("click", finish);
+    const overlay = mountOverlay(card, input.title, finish);
+    sfx("card");
+    overlay.node.addEventListener("click", finish);
     close.focus();
     if (!prefersReducedMotion()) {
-      void wait(EVENT_AUTO_CLOSE_MS).then(finish);
+      // Timer zamyka kartę sam, ale wskazanie myszą albo focus w karcie go zatrzymują (gra jest turowa, nic nie goni).
+      let armed = true;
+      const disarm = (): void => {
+        armed = false;
+      };
+      card.addEventListener("pointerenter", disarm);
+      card.addEventListener("focusin", disarm);
+      void wait(EVENT_AUTO_CLOSE_MS).then(() => {
+        if (armed) {
+          finish();
+        }
+      });
     }
   });
 }
@@ -160,7 +228,7 @@ export function showVictory(input: VictoryInput): void {
   const overlay = mountOverlay(panel, title.textContent);
   sfx(won ? "victory" : "defeat");
   again.addEventListener("click", () => {
-    overlay.remove();
+    overlay.close();
     input.onNewGame();
   });
   again.focus();
@@ -186,18 +254,16 @@ export function showHowToCard(): Promise<void> {
     go.type = "button";
     go.textContent = t("howtoGo");
     panel.append(head, list, go);
-    const overlay = mountOverlay(panel, t("howtoTitle"));
+    let done = false;
     const finish = (): void => {
-      overlay.remove();
-      document.removeEventListener("keydown", onKey);
+      if (done) {
+        return;
+      }
+      done = true;
+      overlay.close();
       resolve();
     };
-    const onKey = (event: KeyboardEvent): void => {
-      if (event.key === "Escape" || event.key === "Enter") {
-        finish();
-      }
-    };
-    document.addEventListener("keydown", onKey);
+    const overlay = mountOverlay(panel, t("howtoTitle"), finish);
     go.addEventListener("click", finish);
     go.focus();
   });
@@ -217,19 +283,19 @@ export function showRivalCard(rival: Player, mood: RivalMood, text: string): Pro
     line.textContent = text;
     copy.append(who, line);
     card.append(face, copy);
-    const overlay = mountOverlay(card, text);
-    overlay.classList.add("overlay-light");
-    sfx("ui");
     let done = false;
     const finish = (): void => {
       if (done) {
         return;
       }
       done = true;
-      overlay.remove();
+      overlay.close();
       resolve();
     };
-    overlay.addEventListener("click", finish);
+    const overlay = mountOverlay(card, text, finish);
+    overlay.node.classList.add("overlay-light");
+    sfx("ui");
+    overlay.node.addEventListener("click", finish);
     void wait(RIVAL_AUTO_CLOSE_MS).then(finish);
   });
 }

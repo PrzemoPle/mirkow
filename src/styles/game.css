@@ -46,9 +46,13 @@
   letter-spacing: -0.02em;
 }
 
+.brand-text {
+  display: grid;
+}
+
 .brand-kicker {
-  display: block;
-  margin-top: 0.15rem;
+  margin: 0.15rem 0 0;
+  letter-spacing: 0;
   font-family: var(--body);
   font-size: 0.72rem;
   font-weight: 600;
@@ -131,7 +135,7 @@
 
 .audio-caption {
   grid-area: caption;
-  font-size: 0.66rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -142,9 +146,9 @@
   display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  min-height: 2.25rem;
+  min-height: 2.75rem;
   padding: 0.25rem 0.5rem;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-ui);
   border-radius: var(--r);
   background: var(--table-2);
   color: var(--text-2);
@@ -453,7 +457,7 @@
 .pawn-tag {
   position: relative;
   margin-top: -0.4rem;
-  font-size: 0.64rem;
+  font-size: 0.72rem;
   padding: 0.05em 0.35em;
   max-width: 5.5rem;
   overflow: hidden;
@@ -489,7 +493,7 @@
 
 .week-goal-label {
   flex: none;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -557,7 +561,7 @@
   top: 6px;
   z-index: 3;
   display: none;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
 }
 
 .tile-hint:not(:disabled) {
@@ -822,6 +826,7 @@
 }
 
 .npc-bubble {
+  --focus: #8c3a14;
   position: relative;
   display: grid;
   gap: 0.15rem;
@@ -844,7 +849,7 @@
 }
 
 .npc-name {
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
@@ -888,7 +893,7 @@
   row-gap: 0.15rem;
   width: 100%;
   padding: 0.55rem 0.7rem;
-  border: 1px solid var(--line);
+  border: 1px solid var(--line-ui);
   border-radius: var(--r);
   background: var(--table-2);
   text-align: left;
@@ -1011,7 +1016,7 @@
 }
 
 .confirm .btn {
-  min-height: 2.5rem;
+  min-height: 2.75rem;
   padding: 0.45rem 0.8rem;
   font-size: 0.9rem;
 }
@@ -1069,7 +1074,7 @@
 }
 
 .entry-who {
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   padding: 0.05em 0.4em;
 }
 
@@ -1159,7 +1164,7 @@
 
   .tile-name,
   .tile-cost {
-    font-size: 0.7rem;
+    font-size: 0.72rem;
   }
 
   .tile-name {
@@ -1224,12 +1229,14 @@
     border-top: 0;
     border-radius: 0;
     overflow-y: auto;
+    scroll-padding-bottom: 5.5rem;
     overscroll-behavior: contain;
   }
 
   .panel-open .panel-body {
     display: grid;
     align-content: start;
+    padding-bottom: 1rem;
   }
 
   .panel-open .sheet-toggle {
@@ -1349,8 +1356,9 @@
   .endweek {
     position: sticky;
     bottom: 0;
-    padding: 0.5rem 0 0.75rem;
-    background: linear-gradient(to bottom, transparent, var(--table) 35%);
+    padding: 0.75rem 0;
+    background: var(--table);
+    box-shadow: 0 -0.75rem 0.75rem var(--table);
   }
 
   .board {
@@ -1611,13 +1619,13 @@
 
 .jobs-frozen {
   margin-left: auto;
-  font-size: 0.68rem;
+  font-size: 0.72rem;
   background: var(--accent);
   color: var(--accent-ink);
 }
 
 .job-tag {
-  font-size: 0.65rem;
+  font-size: 0.72rem;
   vertical-align: middle;
 }
 
@@ -1779,7 +1787,7 @@
 }
 
 .bank-btn {
-  min-height: 2.5rem;
+  min-height: 2.75rem;
   padding: 0.45rem 0.75rem;
   font-size: 0.85rem;
 }

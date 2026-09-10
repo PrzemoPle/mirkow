@@ -14,7 +14,15 @@
   --line-2: rgb(234 223 203 / 0.24);
   --accent: #d4652f;
   --accent-2: #eb9a6a;
+  /* Akcent na papierze (karty, instrukcja): ta sama barwa, ciemniej, 4,5:1 na --paper. */
+  --accent-paper: #9e4921;
+  /* Tło przycisku głównego i tabliczek z tuszem: jaśniej niż akcent, żeby tusz miał 4,5:1. */
+  --accent-btn: #e07a45;
   --accent-ink: #2b2622;
+  /* Obwódka elementów klikalnych: co najmniej 3:1 na blacie. */
+  --line-ui: rgb(234 223 203 / 0.4);
+  /* Pierścień focusu na ciemnym; jasne podłoża nadpisują --focus. */
+  --focus: #eb9a6a;
   --road: #9c8a72;
   --ok: #8fa86f;
   --r: 4px;

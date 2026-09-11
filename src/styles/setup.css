@@ -1,11 +1,24 @@
 /* Ekran startu: legitymacja mieszkańca Mirkowa. */
 .setup {
+  /* Jedna miara dla całej treści: nagłówek, zapis, legitymacja i stopka.
+     Bez tego ekran miał trzy różne szerokości i trzy wyrównania. */
+  --col: min(680px, 100%);
   display: grid;
+  justify-items: center;
   gap: 1.5rem;
   max-width: 1100px;
   min-height: 100dvh;
   margin: 0 auto;
   padding: 1.25rem 1rem 2.5rem;
+}
+
+.setup > * {
+  width: var(--col);
+}
+
+.setup > .setup-head {
+  width: auto;
+  justify-self: stretch;
 }
 
 .setup-head {
@@ -28,8 +41,7 @@
   grid-template-columns: auto 1fr;
   align-items: center;
   gap: 1rem;
-  max-width: 1100px;
-  width: 100%;
+  width: min(680px, 100%);
   margin: 0 auto;
 }
 
@@ -70,7 +82,6 @@
 
 .setup-rule {
   margin: 0;
-  max-width: 44rem;
   font-size: var(--fs-m);
   color: var(--text);
   text-shadow: 0 1px 4px rgb(0 0 0 / 0.8);
@@ -160,26 +171,60 @@
   font-weight: 600;
 }
 
+/* Zapis partii jako kartka wsunięta pod legitymację, w tej samej kolumnie. */
 .resume {
   display: grid;
   grid-template-columns: 1fr auto;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 0.9rem;
-  border-radius: var(--r);
-  background: var(--table-2);
-  box-shadow: inset 0 0 0 1px var(--line-2);
+  padding: 0.7rem 0.9rem;
+  border-radius: 3px;
+  background: var(--plaque);
+  color: var(--ink);
+  transform: rotate(0.5deg);
+  box-shadow:
+    0 2px 0 rgb(0 0 0 / 0.35),
+    0 10px 22px rgb(0 0 0 / 0.4);
 }
 
-.resume p {
+.resume-who {
   margin: 0;
-  font-weight: 600;
+  font-family: var(--display);
+  font-size: var(--fs-s);
+  font-weight: 650;
 }
+
+.resume-go {
+  padding: 0.35em 1em;
+  border: 3px double var(--accent-paper);
+  border-radius: 3px;
+  background: none;
+  color: var(--accent-paper);
+  font-family: var(--display);
+  font-size: var(--fs-s);
+  font-weight: 750;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+  transition:
+    background-color 150ms var(--ease),
+    transform 150ms var(--ease);
+}
+
+.resume-go:hover {
+  background: rgb(158 73 33 / 0.1);
+  transform: rotate(-2deg) scale(1.03);
+}
+
+.resume-go:active {
+  transform: rotate(-2deg) scale(0.98);
+}
+
 
 @media (min-width: 900px) {
   .setup-head {
     margin: -1.25rem calc(50% - 50vw) 0;
-    padding-inline: max(1rem, calc(50vw - 550px));
+    padding-inline: max(1rem, calc(50vw - 340px));
   }
 
 
@@ -201,8 +246,6 @@
 /* Legitymacja mieszkańca: jeden dokument leżący na blacie, zamiast formularza. */
 .id-card {
   display: grid;
-  width: min(620px, 100%);
-  margin: 0 auto;
   border-radius: 3px;
   background: var(--plaque);
   color: var(--ink);

@@ -105,9 +105,9 @@ export function buildSetup(handlers: SetupHandlers): HTMLElement {
 
   if (saved !== null && handlers.onContinue !== undefined) {
     const resume = el("div", "resume");
-    const who = el("p");
+    const who = el("p", "resume-who");
     who.textContent = interpolate("setupSavedAs", { name: saved.name });
-    const cont = el("button", "btn btn-primary");
+    const cont = el("button", "resume-go");
     cont.type = "button";
     cont.textContent = interpolate("setupContinue", { n: saved.week });
     cont.addEventListener("click", () => handlers.onContinue?.());

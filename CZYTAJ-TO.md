@@ -49,6 +49,7 @@ Roboczy tytuł: **Symulator życia**. PWA `short_name`: **Mirków**. Ostateczna 
 | `docs/uwagi-p4b.md` | uwagi do poprawionej paczki P4b: odrzucony trener, usunięta obwódka, drobiazgi |
 | `docs/uwagi-p4.md` | uwagi do dostarczonej paczki P4: co poprawić w postaciach i minach Kowalskiego |
 | `docs/brief-p4.md` | brief P4: postacie Mirkowa (11 popiersi), miny Kowalskiego, ikona lokaty, winiety weekendów |
+| `docs/audyt-design-2026-09-11.md` | dlaczego gra przytłacza: pomiary gęstości, skala typografii, akcent, brak odpowiedzi w pętli, plan A–D |
 | `docs/audyt-ux-2026-09-05.md` | audyt UX/UI po G5: błędy, prowadzenie gracza, układ, postacie Mirkowa (brief P4) |
 | `docs/projekt-glebia.md` | **projekt „Głębia”**: praca z solidnością, dyplomy z egzaminami, mieszkania, przedmioty, bank, weekendy; etapy G1–G5 |
 

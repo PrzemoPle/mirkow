@@ -29,6 +29,15 @@ img {
   max-width: 100%;
 }
 
+/*
+ * Atrybut hidden musi wygrywać z każdym display ustawionym na klasie.
+ * Bez tego wystarczy nadać elementowi `display: grid`, żeby `element.hidden = true`
+ * przestało działać, a panel jednego miejsca pokazywał się we wszystkich.
+ */
+[hidden] {
+  display: none !important;
+}
+
 button {
   font: inherit;
   color: inherit;

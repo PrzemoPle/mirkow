@@ -443,6 +443,8 @@ export const pl = {
   saveUnavailable: "Nie da się zapisać. Gra tylko w tej sesji.",
   saveFailed: "Zapis się nie udał. Gra tylko w tej sesji.",
   installHint: "Możesz dodać Mirków do ekranu głównego.",
+  setupCredits: "Gra stworzona przez przemyslaw@plewinski.pl przy udziale Claude Code",
+  setupVersion: "Wersja {v}",
   goalLabel: "Cel tygodnia",
   goalNoJob: "Nie masz pracy. Idź do PUP i złóż podanie.",
   goalNoJobHere: "Wybierz ofertę z tablicy. Bez wymagań: pomoc kuchenna albo półki w Żuczku.",

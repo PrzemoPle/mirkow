@@ -275,9 +275,16 @@ export function buildSetup(handlers: SetupHandlers): HTMLElement {
   card.append(idHead, idBody, idFoot);
 
   root.append(card);
+
+  const foot = el("footer", "setup-foot");
   const install = el("p", "setup-install");
   install.textContent = t("installHint");
-  root.append(install);
+  const credits = el("p", "setup-credits");
+  credits.textContent = t("setupCredits");
+  const version = el("p", "setup-version");
+  version.textContent = interpolate("setupVersion", { v: __APP_VERSION__ });
+  foot.append(install, credits, version);
+  root.append(foot);
   syncPresets();
   syncPortraits();
   return root;

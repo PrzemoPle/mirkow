@@ -454,11 +454,30 @@
   color: rgb(43 38 34 / 0.5);
 }
 
-.setup-install {
+/* Stopka dokumentu: metryczka wydania pod legitymacją. */
+.setup-foot {
+  display: grid;
+  gap: 0.25rem;
+  justify-items: center;
+  padding-top: 0.4rem;
+}
+
+.setup-install,
+.setup-credits {
   margin: 0;
   font-size: var(--fs-xs);
   text-align: center;
   color: var(--text-3);
+}
+
+.setup-version {
+  margin: 0;
+  font-family: var(--display);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgb(234 223 203 / 0.35);
+  font-variant-numeric: tabular-nums;
 }
 
 .custom summary {

@@ -1,8 +1,15 @@
+import { readFileSync } from "node:fs";
 import { defineConfig } from "vitest/config";
 import { VitePWA } from "vite-plugin-pwa";
 
+/** Numer wersji bierze się z package.json, żeby stopka nie rozjechała się z paczką. */
+const { version } = JSON.parse(readFileSync(new URL("./package.json", import.meta.url), "utf8")) as { version: string };
+
 export default defineConfig({
   base: "./",
+  define: {
+    __APP_VERSION__: JSON.stringify(version),
+  },
   plugins: [
     VitePWA({
       registerType: "autoUpdate",

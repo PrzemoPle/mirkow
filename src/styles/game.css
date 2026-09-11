@@ -1588,13 +1588,13 @@
       "board panel"
       "side panel"
       "journal panel"
-      ". panel"
       "tools tools";
-    /* Panel jest rozpiety na trzy wiersze lewej kolumny. Bez tego pustego
-       wiersza 1fr jego nadmiarowa wysokosc rozdziela sie po rowno miedzy
-       plansze, staty i dziennik, i miedzy nimi robia sie rowne, szerokie
-       dziury. Tutaj nadmiar zbiera sie w jednym miejscu, pod dziennikiem. */
-    grid-template-rows: auto auto auto auto auto 1fr auto;
+    /* Panel jest rozpiety na trzy wiersze lewej kolumny. Gdyby wszystkie byly
+       auto, jego nadmiarowa wysokosc rozdzielilaby sie po rowno miedzy plansze,
+       staty i dziennik i miedzy nimi zrobilyby sie rowne, szerokie dziury.
+       Elastyczny jest wiec wiersz dziennika: to on bierze reszte miejsca,
+       a dziennik przewija sie u siebie zamiast rosnac z kazdym tygodniem. */
+    grid-template-rows: auto auto auto auto minmax(6rem, 1fr) auto;
     /* Ekran gry mieszci sie w jednym oknie jak plansza na stole. Strona nie
        przewija sie, przewija sie tylko panel miejsca. */
     height: 100dvh;
@@ -1672,6 +1672,24 @@
     min-height: 0;
     overflow-y: auto;
     overscroll-behavior: contain;
+    /* Krotka lista ma zostac krotka, a nie rozciagnac sie na cale okno. */
+    align-content: start;
+    /* Cien na krawedzi mowi, ze lista jedzie dalej. Dwa pierwsze gradienty
+       jada z trescia (local) i zaslaniaja cienie, kiedy jestesmy na koncu,
+       wiec przy krotkiej liscie nie widac nic. */
+    background:
+      linear-gradient(var(--table), rgb(0 0 0 / 0)) center top / 100% 1rem
+        no-repeat local,
+      linear-gradient(rgb(0 0 0 / 0), var(--table)) center bottom / 100% 1rem
+        no-repeat local,
+      radial-gradient(farthest-side at 50% 0, rgb(0 0 0 / 0.55), rgb(0 0 0 / 0))
+        center top / 100% 0.7rem no-repeat scroll,
+      radial-gradient(
+          farthest-side at 50% 100%,
+          rgb(0 0 0 / 0.55),
+          rgb(0 0 0 / 0)
+        )
+        center bottom / 100% 0.7rem no-repeat scroll;
   }
 
   .endweek {
@@ -1680,6 +1698,15 @@
 
   .journal {
     grid-area: journal;
+    align-self: stretch;
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr);
+  }
+
+  /* Na desktopie dziennik siega do dolu ekranu, wiec sztywny limit
+     z układu telefonowego tylko by go skracal. */
+  .journal-list {
+    max-height: none;
   }
 
   .tools {

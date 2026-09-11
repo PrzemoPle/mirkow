@@ -168,36 +168,13 @@
 }
 
 .audio-glyph {
-  position: relative;
-  display: inline-grid;
-  place-items: center;
-  width: 1.2rem;
-  height: 1.2rem;
-  color: inherit;
+  width: 1.75rem;
+  height: 1.75rem;
+  transition: opacity 160ms var(--ease);
 }
 
-.audio-glyph-sfx::before {
-  content: "";
-  width: 0.75rem;
-  height: 0.75rem;
-  background: currentColor;
-  clip-path: polygon(0 32%, 32% 32%, 68% 5%, 68% 95%, 32% 68%, 0 68%);
-}
-
-.audio-glyph-sfx::after {
-  content: "";
-  position: absolute;
-  right: 0;
-  top: 22%;
-  width: 0.32rem;
-  height: 56%;
-  border: 1.5px solid currentColor;
-  border-left: 0;
-  border-radius: 0 50% 50% 0;
-}
-
-.audio-silent .audio-glyph-sfx::after {
-  display: none;
+.audio-silent .audio-glyph {
+  opacity: 0.4;
 }
 
 .audio-body {

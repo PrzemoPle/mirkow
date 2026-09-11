@@ -323,9 +323,7 @@ export function buildAudioToggles(): HTMLElement {
   const summary = el("summary", "audio-button");
   summary.setAttribute("aria-label", t("audioGroup"));
   summary.title = t("audioGroup");
-  const glyph = el("span", "audio-glyph audio-glyph-sfx");
-  glyph.setAttribute("aria-hidden", "true");
-  summary.append(glyph);
+  summary.append(artImg(hudIconUrl("music"), "audio-glyph pix", "icon"));
 
   const body = el("div", "audio-body");
   const musicLabel = el("label", "audio-field audio-music");

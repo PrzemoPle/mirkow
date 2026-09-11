@@ -285,6 +285,7 @@ export const hudIconIds = [
   "experience",
   "boom",
   "recession",
+  "music",
 ] as const;
 
 export type HudIconId = (typeof hudIconIds)[number];
@@ -315,6 +316,8 @@ export function hudIconUrl(id: HudIconId): string {
       return "./art/ui/boom.webp";
     case "recession":
       return "./art/ui/recession.webp";
+    case "music":
+      return "./art/ui/music.webp";
     default: {
       const exhaustive: never = id;
       return assertNever(exhaustive);

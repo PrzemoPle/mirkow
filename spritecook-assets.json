@@ -1,0 +1,42 @@
+{
+  "note": "Zasoby w SpriteCook. styleReferences podawaj jako style_asset_ids przy generate_game_art, żeby nowa grafika trzymała styl Mirkowa.",
+  "styleReferences": [
+    {
+      "asset_id": "a163126d-5de7-4207-8948-b595eac59fb2",
+      "label": "Mirkow styl: monety",
+      "local": "art-src/art/ui/stat-money.png",
+      "sha12": "8da68e3a6ee2"
+    },
+    {
+      "asset_id": "59561c02-ca03-410b-86e2-d106551bb194",
+      "label": "Mirkow styl: ksiazeczka",
+      "local": "art-src/art/actions/account.png",
+      "sha12": "4ca701b5ae73"
+    }
+  ],
+  "generated": [
+    {
+      "asset_id": "631fc92e-0bc0-48b2-8dfe-d136161c0ba7",
+      "label": "radio tranzystorowe",
+      "local": "art-src/art/ui/music.png",
+      "used": true,
+      "sha12": "507684d8bb9d"
+    },
+    {
+      "asset_id": "cd29d27b-00e6-4f75-9f58-6253873e3c6c",
+      "label": "filizanka kawy",
+      "used": false,
+      "why": "za cienki kontur, ginie przy 32 px"
+    },
+    {
+      "asset_id": "3e1a68d4-46c3-486a-b256-c9fa1e0f7a4e",
+      "label": "dzwonek tramwajowy",
+      "used": false,
+      "why": "czyta sie jak klosz, nie jak dzwonek"
+    }
+  ],
+  "model": {
+    "name": "gpt-image-2.5-flare",
+    "why": "jeden z dwoch modeli z prawdziwa alfa; 8 kredytow + 8 za kazdy wzorzec"
+  }
+}

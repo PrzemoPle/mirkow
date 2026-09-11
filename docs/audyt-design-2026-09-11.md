@@ -184,3 +184,15 @@ W panelu administracyjnym powtarzalny wiersz jest zaletą, bo użytkownik uczy s
 Wspólne zostaje to, co ma być wspólne: paleta, cztery stopnie pisma, papier jako materiał tekstu, pieczątka jako gest dla liczb. Różny ma być przedmiot.
 
 **Pierwszy krok wykonany 11 września:** tablica ofert w PUP. Zniknęły też nagłówki firm, bo nazwa firmy jest teraz na każdej kartce, co usunęło pięć wierszy nagłówkowych z ekranu.
+
+### Materiał to za mało, struktura jest ważniejsza
+
+Pierwsze podejście dało kartki z pinezkami, ale ułożone jedna pod drugą, wszystkie tej samej szerokości i prawie tej samej wysokości. To dalej była tabela, tylko w papierze. **Sam materiał nie wystarczy, jeśli struktura zostaje tabelaryczna.**
+
+Co naprawdę wyprowadziło to z tabeli:
+
+1. **Dwie kolumny zamiast jednej** (`columns: 2`), więc kartki układają się w polu dwuwymiarowym, a nie w kolejce.
+2. **Różna wielkość kartki zależna od rangi posady.** Fucha to świstek, dyrektor to urzędowe ogłoszenie z podwójną ramką. Wielkość niesie znaczenie, nie jest ozdobą.
+3. **Przesunięcie w poziomie i przechył**, stałe dla danej pozycji, więc lewa krawędź nie jest linią prostą. To jest jedyna rzecz, która naprawdę łamie wrażenie wiersza.
+
+Pułapka techniczna, w którą wpadłem: element miał jednocześnie klasę z `display: grid`, a `columns` na siatce nie działa. Układ wielokolumnowy wymaga `display: block`.

@@ -35,13 +35,28 @@ function wageNow(state: GameState, def: JobDef): number {
  * Oferta jako kartka przypięta do tablicy, nie wiersz tabeli.
  * Papier, pinezka, płaca przybita pieczątką: to samo, co gracz widzi w PUP.
  */
+/** Wielkość kartki bierze się z rangi posady: fucha to świstek, dyrektor to urzędowe ogłoszenie. */
+function slipSize(prestige: number): "s" | "m" | "l" {
+  if (prestige <= 10) {
+    return "s";
+  }
+  return prestige > 40 ? "l" : "m";
+}
+
+/**
+ * Oferta jako kartka przypięta do tablicy. Kartki mają różną wielkość i krzywo wiszą
+ * w dwóch kolumnach, bo tablica ogłoszeń nie jest listą wierszy.
+ */
 function buildOfferSlip(state: GameState, def: JobDef, reason: string | null, mine: boolean, enabled: boolean, index: number): HTMLButtonElement {
-  const slip = el("button", mine ? "offer offer-mine" : "offer");
+  const size = slipSize(def.prestige);
+  const slip = el("button", `offer offer-${size}${mine ? " offer-mine" : ""}`);
   slip.type = "button";
   slip.dataset.job = def.id;
   slip.disabled = !enabled;
-  // Lekki, ale stały przechył: kartki wiszą krzywo, a nie losują się przy każdym odświeżeniu.
-  slip.style.setProperty("--tilt", `${((index % 3) - 1) * 1.1}deg`);
+  // Stały, nielosowy przechył i przesunięcie: kartki wiszą krzywo, ale zawsze tak samo.
+  const tilt = [-1.7, 1.2, -0.6, 2.1, -1.1, 0.8][index % 6] ?? 0;
+  slip.style.setProperty("--tilt", `${tilt}deg`);
+  slip.style.setProperty("--shift", `${[0, 6, -4, 3, -7, 2][index % 6] ?? 0}px`);
 
   const pin = el("span", "offer-pin");
   pin.setAttribute("aria-hidden", "true");
@@ -88,7 +103,7 @@ export function buildJobsBoard(handlers: JobsBoardHandlers): JobsBoard {
   raise.append(raiseName, raiseMeta, raiseCost);
   raise.addEventListener("click", () => handlers.onRaise());
 
-  const list = el("div", "jobs-list cork");
+  const list = el("div", "cork");
   list.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof Element)) {

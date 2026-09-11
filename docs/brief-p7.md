@@ -51,3 +51,40 @@ Wygenerowałem trzy ikony modelem `gpt-image-2.5-flare`, z dwiema naszymi ikonam
 Portretów postaci i kadrów lokacji. Mamy jedenaście popiersi i czternaście kafelków w jednym stylu, zrobionych ręcznie. Dołożenie do tego grafiki z innego źródła rozjedzie planszę, a to jest dokładnie ten problem, który opisują `uwagi-p4.md` i `uwagi-p4b.md`.
 
 Animacji. Narzędzie ma `animate_game_art`, ale silnik gry serwuje statyczne WebP i nie ma odtwarzacza klatek. Animowany pionek albo dymiący kebab wymagałby osobnej decyzji produktowej i pracy w silniku, nie tylko grafiki.
+
+---
+
+## Wykonane 11 września 2026
+
+### Znalezione przy okazji: szachownica w dziesięciu ikonach
+
+Skanując zestaw pod kątem przezroczystości, znalazłem, że **dziesięć ikon akcji miało wrysowaną szachownicę** zamiast alfy: kryty kwadrat zajmował około 40% obrazka i renderował się w grze jako jasny prostokąt na ciemnym panelu. Dotyczyło to: podania na kierownika, ciuchów, jedzenia, własnego lokalu, siłowni, drzemki, szukania pracy, kursu, dyplomu i zmiany w Nocnej Bule. Plus drobne resztki w encyklopedii, komputerze, pralce i pionku Kowalskiego.
+
+Naprawione wypełnieniem od krawędzi przez piksele przezroczyste i prawie białe, z zatrzymaniem na ciemnym konturze obiektu. Razem 17 942 piksele. To była najpoważniejsza wada zestawu i nie miała nic wspólnego z SpriteCookiem.
+
+Osobno: `ui/reliability.png` miał pod ikoną wrysowaną cyfrę „1”. Wycięta, ikona wyśrodkowana.
+
+### Wymienione na nowe ze SpriteCooka
+
+| Plik | Było | Jest |
+|---|---|---|
+| `actions/study-course.png` | notes z długopisem, blady przy 32 px | otwarta książka z ołówkiem, pomarańczowy kontur |
+| `actions/study-degree.png` | portfel z rombem, mylący | rulon ze wstążką i pieczęcią |
+| `actions/rest-home.png` | sama poduszka, blada | poduszka z pomarańczowym kocem |
+| `actions/rest-gym.png` | ciemnoszary hantel | hantel z pomarańczowym chwytem |
+| `ui/need-job.png` | baner z kluczem, nieczytelny | gazeta z lupą |
+| `ui/music.png` | głośnik rysowany w CSS | radio tranzystorowe |
+
+### Odrzucone
+
+Zegar ścienny: ładny, ale dublowałby ikonę czasu w pasku górnym. Karta zegarowa na solidność: blada plama przy 32 px. Filiżanka i dzwonek z pierwszego testu.
+
+**Solidność zostaje na starej ikonie** (zegar kontrolny), bo jest ciemna, ale za to odróżnialna od ikony czasu. Do poprawy przy okazji, z innym motywem niż zegar.
+
+### Znaleziona sierota
+
+`actions/search-job.png` nie jest używany nigdzie w kodzie. Do usunięcia albo do wykorzystania.
+
+### Trafność po poprawce metody
+
+Z trzema wzorcami stylu zamiast dwóch: **5 użytych z 7 tematów**. Wcześniej przy dwóch wzorcach było 1 z 3. Kontur przestał być za cienki. Kredytów zostało 232 z 752.

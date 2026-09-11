@@ -1,5 +1,5 @@
 {
-  "note": "Zasoby w SpriteCook. styleReferences podawaj jako style_asset_ids przy generate_game_art, żeby nowa grafika trzymała styl Mirkowa.",
+  "note": "Zasoby w SpriteCook. styleReferences podawaj jako style_asset_ids przy generate_game_art, żeby nowa grafika trzymała styl Mirkowa. Trzy wzorce zamiast dwoch wyraznie poprawily grubosc konturu.",
   "styleReferences": [
     {
       "asset_id": "a163126d-5de7-4207-8948-b595eac59fb2",
@@ -12,6 +12,11 @@
       "label": "Mirkow styl: ksiazeczka",
       "local": "art-src/art/actions/account.png",
       "sha12": "4ca701b5ae73"
+    },
+    {
+      "asset_id": "fa159df3-b71f-4922-9891-0a1fd91f08e8",
+      "label": "Mirkow styl: chleb (gruby kontur)",
+      "local": "art-src/art/ui/need-food.png"
     }
   ],
   "generated": [
@@ -33,6 +38,48 @@
       "label": "dzwonek tramwajowy",
       "used": false,
       "why": "czyta sie jak klosz, nie jak dzwonek"
+    },
+    {
+      "asset_id": "fdd2fd14-f34c-4ac0-b7b2-35b21884bc3f",
+      "label": "zeszyt z olowkiem",
+      "local": "art-src/art/actions/study-course.png",
+      "used": true
+    },
+    {
+      "asset_id": "c3694483-8835-480b-8088-cd5400c5e31e",
+      "label": "rulon dyplomu",
+      "local": "art-src/art/actions/study-degree.png",
+      "used": true
+    },
+    {
+      "asset_id": "b3a2ef90-7aa5-4c24-9435-7146725c9063",
+      "label": "poduszka z kocem",
+      "local": "art-src/art/actions/rest-home.png",
+      "used": true
+    },
+    {
+      "asset_id": "4cff70d4-9455-4ecf-937c-557b15294606",
+      "label": "hantel",
+      "local": "art-src/art/actions/rest-gym.png",
+      "used": true
+    },
+    {
+      "asset_id": "8bd94f11-556b-4aa9-811f-ef98f0ada4a6",
+      "label": "gazeta z lupa",
+      "local": "art-src/art/ui/need-job.png",
+      "used": true
+    },
+    {
+      "asset_id": "23d8a481-0642-47ff-a4e5-3dadcfce07b4",
+      "label": "zegar scienny",
+      "used": false,
+      "why": "dublowalby ikone czasu w pasku gornym"
+    },
+    {
+      "asset_id": "f29794f0-ffb7-4455-b32b-354be5569427",
+      "label": "karta zegarowa",
+      "used": false,
+      "why": "blada plama przy 32 px"
     }
   ],
   "model": {

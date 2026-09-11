@@ -115,40 +115,107 @@ export function buildSetup(handlers: SetupHandlers): HTMLElement {
     root.append(resume);
   }
 
-  const body = el("div", "setup-body");
+  /* Legitymacja mieszkańca: jeden dokument zamiast formularza z sekcjami. */
+  const card = el("div", "id-card");
 
-  /* Długość partii */
-  const presetSection = el("section", "setup-section setup-presets");
-  const presetLabel = el("h2", "setup-label");
-  presetLabel.textContent = t("setupGoals");
-  const presetList = el("div", "presets");
+  const idHead = el("div", "id-head");
+  const idTitle = el("span", "id-title");
+  idTitle.textContent = t("setupCardTitle");
+  const idIssuer = el("span", "id-issuer");
+  idIssuer.textContent = t("setupCardIssued");
+  idHead.append(idTitle, idIssuer);
+  idHead.append(artImg(stampArtUrl(), "id-seal"));
+
+  const idBody = el("div", "id-body");
+
+  /* Zdjęcie w ramce i pasek zdjęć do wyboru */
+  const photoBox = el("div", "id-photo");
+  const photo = el("div", "id-photo-frame");
+  const photoImg = artImg(avatarArtUrl("ola"), "");
+  photo.append(photoImg);
+  const photoLabel = el("span", "id-photo-label");
+  photoLabel.textContent = t("setupPhoto");
+  photoBox.append(photo, photoLabel);
+
+  const strip = el("div", "id-strip");
+  strip.setAttribute("role", "group");
+  strip.setAttribute("aria-label", t("setupAvatar"));
+  const portraitButtons = new Map<AvatarId, HTMLButtonElement>();
+
+  const nameInput = el("input");
+
+  function syncPortraits(): void {
+    for (const [id, button] of portraitButtons) {
+      const on = id === avatarId;
+      button.classList.toggle("id-thumb-on", on);
+      button.setAttribute("aria-pressed", on ? "true" : "false");
+    }
+    photoImg.src = avatarArtUrl(avatarId);
+    photo.style.setProperty("--avatar", avatarColor(avatarId));
+    if (!nameTouched) {
+      nameInput.value = avatarName(avatarId);
+    }
+  }
+
+  for (const id of avatarIds) {
+    const button = el("button", "id-thumb");
+    button.type = "button";
+    button.setAttribute("aria-label", avatarName(id));
+    button.title = avatarName(id);
+    button.append(artImg(avatarArtUrl(id), ""));
+    button.addEventListener("click", () => {
+      avatarId = id;
+      syncPortraits();
+    });
+    portraitButtons.set(id, button);
+    strip.append(button);
+  }
+  photoBox.append(strip);
+
+  /* Rubryki wypełniane ręcznie */
+  const fields = el("div", "id-fields");
+
+  const nameField = el("label", "id-field");
+  const nameCaption = el("span", "id-caption");
+  nameCaption.textContent = t("setupName");
+  nameInput.type = "text";
+  nameInput.className = "id-write";
+  nameInput.maxLength = 16;
+  nameInput.autocomplete = "off";
+  nameInput.spellcheck = false;
+  nameInput.addEventListener("input", () => {
+    nameTouched = true;
+  });
+  nameField.append(nameCaption, nameInput);
+
+  const goalField = el("div", "id-field");
+  const goalCaption = el("span", "id-caption");
+  goalCaption.textContent = t("setupGoals");
+  const presetList = el("div", "id-stamps");
   presetList.setAttribute("role", "group");
   presetList.setAttribute("aria-label", t("setupGoals"));
   const presetButtons = new Map<PresetId, HTMLButtonElement>();
   const sliderValues = new Map<keyof Stats, { input: HTMLInputElement; value: HTMLElement; money: boolean }>();
+  const goalSummary = el("p", "id-goal-line");
 
   function syncPresets(): void {
     for (const [id, button] of presetButtons) {
       const on = id === preset;
-      button.classList.toggle("preset-on", on);
+      button.classList.toggle("id-stamp-on", on);
       button.setAttribute("aria-pressed", on ? "true" : "false");
     }
     for (const [field, slider] of sliderValues) {
       slider.input.value = String(goals[field]);
       slider.value.textContent = displayGoal(goals[field], slider.money);
     }
+    const chosen = presets.find((entry) => entry.id === preset);
+    goalSummary.textContent = chosen === undefined ? goalsLine(goals) : `${t(chosen.hint)} · ${goalsLine(goals)}`;
   }
 
   for (const entry of presets) {
-    const button = el("button", "preset");
+    const button = el("button", "id-stamp");
     button.type = "button";
-    const name = el("span", "preset-name");
-    name.textContent = t(entry.name);
-    const hint = el("span", "preset-hint");
-    hint.textContent = t(entry.hint);
-    const line = el("span", "preset-goals");
-    line.textContent = goalsLine(entry.goals);
-    button.append(name, hint, line);
+    button.textContent = t(entry.name);
     button.addEventListener("click", () => {
       preset = entry.id;
       goals = { ...entry.goals };
@@ -183,67 +250,14 @@ export function buildSetup(handlers: SetupHandlers): HTMLElement {
     sliderValues.set(slider.field, { input, value, money: slider.money });
   }
   custom.append(summary, goalList);
-  presetSection.append(presetLabel, presetList, custom);
+  goalField.append(goalCaption, presetList, goalSummary, custom);
 
-  /* Żeton */
-  const portraitSection = el("section", "setup-section setup-portraits");
-  const portraitLabel = el("h2", "setup-label");
-  portraitLabel.textContent = t("setupAvatar");
-  const look = el("p", "setup-hint");
-  look.textContent = t("setupLook");
-  const portraits = el("div", "portraits");
-  portraits.setAttribute("role", "group");
-  portraits.setAttribute("aria-label", t("setupAvatar"));
-  const portraitButtons = new Map<AvatarId, HTMLButtonElement>();
+  fields.append(nameField, goalField);
+  idBody.append(photoBox, fields);
 
-  const nameInput = el("input");
-
-  function syncPortraits(): void {
-    for (const [id, button] of portraitButtons) {
-      const on = id === avatarId;
-      button.classList.toggle("portrait-on", on);
-      button.setAttribute("aria-pressed", on ? "true" : "false");
-    }
-    if (!nameTouched) {
-      nameInput.value = avatarName(avatarId);
-    }
-  }
-
-  for (const id of avatarIds) {
-    const button = el("button", "portrait");
-    button.type = "button";
-    button.style.setProperty("--avatar", avatarColor(id));
-    button.setAttribute("aria-label", avatarName(id));
-    button.append(artImg(avatarArtUrl(id), ""));
-    const caption = el("span", "plaque portrait-name");
-    caption.textContent = avatarName(id);
-    button.append(caption);
-    button.addEventListener("click", () => {
-      avatarId = id;
-      syncPortraits();
-    });
-    portraitButtons.set(id, button);
-    portraits.append(button);
-  }
-  portraitSection.append(portraitLabel, look, portraits);
-
-  /* Imię */
-  const nameSection = el("section", "setup-section setup-name");
-  const nameLabel = el("label", "name-field");
-  const nameCaption = el("span", "setup-label");
-  nameCaption.textContent = t("setupName");
-  nameInput.type = "text";
-  nameInput.maxLength = 16;
-  nameInput.autocomplete = "off";
-  nameInput.addEventListener("input", () => {
-    nameTouched = true;
-  });
-  nameLabel.append(nameCaption, nameInput);
-  nameSection.append(nameLabel);
-
-  /* Start */
-  const cta = el("section", "setup-cta");
-  const start = el("button", "btn btn-primary");
+  /* Podbicie dokumentu zamiast przycisku „wyślij formularz” */
+  const idFoot = el("div", "id-foot");
+  const start = el("button", "id-go");
   start.type = "button";
   start.textContent = saved !== null ? t("setupStartNew") : t("setupStart");
   start.addEventListener("click", () => {
@@ -254,14 +268,16 @@ export function buildSetup(handlers: SetupHandlers): HTMLElement {
       goals: { ...goals },
     });
   });
-  const vs = el("p", "setup-hint");
-  vs.textContent = t("setupVs");
-  const install = el("p", "setup-hint");
-  install.textContent = t("installHint");
-  cta.append(start, vs, install);
+  const notes = el("p", "id-notes");
+  notes.textContent = `${t("setupVs")} ${t("setupLook")}`;
+  idFoot.append(start, notes);
 
-  body.append(presetSection, portraitSection, nameSection, cta);
-  root.append(body);
+  card.append(idHead, idBody, idFoot);
+
+  root.append(card);
+  const install = el("p", "setup-install");
+  install.textContent = t("installHint");
+  root.append(install);
   syncPresets();
   syncPortraits();
   return root;

@@ -174,12 +174,12 @@ W panelu administracyjnym powtarzalny wiersz jest zaletą, bo użytkownik uczy s
 
 | Miejsce | Czym jest naprawdę | Zamiast wiersza |
 |---|---|---|
-| PUP | tablica ogłoszeń | **zrobione:** kartki przypięte pinezkami, płaca przybita pieczątką, zablokowane oferty szare z powodem pisanym rdzawym tuszem |
-| WSMiK | indeks studenta | strony indeksu z wpisami i pieczątkami zaliczeń |
-| Żuczek, Elektro-Mir, Lombard | półka z towarem | przedmioty na półce z metkami cenowymi |
-| Dom | umowa najmu | kartki umów z podpisem i stawką |
-| Nasza Kasa | książeczka oszczędnościowa | rozkładana książeczka z rubrykami |
-| Dziennik | notes | kartka w linie z wpisami, nie log |
+| PUP | tablica ogłoszeń | **zrobione:** kartki przypięte pinezkami w dwóch kolumnach, wielkość zależna od rangi posady, płaca przybita pieczątką |
+| WSMiK | indeks studenta | **zrobione:** strona z czerwoną linią marginesu, pieczęcie kierunków, pieczątki zaliczeń |
+| Żuczek, Elektro-Mir, Lombard | półka z towarem | **zrobione:** towar na drewnianych deskach, cena na metce ze sznurkiem |
+| Dom | umowa najmu | **zrobione:** arkusze z linią podpisu, stawką i pieczątką TWOJE |
+| Nasza Kasa | książeczka oszczędnościowa | **zrobione:** papier z niebieskim marginesem, tusz, kwity z przerywaną ramką |
+| Dziennik | notes | **zrobione:** kartka w linie, numer tygodnia na marginesie |
 
 Wspólne zostaje to, co ma być wspólne: paleta, cztery stopnie pisma, papier jako materiał tekstu, pieczątka jako gest dla liczb. Różny ma być przedmiot.
 
@@ -196,3 +196,13 @@ Co naprawdę wyprowadziło to z tabeli:
 3. **Przesunięcie w poziomie i przechył**, stałe dla danej pozycji, więc lewa krawędź nie jest linią prostą. To jest jedyna rzecz, która naprawdę łamie wrażenie wiersza.
 
 Pułapka techniczna, w którą wpadłem: element miał jednocześnie klasę z `display: grid`, a `columns` na siatce nie działa. Układ wielokolumnowy wymaga `display: block`.
+
+---
+
+## 11. Ekran startu: legitymacja zamiast formularza
+
+Menu wyglądało jak strona ustawień: dwie kolumny, nagłówki sekcji („Długość partii”, „Wybierz żeton”, „Imię”), trzy karty w rzędzie, pole tekstowe w ramce i przycisk. Metafora legitymacji mieszkańca była zapisana w komentarzu w CSS od pierwszego dnia, ale nigdy nie została zrobiona.
+
+Teraz cały ekran startu to **jeden dokument**: nagłówek z nazwą urzędu i pieczęcią, zdjęcie w ramce z paskiem zdjęć do wyboru, imię wpisywane na linii zamiast w polu formularza, cel pobytu przybijany jedną z trzech pieczątek, a wejście do gry to podbicie dokumentu dużym stemplem.
+
+Zniknęły: nagłówki sekcji, układ dwukolumnowy, obramowane pole tekstowe i przycisk w kształcie pigułki. Suwaki „Ustaw sam” zostały, ale jako rozwijany szczegół wewnątrz dokumentu.

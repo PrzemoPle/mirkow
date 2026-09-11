@@ -1929,11 +1929,117 @@
   }
 }
 
-/* Indeks WSMiK i dyplomy */
-.diploma-done {
-  opacity: 0.7;
+/* WSMiK: strona indeksu. Kierunek po lewej, pieczątka po prawej, kropki między nimi. */
+.index-page {
+  display: grid;
+  gap: 0;
+  padding: 0.9rem 0.9rem 1.1rem;
+  border-radius: 2px;
+  background:
+    linear-gradient(to right, rgb(158 73 33 / 0.18) 0 2px, transparent 2px),
+    var(--plaque);
+  color: var(--ink);
+  box-shadow:
+    0 2px 0 rgb(0 0 0 / 0.35),
+    0 10px 22px rgb(0 0 0 / 0.4);
 }
 
+.entry-line {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  grid-template-areas:
+    "seal name stamp"
+    "seal note stamp";
+  align-items: center;
+  column-gap: 0.6rem;
+  padding: 0.55rem 0.2rem 0.55rem 0.6rem;
+  border: 0;
+  border-bottom: 1px solid rgb(43 38 34 / 0.16);
+  background: none;
+  color: inherit;
+  text-align: left;
+}
+
+.entry-line:last-child {
+  border-bottom: 0;
+}
+
+.entry-line:not(:disabled):hover {
+  background: rgb(158 73 33 / 0.07);
+}
+
+.entry-seal {
+  grid-area: seal;
+  width: 2rem;
+  height: 2rem;
+  object-fit: contain;
+}
+
+.entry-line:disabled:not(.entry-done):not(.entry-open) .entry-seal {
+  opacity: 0.4;
+  filter: grayscale(0.8);
+}
+
+.entry-name {
+  grid-area: name;
+  font-family: var(--display);
+  font-size: var(--fs-s);
+  font-weight: 700;
+}
+
+.entry-note {
+  grid-area: note;
+  font-size: var(--fs-xs);
+  line-height: 1.25;
+  color: rgb(43 38 34 / 0.6);
+  text-wrap: pretty;
+}
+
+.entry-locked {
+  color: var(--accent-paper);
+}
+
+/* Pieczątka zaliczenia: okrągła, przekrzywiona, jak w prawdziwym indeksie. */
+.entry-stamp {
+  grid-area: stamp;
+  justify-self: end;
+  padding: 0.2em 0.5em;
+  border: 2px solid;
+  border-radius: 3px;
+  font-family: var(--display);
+  font-size: var(--fs-xs);
+  font-weight: 750;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.entry-stamp-done {
+  border-style: double;
+  border-width: 3px;
+  border-color: var(--accent-paper);
+  color: var(--accent-paper);
+  transform: rotate(-7deg);
+}
+
+.entry-stamp-open {
+  border-color: rgb(43 38 34 / 0.55);
+  color: rgb(43 38 34 / 0.75);
+  transform: rotate(3deg);
+  font-variant-numeric: tabular-nums;
+}
+
+.entry-stamp-empty {
+  border-style: dashed;
+  border-color: rgb(43 38 34 / 0.3);
+  color: rgb(43 38 34 / 0.5);
+}
+
+.entry-line:disabled .entry-stamp-empty {
+  opacity: 0.55;
+}
+
+/* Indeks WSMiK i dyplomy */
 .diploma-unlocks {
   width: 100%;
   color: var(--text-3);
@@ -1946,6 +2052,133 @@
 .need-diplomas img {
   width: 1.5rem;
   height: 1.5rem;
+}
+
+/* Sklepy: towar stoi na półce, cena wisi na metce. Nie lista wierszy z ceną po prawej. */
+.shelf {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0;
+  border-radius: var(--r);
+  overflow: hidden;
+  background: linear-gradient(to bottom, rgb(0 0 0 / 0.25), transparent 30%);
+}
+
+.shelf-sign {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 2px;
+  background: var(--road);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  box-shadow: 0 2px 0 rgb(0 0 0 / 0.4);
+}
+
+.shelf-sign img {
+  width: 1.1rem;
+  height: 1.1rem;
+}
+
+.shelf-sign:first-child {
+  margin-top: 0;
+}
+
+.good {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto auto 1fr;
+  justify-items: center;
+  align-content: start;
+  gap: 0.2rem;
+  padding: 0.75rem 0.5rem 0.8rem;
+  border: 0;
+  /* Deska półki: wspólna krawędź pod całym rzędem, bez przerw między kolumnami. */
+  border-bottom: 4px solid var(--road);
+  background: none;
+  color: var(--text);
+  text-align: center;
+  box-shadow: 0 4px 0 rgb(0 0 0 / 0.45);
+  transition: transform 140ms var(--ease);
+}
+
+.good:not(:disabled):hover {
+  transform: translateY(-3px);
+}
+
+.good:not(:disabled):active {
+  transform: translateY(-1px) scale(0.985);
+}
+
+.good:disabled {
+  opacity: 0.55;
+}
+
+.good-img {
+  width: 3.4rem;
+  height: 3.4rem;
+  object-fit: contain;
+  filter: drop-shadow(0 3px 2px rgb(0 0 0 / 0.5));
+}
+
+.good-name {
+  font-family: var(--display);
+  font-size: var(--fs-s);
+  font-weight: 650;
+  line-height: 1.1;
+}
+
+.good-note {
+  font-size: var(--fs-xs);
+  line-height: 1.25;
+  color: var(--text-3);
+  text-wrap: pretty;
+}
+
+.good-blocked {
+  color: var(--accent-2);
+}
+
+/* Metka na sznurku, przywiązana do towaru. */
+.good-tag {
+  position: absolute;
+  top: 0.45rem;
+  right: 0.35rem;
+  padding: 0.1em 0.4em 0.1em 0.55em;
+  border-radius: 2px;
+  background: var(--plaque);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: var(--fs-xs);
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transform: rotate(6deg);
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.5);
+}
+
+.good-tag::before {
+  content: "";
+  position: absolute;
+  left: 0.18em;
+  top: 50%;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--table);
+  transform: translateY(-50%);
+}
+
+.good-sell .good-tag {
+  background: var(--ok);
 }
 
 /* Pokój z rzeczami */

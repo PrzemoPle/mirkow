@@ -17,7 +17,7 @@ import { artImg, brokenIconUrl, buyItemIconUrl, itemArtUrl, repairIconUrl, sellI
 import { blockReason, itemEffect, itemName } from "./copy";
 import { el } from "./dom";
 import { buildBoardHeading } from "./heading";
-import { formatZl, interpolate } from "./format";
+import { formatZl } from "./format";
 
 export type ShopHandlers = {
   onBuy(item: ItemId, used: boolean): void;
@@ -32,7 +32,8 @@ export type ShopBoard = {
 
 type RowKind = "buy" | "used" | "sell" | "repair";
 
-function buildRow(
+/** Towar stojący na półce z wiszącą metką, zamiast wiersza z ceną po prawej. */
+function buildGood(
   kind: RowKind,
   item: ItemId,
   price: number,
@@ -40,37 +41,41 @@ function buildRow(
   enabled: boolean,
   extra: string | null,
 ): HTMLButtonElement {
-  const row = el("button", "act job-row item-row");
-  row.type = "button";
-  row.dataset.item = item;
-  row.dataset.kind = kind;
-  row.disabled = !enabled;
-  row.append(artImg(itemArtUrl(item), "act-icon item-icon", "icon"));
-  const name = el("span", "act-name");
+  const good = el("button", `good good-${kind}`);
+  good.type = "button";
+  good.dataset.item = item;
+  good.dataset.kind = kind;
+  good.disabled = !enabled;
+
+  good.append(artImg(itemArtUrl(item), "good-img", "icon"));
+
+  const name = el("span", "good-name");
   name.textContent = itemName(item);
-  if (extra !== null) {
-    const tag = el("span", "plaque job-tag");
-    tag.textContent = extra;
-    name.append(" ", tag);
-  }
-  const meta = el("span", "act-meta");
+  good.append(name);
+
+  const note = el("span", "good-note");
   if (reason !== null) {
-    const why = el("span", "act-reason");
-    why.textContent = reason;
-    meta.append(why);
+    note.classList.add("good-blocked");
+    note.textContent = reason;
   } else {
-    const effect = el("span");
-    effect.textContent = itemEffect(item);
-    meta.append(effect);
+    note.textContent = extra === null ? itemEffect(item) : `${extra} · ${itemEffect(item)}`;
   }
-  const cost = el("span", "act-cost");
-  const money = el("span", kind === "sell" ? "act-money act-money-plus" : "act-money");
-  money.textContent = `${kind === "sell" ? "+" : "-"}${formatZl(price)}`;
-  const time = el("span", "ticket");
-  time.textContent = interpolate("timeCost", { n: 1 });
-  cost.append(money, time);
-  row.append(name, meta, cost);
-  return row;
+  good.append(note);
+
+  const tag = el("span", "good-tag");
+  tag.textContent = `${kind === "sell" ? "+" : ""}${formatZl(price)}`;
+  good.append(tag);
+  return good;
+}
+
+/** Tabliczka nad półką: co tu stoi. */
+function buildSign(icon: string, label: string): HTMLElement {
+  const sign = el("div", "shelf-sign");
+  sign.append(artImg(icon, "pix", "icon"));
+  const text = el("span");
+  text.textContent = label;
+  sign.append(text);
+  return sign;
 }
 
 function attach(list: HTMLElement, handlers: ShopHandlers): void {
@@ -104,7 +109,7 @@ function attach(list: HTMLElement, handlers: ShopHandlers): void {
 export function buildElektroBoard(handlers: ShopHandlers): ShopBoard {
   const root = el("div", "jobs shop-board");
   const head = buildBoardHeading("elektroTitle", "elektroHint");
-  const list = el("div", "jobs-list");
+  const list = el("div", "shelf");
   attach(list, handlers);
   root.append(head, list);
   return {
@@ -113,28 +118,18 @@ export function buildElektroBoard(handlers: ShopHandlers): ShopBoard {
       list.replaceChildren();
       const broken = player.items.filter((item) => item.broken);
       if (broken.length > 0) {
-        const head = el("div", "jobs-company");
-        head.append(artImg(repairIconUrl(), "pix", "icon"));
-        const label = el("span");
-        label.textContent = t("actRepairItem");
-        head.append(label);
-        list.append(head);
+        list.append(buildSign(repairIconUrl(), t("actRepairItem")));
         for (const item of broken) {
           const block = humanTurn ? repairItemBlock(state, item.id) : null;
-          list.append(buildRow("repair", item.id, repairPrice(item.id), block === null ? null : blockReason(block), humanTurn && block === null, t("itemBroken")));
+          list.append(buildGood("repair", item.id, repairPrice(item.id), block === null ? null : blockReason(block), humanTurn && block === null, t("itemBroken")));
         }
       }
-      const head = el("div", "jobs-company");
-      head.append(artImg(buyItemIconUrl(), "pix", "icon"));
-      const label = el("span");
-      label.textContent = t("actBuyItem");
-      head.append(label);
-      list.append(head);
+      list.append(buildSign(buyItemIconUrl(), t("actBuyItem")));
       for (const id of itemIds) {
         const owned = ownedItem(player, id);
         const block = humanTurn && owned === undefined ? buyItemBlock(state, id, false) : null;
         const reason = owned !== undefined ? t("blockAlreadyOwned") : block === null ? null : blockReason(block);
-        list.append(buildRow("buy", id, getItemDef(id).price, reason, humanTurn && owned === undefined && block === null, null));
+        list.append(buildGood("buy", id, getItemDef(id).price, reason, humanTurn && owned === undefined && block === null, null));
       }
     },
   };
@@ -144,7 +139,7 @@ export function buildElektroBoard(handlers: ShopHandlers): ShopBoard {
 export function buildLombardBoard(handlers: ShopHandlers): ShopBoard {
   const root = el("div", "jobs shop-board");
   const head = buildBoardHeading("lombardTitle", "lombardHint");
-  const list = el("div", "jobs-list");
+  const list = el("div", "shelf");
   attach(list, handlers);
   root.append(head, list);
   return {
@@ -152,29 +147,19 @@ export function buildLombardBoard(handlers: ShopHandlers): ShopBoard {
     sync(state, player, humanTurn) {
       list.replaceChildren();
       if (player.items.length > 0) {
-        const head = el("div", "jobs-company");
-        head.append(artImg(sellIconUrl(), "pix", "icon"));
-        const label = el("span");
-        label.textContent = t("lombardSell");
-        head.append(label);
-        list.append(head);
+        list.append(buildSign(sellIconUrl(), t("lombardSell")));
         for (const item of player.items) {
           const block = humanTurn ? sellItemBlock(state, item.id) : null;
           const price = item.broken ? Math.round(sellPrice(item.id) / 2 / 10) * 10 : sellPrice(item.id);
-          list.append(buildRow("sell", item.id, price, block === null ? null : blockReason(block), humanTurn && block === null, item.broken ? t("itemBroken") : null));
+          list.append(buildGood("sell", item.id, price, block === null ? null : blockReason(block), humanTurn && block === null, item.broken ? t("itemBroken") : null));
         }
       }
-      const head = el("div", "jobs-company");
-      head.append(artImg(buyItemIconUrl(), "pix", "icon"));
-      const label = el("span");
-      label.textContent = t("actBuyUsed");
-      head.append(label);
-      list.append(head);
+      list.append(buildSign(buyItemIconUrl(), t("actBuyUsed")));
       for (const id of itemIds) {
         const owned = ownedItem(player, id);
         const block = humanTurn && owned === undefined ? buyItemBlock(state, id, true) : null;
         const reason = owned !== undefined ? t("blockAlreadyOwned") : block === null ? null : blockReason(block);
-        list.append(buildRow("used", id, usedPrice(id), reason, humanTurn && owned === undefined && block === null, t("itemUsed")));
+        list.append(buildGood("used", id, usedPrice(id), reason, humanTurn && owned === undefined && block === null, t("itemUsed")));
       }
     },
   };

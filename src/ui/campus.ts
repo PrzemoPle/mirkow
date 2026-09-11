@@ -40,7 +40,7 @@ function unlocks(diploma: DiplomaId): string {
 export function buildCampusBoard(handlers: CampusHandlers): CampusBoard {
   const root = el("div", "jobs campus");
   const head = buildBoardHeading("campusTitle", "campusHint");
-  const list = el("div", "jobs-list");
+  const list = el("div", "index-page");
   list.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof Element)) {
@@ -68,58 +68,48 @@ export function buildCampusBoard(handlers: CampusHandlers): CampusBoard {
         const have = classesDone(player, id);
         const block = humanTurn && !done && !studying ? enrollBlock(state, id) : null;
 
-        const row = el("button", "act job-row diploma-row");
-        row.type = "button";
-        row.dataset.diploma = id;
-        row.disabled = !humanTurn || done || studying || block !== null;
-        row.classList.toggle("job-mine", studying);
-        row.classList.toggle("diploma-done", done);
+        // Wpis w indeksie: kierunek po lewej, pieczątka po prawej, kropki między nimi.
+        const entry = el("button", "entry-line");
+        entry.type = "button";
+        entry.dataset.diploma = id;
+        entry.disabled = !humanTurn || done || studying || block !== null;
+        entry.classList.toggle("entry-done", done);
+        entry.classList.toggle("entry-open", studying);
 
-        row.append(artImg(diplomaArtUrl(id), "act-icon pix", "diploma"));
-        const name = el("span", "act-name");
+        entry.append(artImg(diplomaArtUrl(id), "entry-seal", "diploma"));
+
+        const name = el("span", "entry-name");
         name.textContent = diplomaName(id);
-        if (done || studying) {
-          const tag = el("span", "plaque job-tag");
-          tag.textContent = done ? t("campusDone") : t("campusStudying");
-          name.append(" ", tag);
-        }
+        entry.append(name);
 
-        const meta = el("span", "act-meta");
+        const note = el("span", "entry-note");
         if (block !== null) {
-          const why = el("span", "act-reason");
-          why.textContent = blockReason(block);
-          meta.append(why);
-        } else if (!done) {
-          const progress = el("span");
-          progress.textContent = interpolate("campusProgress", { have, needed: def.classes });
-          meta.append(progress);
-          if (studying) {
-            const chance = el("span", "act-reason");
-            chance.textContent = `${interpolate("campusChance", { n: Math.round(examChance(player, id, state.week) * 100) })} · ${interpolate("campusRecent", { n: recentClasses(player, id, state.week) })}`;
-            meta.append(chance);
-          }
-          const cost = el("span");
-          cost.textContent = interpolate("campusClassCost", { money: def.classCost, time: def.classTime });
-          meta.append(cost);
+          note.classList.add("entry-locked");
+          note.textContent = blockReason(block);
+        } else if (done) {
+          note.textContent = interpolate("campusPoints", { n: def.points });
+        } else if (studying) {
+          note.textContent = `${interpolate("campusChance", { n: Math.round(examChance(player, id, state.week) * 100) })} · ${interpolate("campusRecent", { n: recentClasses(player, id, state.week) })}`;
+        } else {
+          const opens = unlocks(id);
+          note.textContent = [interpolate("campusClassCost", { money: def.classCost, time: def.classTime }), opens].filter((part) => part !== "").join(" · ");
         }
-        const opens = done ? "" : unlocks(id);
-        if (opens !== "") {
-          const chip = el("span", "diploma-unlocks");
-          chip.textContent = opens;
-          meta.append(chip);
-        }
+        entry.append(note);
 
-        const cost = el("span", "act-cost");
-        const points = el("span", "act-money act-money-plus");
-        points.textContent = interpolate("campusPoints", { n: def.points });
-        cost.append(points);
-        if (!done && !studying && block === null) {
-          const enroll = el("span", "ticket");
-          enroll.textContent = t("actEnroll");
-          cost.append(enroll);
+        const stamp = el("span", "entry-stamp");
+        if (done) {
+          stamp.classList.add("entry-stamp-done");
+          stamp.textContent = t("campusDone");
+        } else if (studying) {
+          stamp.classList.add("entry-stamp-open");
+          stamp.textContent = interpolate("campusProgress", { have, needed: def.classes });
+        } else {
+          stamp.classList.add("entry-stamp-empty");
+          stamp.textContent = t("actEnroll");
         }
-        row.append(name, meta, cost);
-        list.append(row);
+        entry.append(stamp);
+
+        list.append(entry);
       }
     },
   };

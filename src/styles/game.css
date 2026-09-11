@@ -1588,7 +1588,16 @@
       "board panel"
       "side panel"
       "journal panel"
+      ". panel"
       "tools tools";
+    /* Panel jest rozpiety na trzy wiersze lewej kolumny. Bez tego pustego
+       wiersza 1fr jego nadmiarowa wysokosc rozdziela sie po rowno miedzy
+       plansze, staty i dziennik, i miedzy nimi robia sie rowne, szerokie
+       dziury. Tutaj nadmiar zbiera sie w jednym miejscu, pod dziennikiem. */
+    grid-template-rows: auto auto auto auto auto 1fr auto;
+    /* Ekran gry mieszci sie w jednym oknie jak plansza na stole. Strona nie
+       przewija sie, przewija sie tylko panel miejsca. */
+    height: 100dvh;
     align-items: start;
     gap: 1rem 1.25rem;
     padding: 1rem 1.5rem 2rem;
@@ -1639,6 +1648,34 @@
 
   .panel {
     grid-area: panel;
+    /* Dluga lista ofert potrafi miec poltora tysiaca pikseli. Gdyby rozciagala
+       strone, lewa kolumna konczylaby sie w polowie i zostawala czarna dziura,
+       a przycisk konca tygodnia spadalby pod krawedz ekranu. Dlatego panel ma
+       wysokosc wiersza, a przewija sie tylko lista: zdjecie miejsca, kwestia
+       postaci i koniec tygodnia zostaja na wierzchu.
+       align-self, bo align-items: start na siatce kazaloby mu rosnac z trescia
+       i wyjsc poza wiersz. */
+    align-self: stretch;
+    min-height: 0;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+    align-content: stretch;
+  }
+
+  /* Numery wierszy jawnie, bo .sheet-close i .sheet-toggle sa tu schowane
+     i nie tworza wlasnych wierszy. */
+  .place {
+    grid-row: 1;
+  }
+
+  .panel .panel-body {
+    grid-row: 2;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .endweek {
+    grid-row: 3;
   }
 
   .journal {

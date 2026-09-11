@@ -57,6 +57,9 @@ Istniejący `work-kebab.png` zostaje dla Nocnej Buły.
 
 ## D. Karty zdarzeń (G1–G4)
 
+> **Poprawka 11 września 2026.** Reguła „motyw w górnych 55%, dół czysty papier” okazała się kłopotliwa w grze: karta rysowała tekst na własnym papierze, więc papier z pliku był drugą, zbędną warstwą, a trzy ilustracje (korek, promocja, teściowa) miały motyw znacznie krótszy i zostawiały pusty pas. Wszystkie pliki zostały przycięte do samego motywu i od teraz karta bierze proporcje z obrazka. **Przy nowych kartach rysować sam motyw, bez pasa czystego papieru na tekst.**
+
+
 Jak `art/events/*.png`: `768 × 1024`, 3:4, nieprzezroczyste, motyw w górnych 55%, dół czysty papier pod tytuł i efekt. Waga < 180 KB. Zero tekstu.
 
 | Plik | Etap | Copy w grze (nie maluj) | Kadr |

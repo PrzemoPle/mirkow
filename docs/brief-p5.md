@@ -52,6 +52,9 @@ Te same pliki co w P4b, ta sama postać, ta sama poza i paleta. Dodać jeden ele
 
 ## D. Winiety weekendów (6 plików)
 
+> **Poprawka 11 września 2026.** To samo co przy kartach zdarzeń: winiety przyszły jako pełny prostokąt 4:1 z motywem w lewych 55% i pustą prawą częścią. Pliki zostały przycięte do motywu i mają teraz około 2,2:1. **Przy nowych winietach rysować sam motyw, bez pustego miejsca na tekst.**
+
+
 **Gdzie w grze:** dolny pasek karty eventu po końcu tygodnia. Pod tytułem i efektem eventu jest linijka „WEEKEND Piwo z Kowalskim. -40 zł, +2 szczęścia”. Winieta będzie tłem tego paska: obraz po lewej, tekst po prawej na papierze. Pasek ma na desktopie ok. 330 × 82 px, na telefonie ok. 290 × 72 px.
 
 **Format:** `768 × 192` (4:1), **alfa**, poziomo. Motyw w **lewych 55%** kadru (do 420 px), prawa strona pusta (przezroczysta), bo tam leży tekst. Motyw ma czytać się w 82 px wysokości: 2–3 duże kształty, nie scenka z detalami. Bez ludzi z rozpoznawalną twarzą (sylwetki od tyłu OK). Kolory na papierze `#E8DCC8`: tusz i akcent plus jeden kolor wiodący, jak na kartach eventów. Waga < 60 KB.

@@ -443,18 +443,23 @@ function fallbackFor(kind: ArtKind): string | null {
   }
 }
 
-const ART_SIZES: Record<Exclude<ArtKind, "none">, { width: number; height: number }> = {
+/**
+ * Wymiary znane z góry, żeby obraz nie przesuwał układu podczas ładowania.
+ * Karty zdarzeń są przycięte do własnego motywu i każda ma inne proporcje,
+ * więc nie ma tu wpisu: leżą w nakładce, gdzie nie ma czego przesuwać.
+ */
+const ART_SIZES: Partial<Record<ArtKind, { width: number; height: number }>> = {
   tile: { width: 512, height: 384 },
   icon: { width: 64, height: 64 },
-  card: { width: 768, height: 1024 },
   diploma: { width: 128, height: 128 },
 };
 
 export function artImg(src: string, className: string, kind: ArtKind = "none"): HTMLImageElement {
   const img = el("img", className);
-  if (kind !== "none") {
-    img.width = ART_SIZES[kind].width;
-    img.height = ART_SIZES[kind].height;
+  const size = ART_SIZES[kind];
+  if (size !== undefined) {
+    img.width = size.width;
+    img.height = size.height;
   }
   img.src = src;
   img.alt = "";

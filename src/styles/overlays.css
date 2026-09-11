@@ -25,10 +25,14 @@
 }
 
 /* Karta eventu 3:4, tekst w dolnym pasie papieru. */
+/* Karta zdarzenia: kadr u góry, tekst pod nim. Wysokość bierze się z treści,
+   więc ilustracja nigdy nie chowa się pod tekstem i nie trzeba jej przycinać. */
 .card {
   position: relative;
-  width: min(360px, 82vw, 62dvh * 0.75);
-  aspect-ratio: 3 / 4;
+  display: grid;
+  grid-template-rows: auto 1fr;
+  width: min(360px, 86vw);
+  max-height: calc(100dvh - 2rem);
   overflow: hidden;
   border-radius: 6px;
   background: var(--paper);
@@ -45,23 +49,35 @@
   }
 }
 
+/* Pliki są przycięte do samego motywu, więc kadr bierze proporcje z obrazka.
+   Nic nie jest ani ścięte, ani rozciągnięte, niezależnie od tego, ile miejsca
+   ilustrator dał scenie. */
 .card-art {
-  position: absolute;
-  inset: 0;
+  display: block;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
+  height: auto;
 }
 
 .card-band {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  padding: 0.9rem 1rem 1rem;
+  background: var(--paper);
+  overflow-y: auto;
+}
+
+/* Miękkie przejście z kadru w papier, zamiast twardej krawędzi. */
+.card-band::before {
+  content: "";
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 0;
-  display: grid;
-  gap: 0.35rem;
-  padding: 0.9rem 1rem 1rem;
-  background: linear-gradient(to top, var(--paper) 78%, transparent);
+  top: -1.5rem;
+  height: 1.5rem;
+  background: linear-gradient(to top, var(--paper), transparent);
+  pointer-events: none;
 }
 
 .card-who {
@@ -95,24 +111,26 @@
 .card-foot {
   position: relative;
   display: grid;
-  grid-template-columns: 38% 1fr;
+  grid-template-columns: 45% 1fr;
   align-items: center;
-  gap: 0.5rem;
-  min-height: 3.4rem;
+  gap: 0.6rem;
   margin: 0.2rem -1rem 0;
-  padding: 0.35rem 1rem 0.35rem 0;
+  padding: 0.4rem 1rem 0.4rem 0;
   border-top: 1px dashed rgb(43 38 34 / 0.25);
   overflow: hidden;
 }
 
+/* Winieta ma 4:1, a motyw siedzi w jej lewych 55%. Kadr 2.2:1 pokazuje
+   dokładnie ten motyw, w jego własnych proporcjach. */
 .card-foot-art {
   width: 100%;
-  height: 3.4rem;
+  height: auto;
+  aspect-ratio: 2.2 / 1;
   object-fit: cover;
   object-position: left center;
   mix-blend-mode: multiply;
-  mask-image: linear-gradient(to right, #000 55%, transparent 100%);
-  -webkit-mask-image: linear-gradient(to right, #000 55%, transparent 100%);
+  mask-image: linear-gradient(to right, #000 82%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to right, #000 82%, transparent 100%);
 }
 
 .card-foot-copy {

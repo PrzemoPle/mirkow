@@ -57,5 +57,6 @@ Turowa gra **Symulator życia** (Mirków). Vite + TypeScript, vanilla DOM, Vites
 - Nie dodawać zdania, które powtarza pasek celu, opis miejsca albo kwestię postaci.
 - Reguły list chowają się pod „i” (`buildBoardHeading`), nie stoją nad listą.
 - Zmiana liczby musi być widoczna w miejscu, gdzie ta liczba stoi (`countTo`, `floatChange`).
+- Grafiki kart zdarzeń i winiet weekendów są przycięte do samego motywu, a układ bierze proporcje z pliku. Nie dorysowywać w pliku pustego miejsca na tekst i nie wymuszać jednego kadru w CSS.
 
 Kierunek wizualny: „Wieczór w Mirkowie”, patrz `docs/przeglad-2026-09-05.md`. Briefy grafik: `docs/brief-p2.md`, `brief-p3.md`, `brief-p4.md`, `brief-p5.md`, `brief-p7.md` (SpriteCook). Identyfikatory wzorców stylu: `spritecook-assets.json`. Audyt UX i status napraw: `docs/audyt-ux-2026-09-05.md`.

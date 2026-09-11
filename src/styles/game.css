@@ -1089,6 +1089,186 @@
   font-size: var(--fs-s);
 }
 
+/* Dom: trzy umowy najmu jako arkusze do podpisania, nie wiersze listy. */
+.leases {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.lease {
+  position: relative;
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.75rem 0.85rem 0.6rem;
+  border: 0;
+  border-radius: 2px;
+  background: var(--plaque);
+  color: var(--ink);
+  text-align: left;
+  transform: rotate(var(--tilt, 0deg));
+  box-shadow:
+    0 2px 0 rgb(0 0 0 / 0.35),
+    0 8px 18px rgb(0 0 0 / 0.4);
+  transition: transform 150ms var(--ease);
+}
+
+.lease:not(:disabled):hover {
+  transform: rotate(var(--tilt, 0deg)) translateY(-3px);
+}
+
+.lease:disabled {
+  background: #d9cfba;
+  color: rgb(43 38 34 / 0.62);
+}
+
+.lease-kind {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgb(43 38 34 / 0.45);
+}
+
+.lease-name {
+  font-family: var(--display);
+  font-size: var(--fs-m);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.lease-terms {
+  font-size: var(--fs-xs);
+  line-height: 1.3;
+  color: rgb(43 38 34 / 0.65);
+  text-wrap: pretty;
+}
+
+/* Stopka umowy: stawka po lewej, linia podpisu po prawej. */
+.lease-foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  padding-top: 0.4rem;
+  border-top: 1px solid rgb(43 38 34 / 0.25);
+}
+
+.lease-rent {
+  font-family: var(--display);
+  font-size: var(--fs-s);
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+.lease-sign {
+  padding-bottom: 0.1rem;
+  border-bottom: 1px solid rgb(43 38 34 / 0.5);
+  font-size: var(--fs-xs);
+  font-style: italic;
+  color: rgb(43 38 34 / 0.7);
+}
+
+.lease-blocked {
+  border-bottom-color: transparent;
+  font-style: normal;
+  color: var(--accent-paper);
+}
+
+.lease-mine {
+  background: #f7eeda;
+}
+
+.lease-mark {
+  position: absolute;
+  right: 0.55rem;
+  top: 0.5rem;
+  padding: 0.1em 0.4em;
+  border: 3px double var(--accent-paper);
+  border-radius: 2px;
+  color: var(--accent-paper);
+  font-family: var(--display);
+  font-size: 0.66rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: rotate(-9deg);
+}
+
+/* Dziennik jako kartka w linie z czerwonym marginesem. */
+.notebook {
+  padding: 0.6rem 0.7rem 0.7rem 2.9rem;
+  border-radius: 2px;
+  background:
+    linear-gradient(to right, transparent 2.3rem, rgb(158 73 33 / 0.35) 2.3rem, rgb(158 73 33 / 0.35) calc(2.3rem + 1px), transparent calc(2.3rem + 1px)),
+    repeating-linear-gradient(to bottom, transparent 0 1.68rem, rgb(43 38 34 / 0.12) 1.68rem 1.7rem),
+    var(--plaque);
+  color: var(--ink);
+  box-shadow: 0 2px 0 rgb(0 0 0 / 0.3);
+}
+
+.notebook .entry {
+  display: block;
+  padding: 0;
+  border-radius: 0;
+  background: none;
+  color: rgb(43 38 34 / 0.85);
+  font-size: var(--fs-xs);
+  line-height: 1.7rem;
+}
+
+.notebook .entry-new {
+  background: none;
+  color: var(--ink);
+  font-weight: 650;
+}
+
+.notebook .entry-week {
+  position: absolute;
+  /* Numer tygodnia stoi na marginesie, czyli poza polem tekstu wpisu. */
+  left: -2.35rem;
+  width: 2rem;
+  color: rgb(158 73 33 / 0.75);
+  font-size: 0.66rem;
+  text-align: right;
+}
+
+.notebook .entry {
+  position: relative;
+}
+
+.notebook .entry-who {
+  margin-right: 0.3em;
+  color: rgb(43 38 34 / 0.5);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.notebook .entry-who-bot {
+  color: var(--accent-paper);
+}
+
+.notebook .entry-text {
+  display: inline;
+}
+
+.notebook .entry-art {
+  display: inline-block;
+  width: 1.6rem;
+  height: 1.1rem;
+  margin-right: 0.35em;
+  vertical-align: -0.2em;
+  border-radius: 1px;
+  object-fit: cover;
+}
+
+.notebook .entry-empty {
+  color: rgb(43 38 34 / 0.5);
+  font-style: italic;
+}
+
 /* Dziennik */
 .journal {
   display: grid;
@@ -2261,6 +2441,100 @@
   }
 }
 
+/* Nasza Kasa: książeczka oszczędnościowa. Papier, tusz, kwity ze stemplem. */
+.passbook {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.8rem 0.85rem 0.9rem;
+  border-radius: 2px;
+  background:
+    linear-gradient(to right, rgb(61 107 140 / 0.16) 0 3px, transparent 3px),
+    var(--plaque);
+  color: var(--ink);
+  box-shadow:
+    0 2px 0 rgb(0 0 0 / 0.35),
+    0 10px 22px rgb(0 0 0 / 0.4);
+}
+
+.passbook .board-head {
+  color: var(--ink);
+}
+
+.passbook .acts-title {
+  color: rgb(43 38 34 / 0.55);
+}
+
+.passbook .hint-toggle {
+  border-color: rgb(43 38 34 / 0.35);
+  color: rgb(43 38 34 / 0.55);
+}
+
+.passbook .jobs-hint {
+  color: rgb(43 38 34 / 0.65);
+}
+
+.passbook-part {
+  display: grid;
+  gap: 0.3rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgb(43 38 34 / 0.2);
+}
+
+.passbook-head {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--display);
+  font-size: var(--fs-s);
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgb(43 38 34 / 0.8);
+}
+
+.passbook-head img {
+  width: 1.3rem;
+  height: 1.3rem;
+}
+
+.passbook-body {
+  display: grid;
+  gap: 0.4rem;
+}
+
+/* Kwit do podbicia: papierowy prostokąt z przerywaną ramką. */
+.chit {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 2.4rem;
+  padding: 0.3rem 0.6rem;
+  border: 1px dashed rgb(43 38 34 / 0.5);
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.35);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: var(--fs-xs);
+  font-weight: 650;
+  font-variant-numeric: tabular-nums;
+  transition:
+    background-color 120ms var(--ease),
+    transform 120ms var(--ease);
+}
+
+.chit:not(:disabled):hover {
+  background: rgb(255 255 255 / 0.7);
+  border-style: solid;
+}
+
+.chit:not(:disabled):active {
+  transform: translateY(1px);
+}
+
+.chit:disabled {
+  opacity: 0.4;
+}
+
 /* Bank */
 .money-block {
   display: grid;
@@ -2280,28 +2554,18 @@
 .bank-wealth {
   margin: 0;
   font-family: var(--display);
-  font-weight: 650;
+  font-weight: 750;
   font-size: var(--fs-m);
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
 }
 
-.bank-section {
-  display: grid;
-  gap: 0.35rem;
-  padding: 0.5rem 0.6rem;
-  border: 1px solid var(--line);
-  border-radius: var(--r);
-  background: var(--table-2);
-}
 
-.bank-body {
-  display: grid;
-  gap: 0.4rem;
-}
 
 .bank-line {
   margin: 0;
-  font-size: var(--fs-s);
-  color: var(--text-2);
+  font-size: var(--fs-xs);
+  color: rgb(43 38 34 / 0.7);
 }
 
 .bank-actions {
@@ -2310,11 +2574,6 @@
   gap: 0.35rem;
 }
 
-.bank-btn {
-  min-height: 2.75rem;
-  padding: 0.45rem 0.75rem;
-  font-size: var(--fs-s);
-}
 
 .spark {
   width: 100%;
@@ -2324,13 +2583,13 @@
 
 .spark-line {
   fill: none;
-  stroke: var(--accent-2);
+  stroke: var(--accent-paper);
   stroke-width: 2;
   stroke-linejoin: round;
 }
 
 .spark-dot {
-  fill: var(--paper);
+  fill: var(--ink);
 }
 
 /* Dojazd ma puentę: okna kafelka zapalają się na moment. */

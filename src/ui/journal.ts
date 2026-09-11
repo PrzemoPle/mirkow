@@ -34,7 +34,7 @@ export function buildJournal(): Journal {
   root.setAttribute("aria-label", t("journalTitle"));
   const title = el("h2", "journal-title");
   title.textContent = t("journalTitle");
-  const list = el("ol", "journal-list");
+  const list = el("ol", "journal-list notebook");
   list.setAttribute("aria-live", "polite");
   const empty = el("li", "entry entry-empty");
   empty.textContent = t("journalEmpty");
@@ -53,7 +53,7 @@ export function buildJournal(): Journal {
       const item = el("li", index === 0 ? "entry entry-new" : "entry");
       const week = el("span", "entry-week");
       week.textContent = `${t("weekShort").replace("{n}", String(entry.week))}`;
-      const who = el("span", entry.who === "bot" ? "plaque entry-who entry-who-bot" : "plaque entry-who");
+      const who = el("span", entry.who === "bot" ? "entry-who entry-who-bot" : "entry-who");
       who.textContent = whoLabel(entry.who);
       const text = el("span", "entry-text");
       if (entry.art !== undefined) {

@@ -10,7 +10,7 @@ import {
   type Player,
 } from "../game";
 import { t } from "../i18n";
-import { artImg, brokenIconUrl, itemArtUrl, moveIconUrl, roomArtUrl } from "./art";
+import { artImg, brokenIconUrl, itemArtUrl, roomArtUrl } from "./art";
 import { blockReason, homeName, itemName } from "./copy";
 import { el } from "./dom";
 import { buildBoardHeading } from "./heading";
@@ -95,7 +95,7 @@ export function buildRoomView(): RoomView {
 export function buildHomeBoard(handlers: HomeHandlers): HomeBoard {
   const root = el("div", "jobs home-board");
   const head = buildBoardHeading("homeTitle", "homeHint");
-  const list = el("div", "jobs-list");
+  const list = el("div", "leases");
   list.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof Element)) {
@@ -116,51 +116,51 @@ export function buildHomeBoard(handlers: HomeHandlers): HomeBoard {
     root,
     sync(state, player, humanTurn) {
       list.replaceChildren();
-      for (const id of homeIds) {
+      for (const [index, id] of homeIds.entries()) {
         const def = getHomeDef(id);
         const mine = player.home.id === id;
         const rent = leaseRent(id, state.economy.phase);
         const block = humanTurn ? relocateBlock(state, id) : null;
-        const row = el("button", mine ? "act job-row job-mine" : "act job-row");
-        row.type = "button";
-        row.dataset.home = id;
-        row.disabled = !humanTurn || block !== null;
-        row.append(artImg(moveIconUrl(), "act-icon pix", "icon"));
-        const name = el("span", "act-name");
+
+        // Umowa najmu jako arkusz papieru z podpisem, nie wiersz listy.
+        const lease = el("button", mine ? "lease lease-mine" : "lease");
+        lease.type = "button";
+        lease.dataset.home = id;
+        lease.disabled = !humanTurn || block !== null;
+        lease.style.setProperty("--tilt", `${[-0.8, 0.6, -0.4][index % 3] ?? 0}deg`);
+
+        const kind = el("span", "lease-kind");
+        kind.textContent = t("homeTitle");
+        const name = el("span", "lease-name");
         name.textContent = homeName(id);
-        if (mine) {
-          const tag = el("span", "plaque job-tag");
-          tag.textContent = `${t("homeYours")} · ${interpolate("homeRent", { n: player.home.rent })}`;
-          name.append(" ", tag);
-        }
-        const meta = el("span", "act-meta");
-        if (block !== null && !(mine && block.code === "sameHome")) {
-          const why = el("span", "act-reason");
-          why.textContent = blockReason(block);
-          meta.append(why);
-        }
-        const chips = [
+
+        const terms = el("span", "lease-terms");
+        terms.textContent = [
           interpolate("homeSlots", { n: def.slots }),
           def.theft ? t("homeTheft") : t("homeSafe"),
           def.happinessWeekly > 0 ? interpolate("homeComfort", { n: def.happinessWeekly }) : null,
           def.depositRents > 0 && !mine ? interpolate("homeDeposit", { n: rent * def.depositRents }) : null,
-        ];
-        for (const chip of chips) {
-          if (chip === null) {
-            continue;
-          }
-          const node = el("span");
-          node.textContent = chip;
-          meta.append(node);
+        ].filter((part): part is string => part !== null).join(" · ");
+
+        const foot = el("span", "lease-foot");
+        const rentLine = el("span", "lease-rent");
+        rentLine.textContent = interpolate("homeRent", { n: mine ? player.home.rent : rent });
+        const sign = el("span", "lease-sign");
+        if (block !== null && !(mine && block.code === "sameHome")) {
+          sign.classList.add("lease-blocked");
+          sign.textContent = blockReason(block);
+        } else {
+          sign.textContent = mine ? t("actResign") : t("actRelocate");
         }
-        const cost = el("span", "act-cost");
-        const money = el("span", "act-money");
-        money.textContent = interpolate("homeRent", { n: rent });
-        const label = el("span", "ticket");
-        label.textContent = mine ? t("actResign") : t("actRelocate");
-        cost.append(money, label);
-        row.append(name, meta, cost);
-        list.append(row);
+        foot.append(rentLine, sign);
+
+        lease.append(kind, name, terms, foot);
+        if (mine) {
+          const mark = el("span", "lease-mark");
+          mark.textContent = t("homeYours");
+          lease.append(mark);
+        }
+        list.append(lease);
       }
     },
   };

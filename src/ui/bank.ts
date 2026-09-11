@@ -28,7 +28,7 @@ export type BankBoard = {
 };
 
 function button(label: string, action: GameAction, state: GameState, humanTurn: boolean, handlers: BankHandlers): HTMLButtonElement {
-  const node = el("button", "btn bank-btn");
+  const node = el("button", "chit");
   node.type = "button";
   const block = humanTurn ? actionBlockFor(state, action) : null;
   node.disabled = !humanTurn || block !== null;
@@ -75,20 +75,20 @@ function sparkline(history: readonly number[]): SVGSVGElement {
 }
 
 function section(icon: string, title: string): { root: HTMLElement; body: HTMLElement } {
-  const root = el("div", "bank-section");
-  const head = el("div", "jobs-company");
+  const root = el("div", "passbook-part");
+  const head = el("div", "passbook-head");
   head.append(artImg(icon, "pix", "icon"));
   const name = el("span");
   name.textContent = title;
   head.append(name);
-  const body = el("div", "bank-body");
+  const body = el("div", "passbook-body");
   root.append(head, body);
   return { root, body };
 }
 
 /** Nasza Kasa: konto, kredyt i akcje MZT z wykresem. */
 export function buildBankBoard(handlers: BankHandlers): BankBoard {
-  const root = el("div", "jobs bank-board");
+  const root = el("div", "passbook");
   const head = buildBoardHeading("bankTitle", "bankHint");
   const wealthLine = el("p", "bank-wealth");
   const account = section(accountIconUrl(), t("bankAccount"));

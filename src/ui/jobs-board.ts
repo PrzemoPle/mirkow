@@ -11,7 +11,7 @@ import {
   type Player,
 } from "../game";
 import { t } from "../i18n";
-import { applyIconUrl, artImg, raiseIconUrl, workIconUrl } from "./art";
+import { artImg, raiseIconUrl } from "./art";
 import { blockReason, companyName, jobName, jobRequirements } from "./copy";
 import { el } from "./dom";
 import { buildBoardHeading } from "./heading";
@@ -31,40 +31,44 @@ function wageNow(state: GameState, def: JobDef): number {
   return Math.round((def.wage * wageMultiplier(state.economy.phase)) / 10) * 10;
 }
 
-function buildJobRow(state: GameState, def: JobDef, reason: string | null, mine: boolean, enabled: boolean): HTMLButtonElement {
-  const row = el("button", mine ? "act job-row job-mine" : "act job-row");
-  row.type = "button";
-  row.dataset.job = def.id;
-  row.disabled = !enabled;
+/**
+ * Oferta jako kartka przypięta do tablicy, nie wiersz tabeli.
+ * Papier, pinezka, płaca przybita pieczątką: to samo, co gracz widzi w PUP.
+ */
+function buildOfferSlip(state: GameState, def: JobDef, reason: string | null, mine: boolean, enabled: boolean, index: number): HTMLButtonElement {
+  const slip = el("button", mine ? "offer offer-mine" : "offer");
+  slip.type = "button";
+  slip.dataset.job = def.id;
+  slip.disabled = !enabled;
+  // Lekki, ale stały przechył: kartki wiszą krzywo, a nie losują się przy każdym odświeżeniu.
+  slip.style.setProperty("--tilt", `${((index % 3) - 1) * 1.1}deg`);
 
-  row.append(artImg(applyIconUrl(), "act-icon pix", "icon"));
-  const name = el("span", "act-name");
-  name.textContent = firstUpper(jobName(def.id));
-  if (mine) {
-    const tag = el("span", "plaque job-tag");
-    tag.textContent = t("jobYours");
-    name.append(" ", tag);
-  }
-  const meta = el("span", "act-meta");
+  const pin = el("span", "offer-pin");
+  pin.setAttribute("aria-hidden", "true");
+
+  const title = el("span", "offer-title");
+  title.textContent = firstUpper(jobName(def.id));
+  const company = el("span", "offer-company");
+  company.textContent = companyName(def.company);
+
+  const wage = el("span", "offer-wage");
+  wage.textContent = formatZl(wageNow(state, def));
+
+  const terms = el("span", "offer-terms");
   if (reason !== null && !mine) {
-    const why = el("span", "act-reason");
-    why.textContent = reason;
-    meta.append(why);
+    terms.classList.add("offer-blocked");
+    terms.textContent = reason;
   } else {
-    for (const chip of jobRequirements(def)) {
-      const node = el("span");
-      node.textContent = chip;
-      meta.append(node);
-    }
+    terms.textContent = [...jobRequirements(def), interpolate("workPrestige", { n: def.prestige })].join(" · ");
   }
-  const cost = el("span", "act-cost");
-  const money = el("span", "act-money act-money-plus");
-  money.textContent = `+${formatZl(wageNow(state, def))}`;
-  const prestige = el("span", "ticket");
-  prestige.textContent = interpolate("workPrestige", { n: def.prestige });
-  cost.append(money, prestige);
-  row.append(name, meta, cost);
-  return row;
+
+  slip.append(pin, title, company, wage, terms);
+  if (mine) {
+    const mark = el("span", "offer-mark");
+    mark.textContent = t("jobYours");
+    slip.append(mark);
+  }
+  return slip;
 }
 
 /** Tablica ofert w PUP: wszystkie stanowiska z powodem blokady plus podwyżka. */
@@ -84,7 +88,7 @@ export function buildJobsBoard(handlers: JobsBoardHandlers): JobsBoard {
   raise.append(raiseName, raiseMeta, raiseCost);
   raise.addEventListener("click", () => handlers.onRaise());
 
-  const list = el("div", "jobs-list");
+  const list = el("div", "jobs-list cork");
   list.addEventListener("click", (event) => {
     const target = event.target;
     if (!(target instanceof Element)) {
@@ -118,26 +122,15 @@ export function buildJobsBoard(handlers: JobsBoardHandlers): JobsBoard {
       }
 
       list.replaceChildren();
-      for (const [company, defs] of jobsByCompany()) {
-        const group = el("div", "jobs-group");
-        const head = el("div", "jobs-company");
-        head.append(artImg(workIconUrl(company), "pix", "icon"));
-        const name = el("span");
-        name.textContent = companyName(company);
-        head.append(name);
-        if (state.economy.hiringFrozen === company) {
-          const frozen = el("span", "plaque jobs-frozen");
-          frozen.textContent = t("blockHiringFrozen");
-          head.append(frozen);
-        }
-        group.append(head);
+      let index = 0;
+      for (const [, defs] of jobsByCompany()) {
         for (const def of defs) {
           const mine = player.job?.id === def.id;
           const block = humanTurn && !mine ? jobBlock(state, def.id) : null;
           const reason = block === null ? null : blockReason(block);
-          group.append(buildJobRow(state, def, reason, mine, humanTurn && block === null && !mine));
+          list.append(buildOfferSlip(state, def, reason, mine, humanTurn && block === null && !mine, index));
+          index += 1;
         }
-        list.append(group);
       }
       const current = player.job === null ? null : getJobDef(player.job.id);
       root.classList.toggle("jobs-employed", current !== null);

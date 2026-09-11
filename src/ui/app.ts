@@ -25,7 +25,7 @@ import {
 } from "../game";
 import { getJobDef } from "../game";
 import { t } from "../i18n";
-import { eventArtUrl } from "./art";
+import { boardMatUrl, eventArtUrl } from "./art";
 import { buildBoard, locationName } from "./board";
 import { browserStore } from "./browser-store";
 import type { SaveStore } from "../game/save";
@@ -615,6 +615,8 @@ export function renderApp(root: HTMLElement): void {
     side.append(stats.root, sideRow);
 
     const rootNode = el("div", "game");
+    // Tekstura blatu jest wspólna dla planszy i dla tablicy ofert, więc żyje na korzeniu.
+    rootNode.style.setProperty("--board-mat", `url("${boardMatUrl()}")`);
     rootNode.append(top.root, strip, board.root, side, panel.root, journal.root, tools);
     return { root: rootNode, top, board, stats, needs, goal, work, panel, journal, status, skip, newGame };
   }

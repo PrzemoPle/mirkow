@@ -159,3 +159,28 @@ Na telefonie plansza nie urosła do 55%, bo jej wysokość wynika z proporcji ka
 3. Nowa informacja wchodzi do interfejsu dopiero, gdy nie powtarza tego, co już jest na ekranie. Przed dodaniem zdania sprawdzić pasek celu, opis miejsca i kwestię postaci.
 4. Reguły list idą pod „i”, nie nad listę.
 5. Każda zmiana liczby ma widoczny skutek w miejscu, gdzie ta liczba stoi.
+
+---
+
+## 10. Wycofana rekomendacja i co z niej wynikło
+
+W §4 „Spójność” napisałem: „Jeden wzorzec »wiersz z ikoną, nazwą, chipami, kosztem po prawej« także dla banku”. **To była zła rada i ją wycofuję.**
+
+Pomiar po wdrożeniu: na ekranie PUP jest 15 elementów listy i **wszystkie mają dokładnie jeden układ** `ikona + nazwa + opis + liczba po prawej`. Ten sam komponent obsługuje tablicę ofert, indeks uczelni, umowy mieszkaniowe, sklepy i listę akcji. To jest ujednolicenie rodem z panelu administracyjnego i dokładnie ten wzorzec, po którym poznaje się interfejs generowany maszynowo: wiersz z ikoną po lewej, tytułem, wyszarzonym podtytułem i wyrównaną do prawej liczbą.
+
+W panelu administracyjnym powtarzalny wiersz jest zaletą, bo użytkownik uczy się jednego układu i stosuje go wszędzie. W grze planszowej jest wadą, bo każde miejsce w mieście ma być innym miejscem, a nie kolejnym rekordem.
+
+### Zasada zamienna: każda lista jest przedmiotem, który przedstawia
+
+| Miejsce | Czym jest naprawdę | Zamiast wiersza |
+|---|---|---|
+| PUP | tablica ogłoszeń | **zrobione:** kartki przypięte pinezkami, płaca przybita pieczątką, zablokowane oferty szare z powodem pisanym rdzawym tuszem |
+| WSMiK | indeks studenta | strony indeksu z wpisami i pieczątkami zaliczeń |
+| Żuczek, Elektro-Mir, Lombard | półka z towarem | przedmioty na półce z metkami cenowymi |
+| Dom | umowa najmu | kartki umów z podpisem i stawką |
+| Nasza Kasa | książeczka oszczędnościowa | rozkładana książeczka z rubrykami |
+| Dziennik | notes | kartka w linie z wpisami, nie log |
+
+Wspólne zostaje to, co ma być wspólne: paleta, cztery stopnie pisma, papier jako materiał tekstu, pieczątka jako gest dla liczb. Różny ma być przedmiot.
+
+**Pierwszy krok wykonany 11 września:** tablica ofert w PUP. Zniknęły też nagłówki firm, bo nazwa firmy jest teraz na każdej kartce, co usunęło pięć wierszy nagłówkowych z ekranu.

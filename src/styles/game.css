@@ -1688,6 +1688,151 @@
   display: none;
 }
 
+/* Tablica ofert w PUP: korkowa deska z przypiętymi kartkami, nie lista wierszy.
+   Każde miejsce w mieście ma dostać własny materiał; to jest pierwsze z nich. */
+.cork {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem 0.8rem 1rem;
+  border-radius: var(--r);
+  background-color: var(--table-3);
+  background-image: var(--board-mat, none);
+  background-size: cover;
+  background-position: center;
+  box-shadow:
+    inset 0 0 0 1px var(--line),
+    inset 0 10px 24px rgb(0 0 0 / 0.4);
+}
+
+.offer {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "title wage"
+    "company wage"
+    "terms terms";
+  align-items: start;
+  gap: 0 0.7rem;
+  padding: 0.8rem 0.85rem 0.65rem;
+  border: 0;
+  border-radius: 2px;
+  background: var(--plaque);
+  color: var(--ink);
+  text-align: left;
+  box-shadow:
+    0 2px 0 rgb(0 0 0 / 0.35),
+    0 7px 16px rgb(0 0 0 / 0.38);
+  transform: rotate(var(--tilt, 0deg));
+  transition:
+    transform 150ms var(--ease),
+    box-shadow 150ms var(--ease);
+}
+
+.offer:not(:disabled):hover {
+  transform: rotate(var(--tilt, 0deg)) translateY(-3px);
+  box-shadow:
+    0 3px 0 rgb(0 0 0 / 0.35),
+    0 12px 22px rgb(0 0 0 / 0.45);
+}
+
+.offer:not(:disabled):active {
+  transform: rotate(var(--tilt, 0deg)) translateY(0) scale(0.995);
+}
+
+.offer:disabled {
+  background: #d9cfba;
+  color: rgb(43 38 34 / 0.62);
+  box-shadow: 0 1px 0 rgb(0 0 0 / 0.3);
+}
+
+/* Pinezka: jedyny okrągły element na kartce, więc od razu czyta się jako pinezka. */
+.offer-pin {
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 36% 30%, #f3aa84, var(--accent) 58%, #8c3a14);
+  box-shadow: 0 2px 3px rgb(0 0 0 / 0.55);
+  transform: translateX(-50%);
+}
+
+.offer:disabled .offer-pin {
+  background: radial-gradient(circle at 36% 30%, #cfc3ad, #9c8a72 60%, #6a5c49);
+}
+
+.offer-title {
+  grid-area: title;
+  font-family: var(--display);
+  font-weight: 700;
+  font-size: var(--fs-m);
+  line-height: 1.15;
+}
+
+.offer-company {
+  grid-area: company;
+  font-size: var(--fs-xs);
+  color: rgb(43 38 34 / 0.58);
+}
+
+/* Płaca przybita pieczątką, tym samym gestem co pieczątka wygranej. */
+.offer-wage {
+  grid-area: wage;
+  align-self: center;
+  padding: 0.1em 0.4em;
+  border: 2px solid var(--accent-paper);
+  border-radius: 3px;
+  color: var(--accent-paper);
+  font-family: var(--display);
+  font-weight: 750;
+  font-size: var(--fs-m);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transform: rotate(-5deg);
+}
+
+.offer:disabled .offer-wage {
+  border-color: rgb(43 38 34 / 0.35);
+  color: rgb(43 38 34 / 0.5);
+}
+
+.offer-terms {
+  grid-area: terms;
+  margin-top: 0.45rem;
+  padding-top: 0.4rem;
+  border-top: 1px dashed rgb(43 38 34 / 0.28);
+  font-size: var(--fs-xs);
+  line-height: 1.35;
+  color: rgb(43 38 34 / 0.72);
+  text-wrap: pretty;
+}
+
+.offer-blocked {
+  color: var(--accent-paper);
+}
+
+.offer-mine {
+  background: #f7eeda;
+}
+
+.offer-mark {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.35rem;
+  padding: 0.1em 0.4em;
+  border: 2px double var(--accent-paper);
+  border-radius: 2px;
+  color: var(--accent-paper);
+  font-family: var(--display);
+  font-size: var(--fs-xs);
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transform: rotate(-8deg);
+}
+
 /* Tablica ofert w PUP */
 .jobs {
   display: grid;
@@ -1708,9 +1853,6 @@
 .jobs-list {
   display: grid;
   gap: 0.6rem;
-  max-height: 24rem;
-  overflow-y: auto;
-  padding-right: 0.2rem;
 }
 
 .jobs-group {
@@ -1750,8 +1892,8 @@
 }
 
 @media (max-width: 1023px) {
-  .jobs-list {
-    max-height: 16rem;
+  .cork {
+    padding: 0.75rem 0.6rem 0.85rem;
   }
 }
 

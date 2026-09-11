@@ -15,7 +15,7 @@ import { t, type MessageKey } from "../i18n";
 import { artImg, boardMatUrl, homeTileArtUrl, parkArtUrl, pawnArtUrl, tileArtUrl } from "./art";
 import { el, svgEl } from "./dom";
 import { interpolate } from "./format";
-import { slide } from "./motion";
+import { prefersReducedMotion, slide } from "./motion";
 
 const EDGE_MS = 380;
 
@@ -243,6 +243,21 @@ export function buildBoard(): Board {
       await slide(pawn.node, previous, next, EDGE_MS);
       previous = next;
     }
+    if (who === "human") {
+      flashArrival(to);
+    }
+  }
+
+  /** Kafelek, na który wjechał pionek, zapala się na moment: dojazd ma puentę. */
+  function flashArrival(id: LocationId): void {
+    const tile = tiles.get(id);
+    if (tile === undefined || prefersReducedMotion()) {
+      return;
+    }
+    tile.classList.remove("tile-arrive");
+    void tile.offsetWidth;
+    tile.classList.add("tile-arrive");
+    window.setTimeout(() => tile.classList.remove("tile-arrive"), 700);
   }
 
   function syncTiles(state: GameState, player: Player, humanTurn: boolean): void {

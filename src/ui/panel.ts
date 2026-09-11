@@ -91,7 +91,7 @@ export function buildPanel(handlers: PanelHandlers): Panel {
   room.root.hidden = true;
   const copy = el("div", "place-copy");
   const placeName = el("span", "plaque place-name");
-  const here = el("span", "plaque plaque-accent place-here");
+  const here = el("span", "plaque place-here");
   here.textContent = t("youAreHere");
   copy.append(placeName, here);
   place.append(art, room.root, copy);
@@ -158,6 +158,10 @@ export function buildPanel(handlers: PanelHandlers): Panel {
 
   let timeLeft = 0;
   let hasLegalAction = false;
+  /** Opis miejsca czyta się raz: przy pierwszej wizycie. Potem zostaje sama postać. */
+  const described = new Set<string>();
+  let describedPlace: string | null = null;
+  let showDescription = false;
 
   function setOpen(open: boolean): void {
     root.classList.toggle("panel-open", open);
@@ -226,7 +230,16 @@ export function buildPanel(handlers: PanelHandlers): Panel {
         room.sync(player);
       }
       placeName.textContent = t(locationName(player.locationId));
-      desc.textContent = placeDescription(player.locationId);
+      if (describedPlace !== player.locationId) {
+        describedPlace = player.locationId;
+        root.classList.remove("panel-enter");
+        void root.offsetWidth;
+        root.classList.add("panel-enter");
+        showDescription = !described.has(player.locationId);
+        described.add(player.locationId);
+        desc.textContent = placeDescription(player.locationId);
+      }
+      desc.hidden = !showDescription;
       const line = npcLine(state, player);
       npc.hidden = line === null;
       if (line !== null) {

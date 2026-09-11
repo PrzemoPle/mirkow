@@ -48,5 +48,14 @@ Turowa gra **Symulator życia** (Mirków). Vite + TypeScript, vanilla DOM, Vites
 - `src/ui/setup.ts` ekran startu z presetami długości partii
 - `src/ui/audio/` muzyka i efekty na Web Audio: `song.ts` (utwór jako dane), `engine.ts` (scheduler, instrumenty, efekty, przełączniki)
 - `src/styles/*.css` tokeny (jeden ciemny motyw, zablokowany), base, game, overlays, setup
+- `src/ui/heading.ts` nagłówek listy z regułami pod „i”; `src/ui/count.ts` przewijanie liczb; `src/ui/feedback.ts` przyrosty wylatujące nad zmienioną liczbą
+
+## Interfejs: reguły z audytu 2026-09-11 (`docs/audyt-design-2026-09-11.md`)
+
+- Pismo tylko z czterech tokenów: `--fs-xs` 12, `--fs-s` 14, `--fs-m` 16, `--fs-l` 22. Bez stopni pośrednich.
+- Wypełnienie akcentem tylko dla tego, co można kliknąć teraz (przycisk główny, podpowiedź kafelka) i dla pieczątki koniunktury. Ostrzeżenia kolorem tekstu.
+- Nie dodawać zdania, które powtarza pasek celu, opis miejsca albo kwestię postaci.
+- Reguły list chowają się pod „i” (`buildBoardHeading`), nie stoją nad listą.
+- Zmiana liczby musi być widoczna w miejscu, gdzie ta liczba stoi (`countTo`, `floatChange`).
 
 Kierunek wizualny: „Wieczór w Mirkowie”, patrz `docs/przeglad-2026-09-05.md`. Briefy grafik: `docs/brief-p2.md`, `brief-p3.md`, `brief-p4.md`, `brief-p5.md`. Audyt UX i status napraw: `docs/audyt-ux-2026-09-05.md`.

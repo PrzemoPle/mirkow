@@ -13,6 +13,8 @@ import { el } from "./dom";
 import { economyLabel } from "./copy";
 import { wealth } from "../game";
 import { formatNumber, formatZl, interpolate, meterPercent } from "./format";
+import { countTo } from "./count";
+import { floatChange } from "./feedback";
 import { getAudioPrefs, onAudioPrefs, setAudioPrefs, sfx, TRACK_IDS, type AudioPrefs, type TrackId } from "./audio";
 
 type MeterField = "money" | "happiness" | "education" | "career";
@@ -24,7 +26,6 @@ const meterFields: readonly { field: MeterField; key: MessageKey; icon: HudIconI
   { field: "career", key: "statCareer", icon: "stat-career", money: false },
 ];
 
-const SEGMENTS = 10;
 
 export type TopBar = {
   root: HTMLElement;
@@ -75,6 +76,7 @@ export function buildTopBar(): TopBar {
   weekBlock.append(economy);
 
   const wallet = el("div", "wallet");
+  wallet.append(buildAudioToggles());
   const moneyBlock = el("div", "money-block");
   const money = el("p", "money");
   const accountLine = el("span", "money-extra");
@@ -86,7 +88,7 @@ export function buildTopBar(): TopBar {
   faces.append(human, bot);
   wallet.append(moneyBlock, faces);
 
-  root.append(brand, weekBlock, buildAudioToggles(), wallet);
+  root.append(brand, weekBlock, wallet);
 
   let lastMoney: number | null = null;
 
@@ -111,6 +113,7 @@ export function buildTopBar(): TopBar {
         ticks.length = 0;
         for (let index = 0; index < state.timeMax; index += 1) {
           const tick = el("span", "tick");
+          tick.style.setProperty("--i", String(index));
           tick.setAttribute("aria-hidden", "true");
           tickets.append(tick);
           ticks.push(tick);
@@ -128,14 +131,10 @@ export function buildTopBar(): TopBar {
       economy.classList.toggle("economy-boom", phase === "boom");
       economy.classList.toggle("economy-recession", phase === "recession");
 
-      money.textContent = formatZl(player.stats.money);
+      countTo(money, lastMoney ?? player.stats.money, player.stats.money, formatZl);
       const extra = player.account + (player.deposit?.amount ?? 0) + player.shares * state.stockPrice - (player.loan?.principal ?? 0);
       accountLine.hidden = extra === 0;
       accountLine.textContent = `${t("wealthLabel")} ${formatZl(wealth(player, state.stockPrice))}`;
-      if (lastMoney !== null && lastMoney !== player.stats.money) {
-        money.classList.add("money-flash");
-        window.setTimeout(() => money.classList.remove("money-flash"), 500);
-      }
       lastMoney = player.stats.money;
 
       syncFace(human, player.avatarId);
@@ -156,7 +155,7 @@ export type StatsPanel = {
 
 export function buildStats(): StatsPanel {
   const root = el("ul", "stats");
-  const rows = new Map<MeterField, { item: HTMLElement; value: HTMLElement; goal: HTMLElement; segs: HTMLElement[]; bar: HTMLElement }>();
+  const rows = new Map<MeterField, { item: HTMLElement; value: HTMLElement; goal: HTMLElement; fill: HTMLElement; bar: HTMLElement; rivalMark: HTMLElement; shown: number | null }>();
 
   for (const meter of meterFields) {
     const item = el("li", "stat");
@@ -165,40 +164,53 @@ export function buildStats(): StatsPanel {
     label.textContent = t(meter.key);
     const value = el("span", "stat-value");
     const goal = el("span", "stat-goal");
-    const bar = el("div", "segs");
+    const bar = el("div", "bar");
     bar.setAttribute("role", "meter");
     bar.setAttribute("aria-label", t(meter.key));
-    const segs: HTMLElement[] = [];
-    for (let index = 0; index < SEGMENTS; index += 1) {
-      const seg = el("span", "seg");
-      bar.append(seg);
-      segs.push(seg);
-    }
-    item.append(label, value, bar);
+    const fill = el("span", "bar-fill");
+    const rivalMark = el("span", "bar-rival");
+    rivalMark.hidden = true;
+    bar.append(fill, rivalMark);
+    item.append(label, value, goal, bar);
     root.append(item);
-    rows.set(meter.field, { item, value, goal, segs, bar });
+    rows.set(meter.field, { item, value, goal, fill, bar, rivalMark, shown: null });
   }
 
   return {
     root,
     sync(state, player) {
+      const rival = getBotPlayer(state);
       for (const meter of meterFields) {
         const row = rows.get(meter.field);
         if (row === undefined) {
           continue;
         }
-        const current = player.stats[meter.field];
         const target = state.goals[meter.field];
-        const shown = meter.money ? wealth(player, state.stockPrice) : current;
-        row.value.textContent = meter.money ? formatZl(shown) : String(shown);
-        row.goal.textContent = ` / ${meter.money ? formatNumber(target) : String(target)}`;
-        row.value.append(row.goal);
-        const filled = Math.round((meterPercent(shown, target) / 100) * SEGMENTS);
-        row.segs.forEach((seg, index) => seg.classList.toggle("seg-on", index < filled));
+        const shown = meter.money ? wealth(player, state.stockPrice) : player.stats[meter.field];
+        const format = (value: number): string => (meter.money ? formatZl(value) : String(value));
+        const before = row.shown;
+        countTo(row.value, before ?? shown, shown, format);
+        if (before !== null && before !== shown) {
+          const delta = shown - before;
+          floatChange(row.value, `${delta > 0 ? "+" : "-"}${format(Math.abs(delta))}`, delta > 0 ? "up" : "down");
+        }
+        row.shown = shown;
+        row.goal.textContent = `/ ${meter.money ? formatNumber(target) : String(target)}`;
+        row.fill.style.width = `${meterPercent(shown, target)}%`;
         row.item.classList.toggle("stat-done", shown >= target);
         row.bar.setAttribute("aria-valuemin", "0");
         row.bar.setAttribute("aria-valuemax", String(target));
         row.bar.setAttribute("aria-valuenow", String(shown));
+        if (rival === undefined) {
+          row.rivalMark.hidden = true;
+          continue;
+        }
+        // Kreska rywala na tym samym pasku: wyścig widać bez drugiego rzędu liczb.
+        const rivalValue = meter.money ? wealth(rival, state.stockPrice) : rival.stats[meter.field];
+        row.rivalMark.hidden = false;
+        row.rivalMark.style.left = `${meterPercent(rivalValue, target)}%`;
+        row.rivalMark.title = `${rival.name}: ${meter.money ? formatZl(rivalValue) : String(rivalValue)}`;
+        row.item.classList.toggle("stat-behind", rivalValue > shown);
       }
     },
   };
@@ -274,7 +286,7 @@ export type GoalLine = {
 /** Jedno zdanie prowadzenia pod paskiem górnym. */
 export function buildGoalLine(): GoalLine {
   const root = el("p", "week-goal");
-  const label = el("span", "plaque plaque-accent week-goal-label");
+  const label = el("span", "plaque week-goal-label");
   label.textContent = t("goalLabel");
   const text = el("span", "week-goal-text");
   root.append(label, text);
@@ -286,43 +298,6 @@ export function buildGoalLine(): GoalLine {
   };
 }
 
-export type RivalRow = {
-  root: HTMLElement;
-  sync(state: GameState): void;
-};
-
-/** Wyniki Kowalskiego pod statami: ta sama czwórka, żeby było widać wyścig. */
-export function buildRivalRow(): RivalRow {
-  const root = el("div", "rival");
-  const face = buildFace("face face-bot rival-face");
-  const name = el("span", "rival-name");
-  const values = el("span", "rival-values");
-  root.append(face, name, values);
-  return {
-    root,
-    sync(state) {
-      const rival = getBotPlayer(state);
-      if (rival === undefined) {
-        root.hidden = true;
-        return;
-      }
-      root.hidden = false;
-      syncFace(face, rival.avatarId);
-      name.textContent = rival.name;
-      values.replaceChildren();
-      for (const meter of meterFields) {
-        const cell = el("span", "rival-cell");
-        cell.append(artImg(hudIconUrl(meter.icon), "pix", "icon"));
-        const value = el("span");
-        const shown = meter.money ? wealth(rival, state.stockPrice) : rival.stats[meter.field];
-        value.textContent = meter.money ? formatZl(shown) : String(shown);
-        cell.append(value);
-        cell.classList.toggle("rival-done", shown >= state.goals[meter.field]);
-        values.append(cell);
-      }
-    },
-  };
-}
 
 function trackName(id: TrackId): string {
   switch (id) {
@@ -339,17 +314,23 @@ function trackName(id: TrackId): string {
   }
 }
 
-/** Grupa „Dźwięk”: wybór utworu (albo cisza) i przełącznik efektów. Stan w localStorage. */
+/**
+ * Dźwięk pod jedną ikoną: wybór utworu i efekty są dostępne, ale nie zajmują
+ * paska górnego ustawieniem, które dotyka się raz.
+ */
 export function buildAudioToggles(): HTMLElement {
-  const root = el("div", "audio");
-  root.setAttribute("role", "group");
-  root.setAttribute("aria-label", t("audioGroup"));
-  const caption = el("span", "audio-caption");
-  caption.textContent = t("audioGroup");
+  const root = el("details", "audio");
+  const summary = el("summary", "audio-button");
+  summary.setAttribute("aria-label", t("audioGroup"));
+  summary.title = t("audioGroup");
+  const glyph = el("span", "audio-glyph audio-glyph-sfx");
+  glyph.setAttribute("aria-hidden", "true");
+  summary.append(glyph);
 
+  const body = el("div", "audio-body");
   const musicLabel = el("label", "audio-field audio-music");
-  const musicIcon = el("span", "audio-glyph audio-glyph-music");
-  musicIcon.setAttribute("aria-hidden", "true");
+  const musicCaption = el("span", "audio-text");
+  musicCaption.textContent = t("audioMusic");
   const select = el("select", "audio-select");
   select.setAttribute("aria-label", t("audioMusic"));
   const off = el("option");
@@ -362,22 +343,24 @@ export function buildAudioToggles(): HTMLElement {
     option.textContent = trackName(id);
     select.append(option);
   }
-  musicLabel.append(musicIcon, select);
+  musicLabel.append(musicCaption, select);
 
   const sfxButton = el("button", "audio-field audio-sfx");
   sfxButton.type = "button";
-  const sfxIcon = el("span", "audio-glyph audio-glyph-sfx");
-  sfxIcon.setAttribute("aria-hidden", "true");
   const sfxText = el("span", "audio-text");
   sfxText.textContent = t("audioSfx");
-  sfxButton.append(sfxIcon, sfxText);
+  const sfxState = el("span", "audio-state");
+  sfxButton.append(sfxText, sfxState);
+
+  body.append(musicLabel, sfxButton);
+  root.append(summary, body);
 
   const sync = (prefs: AudioPrefs): void => {
     select.value = prefs.music ? prefs.track : "off";
-    musicLabel.classList.toggle("audio-off", !prefs.music);
     sfxButton.setAttribute("aria-pressed", prefs.sfx ? "true" : "false");
+    sfxState.textContent = prefs.sfx ? t("audioOn") : t("audioOff");
     sfxButton.classList.toggle("audio-off", !prefs.sfx);
-    sfxButton.title = `${t("audioSfx")}: ${prefs.sfx ? t("audioOn") : t("audioOff")}`;
+    root.classList.toggle("audio-silent", !prefs.music && !prefs.sfx);
   };
   sync(getAudioPrefs());
   onAudioPrefs(sync);
@@ -394,7 +377,11 @@ export function buildAudioToggles(): HTMLElement {
     setAudioPrefs({ ...prefs, sfx: !prefs.sfx });
     sfx("ui");
   });
+  document.addEventListener("click", (event) => {
+    if (root.open && event.target instanceof Node && !root.contains(event.target)) {
+      root.open = false;
+    }
+  });
 
-  root.append(caption, musicLabel, sfxButton);
   return root;
 }

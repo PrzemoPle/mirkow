@@ -56,8 +56,9 @@ test("plays the first week without errors", async ({ page }) => {
   await expect(card.locator(".card-foot")).toContainText("Weekend");
   await card.locator(".card-close").click();
 
-  await expect(page.locator(".status")).toContainText("Twoja tura", { timeout: 20_000 });
-  await expect(page.locator(".week")).toContainText("Tydzień 2");
+  // Pasek statusu milczy, gdy nie ma nic do powiedzenia: nowy tydzień poznajemy po nagłówku i odblokowanym przycisku.
+  await expect(page.locator(".week")).toContainText("Tydzień 2", { timeout: 20_000 });
+  await expect(page.locator(".endweek > .btn")).toBeEnabled();
 
   const broken = await page.evaluate(() => [...document.images].filter((img) => img.complete && img.naturalWidth === 0).map((img) => img.src));
   expect(broken).toEqual([]);

@@ -15,6 +15,7 @@ import { t } from "../i18n";
 import { accountIconUrl, artImg, loanIconUrl, stocksIconUrl } from "./art";
 import { blockReason } from "./copy";
 import { el, svgEl } from "./dom";
+import { buildBoardHeading } from "./heading";
 import { formatZl, interpolate } from "./format";
 
 export type BankHandlers = {
@@ -88,15 +89,12 @@ function section(icon: string, title: string): { root: HTMLElement; body: HTMLEl
 /** Nasza Kasa: konto, kredyt i akcje MZT z wykresem. */
 export function buildBankBoard(handlers: BankHandlers): BankBoard {
   const root = el("div", "jobs bank-board");
-  const title = el("h3", "acts-title");
-  title.textContent = t("bankTitle");
-  const hint = el("p", "jobs-hint");
-  hint.textContent = t("bankHint");
+  const head = buildBoardHeading("bankTitle", "bankHint");
   const wealthLine = el("p", "bank-wealth");
   const account = section(accountIconUrl(), t("bankAccount"));
   const loan = section(loanIconUrl(), t("bankLoan"));
   const stocks = section(stocksIconUrl(), t("bankStocks"));
-  root.append(title, hint, wealthLine, account.root, loan.root, stocks.root);
+  root.append(head, wealthLine, account.root, loan.root, stocks.root);
 
   return {
     root,

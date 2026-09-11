@@ -16,6 +16,7 @@ import { t } from "../i18n";
 import { artImg, diplomaArtUrl } from "./art";
 import { blockReason, diplomaName, jobName } from "./copy";
 import { el } from "./dom";
+import { buildBoardHeading } from "./heading";
 import { interpolate } from "./format";
 
 export type CampusHandlers = {
@@ -38,10 +39,7 @@ function unlocks(diploma: DiplomaId): string {
 /** Indeks w WSMiK: siedem dyplomów z postępem, szansą zdania i tym, co otwierają. */
 export function buildCampusBoard(handlers: CampusHandlers): CampusBoard {
   const root = el("div", "jobs campus");
-  const title = el("h3", "acts-title");
-  title.textContent = t("campusTitle");
-  const hint = el("p", "jobs-hint");
-  hint.textContent = t("campusHint");
+  const head = buildBoardHeading("campusTitle", "campusHint");
   const list = el("div", "jobs-list");
   list.addEventListener("click", (event) => {
     const target = event.target;
@@ -57,7 +55,7 @@ export function buildCampusBoard(handlers: CampusHandlers): CampusBoard {
       handlers.onEnroll(diploma as DiplomaId);
     }
   });
-  root.append(title, hint, list);
+  root.append(head, list);
 
   return {
     root,
@@ -81,7 +79,7 @@ export function buildCampusBoard(handlers: CampusHandlers): CampusBoard {
         const name = el("span", "act-name");
         name.textContent = diplomaName(id);
         if (done || studying) {
-          const tag = el("span", done ? "plaque job-tag" : "plaque plaque-accent job-tag");
+          const tag = el("span", "plaque job-tag");
           tag.textContent = done ? t("campusDone") : t("campusStudying");
           name.append(" ", tag);
         }
@@ -104,7 +102,7 @@ export function buildCampusBoard(handlers: CampusHandlers): CampusBoard {
           cost.textContent = interpolate("campusClassCost", { money: def.classCost, time: def.classTime });
           meta.append(cost);
         }
-        const opens = unlocks(id);
+        const opens = done ? "" : unlocks(id);
         if (opens !== "") {
           const chip = el("span", "diploma-unlocks");
           chip.textContent = opens;

@@ -129,3 +129,33 @@ Nie zmieniam palety ani grafik. Nie dodaję nowych ekranów, zakładek ani ustaw
 ## 7. Jak sprawdzę, że pomogło
 
 Ten sam pomiar co w §1, na tym samym zapisie z tygodnia 41. Cel: poniżej 120 słów, poniżej 20 liczb, poniżej 40 pudełek, 4 rozmiary pisma, maksymalnie 3 elementy w akcencie, plansza powyżej 55% pierwszego ekranu na telefonie.
+
+---
+
+## 8. Wynik, 11 września 2026
+
+Grupy A–D wdrożone. Ten sam pomiar, ten sam zapis (tydzień 41, WSMiK, desktop 1440 × 900):
+
+| Co | Przed | Po | Cel |
+|---|---|---|---|
+| Rozmiary pisma | 11 | **4** | 4 |
+| Elementy w akcencie | 31 | **3** | 3 |
+| Ramki i pudełka | 74 | 66 | 40 |
+| Słowa | 201 | 190 | 120 |
+| Liczby | 42 | 46 | 20 |
+| Telefon: początek planszy | 295 px | **199 px** | poniżej 180 px |
+| Telefon: udział planszy | 44% | **50%** | ponad 55% |
+
+**Dwa cele chybione i dlaczego nie gonię ich dalej.** Sama plansza to 34 pudełka, 40 słów i 11 liczb: dwanaście kafelków, z których każdy ma tabliczkę z nazwą i bilet z kosztem dojazdu. To nie jest nadmiar, to jest gra. Gdybym ściął liczby do dwudziestu, musiałbym zabrać koszty dojazdu albo progi przy statystykach, czyli informacje, na których stoi decyzja gracza. Cel z §7 był policzony bez tego rozróżnienia i był po prostu źle postawiony.
+
+Na telefonie plansza nie urosła do 55%, bo jej wysokość wynika z proporcji kafelków. Podniosłem je z 4:3 do 8:7 i cała plansza mieści się teraz nad dolną kartą, czego wcześniej nie robiła. Właściwą regułą jest „cała plansza widoczna bez przewijania”, nie procent.
+
+**Co realnie zmieniło odbiór:** cztery stopnie pisma zamiast jedenastu, trzy elementy w akcencie zamiast trzydziestu jeden, brak powtórzeń w tekście i odpowiedź w miejscu kliknięcia. Gęstość informacji spadła mniej niż gęstość szumu, i o to chodziło.
+
+## 9. Czego pilnować przy kolejnych zmianach
+
+1. Rozmiar pisma tylko z czterech tokenów `--fs-xs`, `--fs-s`, `--fs-m`, `--fs-l`. Nie dokładać stopni.
+2. Wypełnienie akcentem tylko tam, gdzie coś jest do kliknięcia teraz. Ostrzeżenia kolorem tekstu, nie tła.
+3. Nowa informacja wchodzi do interfejsu dopiero, gdy nie powtarza tego, co już jest na ekranie. Przed dodaniem zdania sprawdzić pasek celu, opis miejsca i kwestię postaci.
+4. Reguły list idą pod „i”, nie nad listę.
+5. Każda zmiana liczby ma widoczny skutek w miejscu, gdzie ta liczba stoi.

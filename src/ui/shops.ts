@@ -16,6 +16,7 @@ import { t } from "../i18n";
 import { artImg, brokenIconUrl, buyItemIconUrl, itemArtUrl, repairIconUrl, sellIconUrl } from "./art";
 import { blockReason, itemEffect, itemName } from "./copy";
 import { el } from "./dom";
+import { buildBoardHeading } from "./heading";
 import { formatZl, interpolate } from "./format";
 
 export type ShopHandlers = {
@@ -102,13 +103,10 @@ function attach(list: HTMLElement, handlers: ShopHandlers): void {
 /** Elektro-Mir: nowe sprzęty i naprawa zepsutych. */
 export function buildElektroBoard(handlers: ShopHandlers): ShopBoard {
   const root = el("div", "jobs shop-board");
-  const title = el("h3", "acts-title");
-  title.textContent = t("elektroTitle");
-  const hint = el("p", "jobs-hint");
-  hint.textContent = t("elektroHint");
+  const head = buildBoardHeading("elektroTitle", "elektroHint");
   const list = el("div", "jobs-list");
   attach(list, handlers);
-  root.append(title, hint, list);
+  root.append(head, list);
   return {
     root,
     sync(state, player, humanTurn) {
@@ -145,13 +143,10 @@ export function buildElektroBoard(handlers: ShopHandlers): ShopBoard {
 /** Lombard: używane sprzęty i skup własnych. */
 export function buildLombardBoard(handlers: ShopHandlers): ShopBoard {
   const root = el("div", "jobs shop-board");
-  const title = el("h3", "acts-title");
-  title.textContent = t("lombardTitle");
-  const hint = el("p", "jobs-hint");
-  hint.textContent = t("lombardHint");
+  const head = buildBoardHeading("lombardTitle", "lombardHint");
   const list = el("div", "jobs-list");
   attach(list, handlers);
-  root.append(title, hint, list);
+  root.append(head, list);
   return {
     root,
     sync(state, player, humanTurn) {

@@ -29,12 +29,12 @@ import { eventArtUrl } from "./art";
 import { buildBoard, locationName } from "./board";
 import { browserStore } from "./browser-store";
 import type { SaveStore } from "../game/save";
-import { actedMessage, actionLabel, companyName, diplomaName, effectLine, eventMessage, homeName, itemName, jobName, noticeTitle, placeDescription, rivalCard, weekendArt, weekGoal } from "./copy";
+import { actedMessage, actionLabel, companyName, diplomaName, effectLine, eventMessage, homeName, itemName, jobName, noticeTitle, rivalCard, weekendArt, weekGoal } from "./copy";
 import { sellPrice } from "../game";
 import { el } from "./dom";
 import { errorMessage } from "./errors";
 import { interpolate } from "./format";
-import { buildGoalLine, buildNeeds, buildRivalRow, buildStats, buildTopBar } from "./hud";
+import { buildGoalLine, buildNeeds, buildStats, buildTopBar } from "./hud";
 import { buildJournal } from "./journal";
 import { setFastForward, wait } from "./motion";
 import { showEventCard, showHowToCard, showNoticeCard, showRivalCard, showVictory } from "./overlays";
@@ -57,7 +57,6 @@ type Shell = {
   stats: ReturnType<typeof buildStats>;
   needs: ReturnType<typeof buildNeeds>;
   goal: ReturnType<typeof buildGoalLine>;
-  rival: ReturnType<typeof buildRivalRow>;
   work: ReturnType<typeof buildWorkCard>;
   panel: ReturnType<typeof buildPanel>;
   journal: ReturnType<typeof buildJournal>;
@@ -117,6 +116,7 @@ export function renderApp(root: HTMLElement): void {
     return !busy && isHumanTurn(state);
   }
 
+  /** Pusty tekst znaczy „nie ma nic do powiedzenia”: pasek znika, bo tura jest już w nagłówku. */
   function statusText(): string {
     if (lastError !== null) {
       return errorMessage(lastError);
@@ -127,7 +127,7 @@ export function renderApp(root: HTMLElement): void {
     if (busy) {
       return t("botPlaying");
     }
-    return t("turnYours");
+    return "";
   }
 
   function paint(message?: string): void {
@@ -146,7 +146,6 @@ export function renderApp(root: HTMLElement): void {
     shell.stats.sync(state, player);
     shell.needs.sync(player);
     shell.goal.sync({ ...state, timeLeft: shownTime }, player);
-    shell.rival.sync(state);
     shell.work.sync(state, player);
     shell.panel.sync({ ...state, timeLeft: shownTime }, player, turn);
     shell.board.syncTiles({ ...state, timeLeft: shownTime }, player, turn);
@@ -202,7 +201,7 @@ export function renderApp(root: HTMLElement): void {
     sfx("move");
     await shell.board.travel("human", state, player.locationId, to);
     busy = false;
-    paint(`${t(locationName(to))}. ${placeDescription(to)}`);
+    paint(`${t(locationName(to))}.`);
     if (isMobile()) {
       shell.panel.setOpen(true);
     }
@@ -564,7 +563,6 @@ export function renderApp(root: HTMLElement): void {
     const stats = buildStats();
     const needs = buildNeeds();
     const goal = buildGoalLine();
-    const rival = buildRivalRow();
     const work = buildWorkCard();
     const panel = buildPanel({
       onAct: applyAct,
@@ -614,11 +612,11 @@ export function renderApp(root: HTMLElement): void {
     const side = el("div", "side");
     const sideRow = el("div", "side-row");
     sideRow.append(work.root, needs.root);
-    side.append(stats.root, rival.root, sideRow);
+    side.append(stats.root, sideRow);
 
     const rootNode = el("div", "game");
     rootNode.append(top.root, strip, board.root, side, panel.root, journal.root, tools);
-    return { root: rootNode, top, board, stats, needs, goal, rival, work, panel, journal, status, skip, newGame };
+    return { root: rootNode, top, board, stats, needs, goal, work, panel, journal, status, skip, newGame };
   }
 
   function mountPlay(fresh = false): void {

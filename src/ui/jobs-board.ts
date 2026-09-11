@@ -14,6 +14,7 @@ import { t } from "../i18n";
 import { applyIconUrl, artImg, raiseIconUrl, workIconUrl } from "./art";
 import { blockReason, companyName, jobName, jobRequirements } from "./copy";
 import { el } from "./dom";
+import { buildBoardHeading } from "./heading";
 import { firstUpper, formatZl, interpolate } from "./format";
 
 export type JobsBoardHandlers = {
@@ -40,7 +41,7 @@ function buildJobRow(state: GameState, def: JobDef, reason: string | null, mine:
   const name = el("span", "act-name");
   name.textContent = firstUpper(jobName(def.id));
   if (mine) {
-    const tag = el("span", "plaque plaque-accent job-tag");
+    const tag = el("span", "plaque job-tag");
     tag.textContent = t("jobYours");
     name.append(" ", tag);
   }
@@ -69,10 +70,7 @@ function buildJobRow(state: GameState, def: JobDef, reason: string | null, mine:
 /** Tablica ofert w PUP: wszystkie stanowiska z powodem blokady plus podwyżka. */
 export function buildJobsBoard(handlers: JobsBoardHandlers): JobsBoard {
   const root = el("div", "jobs");
-  const title = el("h3", "acts-title");
-  title.textContent = t("jobsTitle");
-  const hint = el("p", "jobs-hint");
-  hint.textContent = t("jobsHint");
+  const head = buildBoardHeading("jobsTitle", "jobsHint");
   const raise = el("button", "act");
   raise.type = "button";
   raise.append(artImg(raiseIconUrl(), "act-icon pix", "icon"));
@@ -102,7 +100,7 @@ export function buildJobsBoard(handlers: JobsBoardHandlers): JobsBoard {
     }
   });
 
-  root.append(title, hint, raise, list);
+  root.append(head, raise, list);
 
   return {
     root,

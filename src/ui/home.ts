@@ -13,6 +13,7 @@ import { t } from "../i18n";
 import { artImg, brokenIconUrl, itemArtUrl, moveIconUrl, roomArtUrl } from "./art";
 import { blockReason, homeName, itemName } from "./copy";
 import { el } from "./dom";
+import { buildBoardHeading } from "./heading";
 import { interpolate } from "./format";
 
 export type HomeHandlers = {
@@ -84,10 +85,8 @@ export function buildRoomView(): RoomView {
         layer.append(node);
       }
       const slots = getHomeDef(player.home.id).slots;
-      caption.textContent =
-        player.items.length === 0
-          ? t("roomEmpty")
-          : interpolate("roomSlots", { have: player.items.length, slots });
+      caption.hidden = player.items.length === 0;
+      caption.textContent = interpolate("roomSlots", { have: player.items.length, slots });
     },
   };
 }
@@ -95,10 +94,7 @@ export function buildRoomView(): RoomView {
 /** Lista trzech mieszkań z powodem blokady i stawką z dnia. */
 export function buildHomeBoard(handlers: HomeHandlers): HomeBoard {
   const root = el("div", "jobs home-board");
-  const title = el("h3", "acts-title");
-  title.textContent = t("homeTitle");
-  const hint = el("p", "jobs-hint");
-  hint.textContent = t("homeHint");
+  const head = buildBoardHeading("homeTitle", "homeHint");
   const list = el("div", "jobs-list");
   list.addEventListener("click", (event) => {
     const target = event.target;
@@ -114,7 +110,7 @@ export function buildHomeBoard(handlers: HomeHandlers): HomeBoard {
       handlers.onRelocate(home as HomeId);
     }
   });
-  root.append(title, hint, list);
+  root.append(head, list);
 
   return {
     root,
@@ -133,7 +129,7 @@ export function buildHomeBoard(handlers: HomeHandlers): HomeBoard {
         const name = el("span", "act-name");
         name.textContent = homeName(id);
         if (mine) {
-          const tag = el("span", "plaque plaque-accent job-tag");
+          const tag = el("span", "plaque job-tag");
           tag.textContent = `${t("homeYours")} · ${interpolate("homeRent", { n: player.home.rent })}`;
           name.append(" ", tag);
         }
